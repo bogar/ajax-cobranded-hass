@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-13
+
+### Added
+- IMEI sensor for hub cellular modem identifier
+- 11 new language translations (Ukrainian, Polish, German, French, Italian, Portuguese, Dutch, Turkish, Romanian, Czech, Brazilian Portuguese) — total 14 languages
+- Example automations (21) for alerts, auto-arm, battery monitoring, and more
+- Example Lovelace security dashboard (6-section panel)
+
+### Changed
+- GSM type sensor now shows text (2G/3G/4G) instead of raw number
+- Removed redundant SIM status sensor (already covered by Cellular connected)
+
+### Fixed
+- SIM data now fetched on first refresh (entities created at setup)
+- SIM sensors no longer use numeric state_class (string values)
+
+### Security
+- Automatic migration of legacy plaintext passwords to SHA-256 hash
+- Photo URL domain validation prevents SSRF (only `*.ajax.systems` accepted)
+- FCM credentials added to diagnostics redaction set
+- Email removed from debug log messages
+- Narrowed exception catch from BaseException to Exception
+- Internal design docs removed from public repository
+
 ## [0.3.0] - 2026-04-12
 
 ### Added
@@ -28,11 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `via_device` references corrected across all entity platforms
 - Security: removed sensitive data from debug logs
 - Security: FCM API key no longer in source code
-
-### Security
-- FCM credentials moved from hardcoded constants to user-provided options
-- Push notification data no longer logged
-- Product images removed (copyright)
 
 ## [0.2.0] - 2026-04-12
 
