@@ -1,0 +1,637 @@
+###############################################################################
+# Ajax Security System — Home Assistant Automations
+#
+# Entity naming convention (based on ajax_cobranded integration):
+#   alarm_control_panel.my_hub
+#   binary_sensor.<device_slug>_<sensor_type>
+#   sensor.<device_slug>_<sensor_type>
+#   button.<device_slug>_capture_photo
+#   camera.<device_slug>
+#
+# Device slugs:
+#   kitchen_door, bedroom_door, main_door, bedroom_window, bedroom2_window, dressing_window
+#   hallway, dining, keypad, my_hub (hub)
+#
+# Requires: a notification service (notify.mobile_app_xxx or notify.notify)
+#           Adjust "notify.mobile_app_user" to your actual service.
+###############################################################################
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. ALARM TRIGGERED — Critical push + camera capture
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_alarm_triggered
+  alias: "Alarma - Sistema disparat"
+  description: "Alert and capture photos when the alarm is triggered"
+  triggers:
+    - trigger: state
+      entity_id: alarm_control_panel.my_hub
+      to: "triggered"
+  actions:
+    - action: button.press
+      target:
+        entity_id:
+          - button.hallway_capturar_foto
+          - button.dining_capturar_foto
+    - action: notify.mobile_app_user
+      data:
+        title: "ALARMA DISPARADA!"
+        message: >-
+          El sistema d'alarma s'ha disparat.
+          Estat anterior: {{ trigger.from_state.state }}
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 1.0
+          tag: alarm-triggered
+          priority: high
+          ttl: 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. ALARM STATE CHANGES — Notify on arm/disarm/night
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_alarm_state_change
+  alias: "Alarma - Canvi d'estat"
+  description: "Notify when alarm is armed, disarmed, or set to night mode"
+  triggers:
+    - trigger: state
+      entity_id: alarm_control_panel.my_hub
+      to:
+        - "armed_away"
+        - "armed_night"
+        - "armed_home"
+        - "disarmed"
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma Ajax"
+        message: >-
+          {% set states_map = {
+            'armed_away': 'Armada (fora)',
+            'armed_night': 'Mode nit',
+            'armed_home': 'Armada (casa)',
+            'disarmed': 'Desarmada'
+          } %}
+          Estat: {{ states_map.get(states('alarm_control_panel.my_hub'), 'Desconegut') }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. HUB OFFLINE — Alert when hub loses connectivity
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_hub_offline
+  alias: "Alarma - Hub desconnectat"
+  description: "Alert when the Ajax hub goes offline"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.my_hub_connectivity
+      to: "off"
+      for:
+        minutes: 2
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "ALARMA - Hub Offline!"
+        message: >-
+          El hub Ajax ha perdut la connexio fa mes de 2 minuts.
+          Comprova la connexio a internet i l'alimentacio.
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 0.8
+          tag: hub-offline
+          priority: high
+          ttl: 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. HUB BACK ONLINE
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_hub_back_online
+  alias: "Alarma - Hub reconnectat"
+  description: "Notify when hub connectivity is restored"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.my_hub_connectivity
+      to: "on"
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.from_state.state == 'off' }}"
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma Ajax"
+        message: "El hub ha recuperat la connexio."
+        data:
+          tag: hub-offline
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. LOW BATTERY on any device
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_low_battery
+  alias: "Alarma - Bateria baixa"
+  description: "Alert when any Ajax device battery drops below 15%"
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.kitchen_door_battery
+        - sensor.bedroom_door_battery
+        - sensor.main_door_battery
+        - sensor.bedroom_window_battery
+        - sensor.bedroom2_window_battery
+        - sensor.dressing_window_battery
+        - sensor.hallway_battery
+        - sensor.dining_battery
+        - sensor.keypad_battery
+        - sensor.my_hub_battery
+      below: 15
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma - Bateria baixa"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}%
+        data:
+          tag: "battery-low-{{ trigger.entity_id }}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. CRITICAL BATTERY (below 5%)
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_critical_battery
+  alias: "Alarma - Bateria critica"
+  description: "Critical alert when any device battery is below 5%"
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.kitchen_door_battery
+        - sensor.bedroom_door_battery
+        - sensor.main_door_battery
+        - sensor.bedroom_window_battery
+        - sensor.bedroom2_window_battery
+        - sensor.dressing_window_battery
+        - sensor.hallway_battery
+        - sensor.dining_battery
+        - sensor.keypad_battery
+        - sensor.my_hub_battery
+      below: 5
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "BATERIA CRITICA!"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}% — Substituir immediatament!
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 0.8
+          tag: "battery-critical-{{ trigger.entity_id }}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. DOOR/WINDOW LEFT OPEN too long
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_door_left_open
+  alias: "Alarma - Porta/finestra oberta massa temps"
+  description: "Alert when a door or window has been open for more than 10 minutes"
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.kitchen_door_door
+        - binary_sensor.bedroom_door_door
+        - binary_sensor.main_door_door
+        - binary_sensor.bedroom_window_door
+        - binary_sensor.bedroom2_window_door
+        - binary_sensor.dressing_window_door
+      to: "on"
+      for:
+        minutes: 10
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Porta/finestra oberta"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }} main_door mes de 10 minuts oberta.
+        data:
+          tag: "door-open-{{ trigger.entity_id }}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. MAIN DOOR opens while alarm is armed (nobody home)
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_main_door_opens_armed
+  alias: "Alarma - Porta principal oberta amb alarma"
+  description: "Alert if main door opens while system is armed (away)"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.main_door_door
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: alarm_control_panel.my_hub
+      state: "armed_away"
+  actions:
+    - action: button.press
+      target:
+        entity_id:
+          - button.hallway_capturar_foto
+          - button.dining_capturar_foto
+    - action: notify.mobile_app_user
+      data:
+        title: "ALERTA - Porta principal oberta!"
+        message: >-
+          La main_door principal s'ha obert amb l'alarma armada.
+          S'han capturat fotos de les cameres.
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 1.0
+          tag: main-door-armed
+          priority: high
+          ttl: 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. TAMPER ALERT on any device
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_tamper_alert
+  alias: "Alarma - Manipulacio detectada"
+  description: "Alert when tamper is detected on any Ajax device"
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.kitchen_door_tamper
+        - binary_sensor.bedroom_door_tamper
+        - binary_sensor.main_door_tamper
+        - binary_sensor.bedroom_window_tamper
+        - binary_sensor.bedroom2_window_tamper
+        - binary_sensor.dressing_window_tamper
+        - binary_sensor.hallway_tamper
+        - binary_sensor.dining_tamper
+        - binary_sensor.keypad_tamper
+      to: "on"
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "ALERTA - Manipulacio!"
+        message: >-
+          Manipulacio detectada a: {{ trigger.to_state.attributes.friendly_name }}
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 1.0
+          tag: "tamper-{{ trigger.entity_id }}"
+          priority: high
+          ttl: 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 10. HUB LID OPENED (physical tamper)
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_hub_lid_opened
+  alias: "Alarma - Tapa del hub oberta"
+  description: "Alert when the hub lid/enclosure is opened"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.my_hub_lid_opened
+      to: "on"
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "ALERTA - Tapa del hub oberta!"
+        message: >-
+          La carcassa del hub Ajax s'ha obert. Possible intent de manipulacio.
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 1.0
+          tag: hub-lid-tamper
+          priority: high
+          ttl: 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 11. CRA MONITORING DISCONNECTED
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_cra_disconnected
+  alias: "Alarma - CRA desconnectada"
+  description: "Alert when CRA (Central Receptora d'Alarmes) monitoring is lost"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.my_hub_cra_connection
+      to: "off"
+      for:
+        minutes: 1
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "ALERTA - CRA desconnectada!"
+        message: >-
+          La connexio amb la Central Receptora d'Alarmes s'ha perdut.
+          Contacta amb Protegim si no es restaura en breu.
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 0.8
+          tag: cra-disconnected
+          priority: high
+          ttl: 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 12. CRA MONITORING RESTORED
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_cra_restored
+  alias: "Alarma - CRA restaurada"
+  description: "Notify when CRA monitoring connection is restored"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.my_hub_cra_connection
+      to: "on"
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.from_state.state == 'off' }}"
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma Ajax"
+        message: "Connexio amb la CRA restaurada correctament."
+        data:
+          tag: cra-disconnected
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 13. CELLULAR CONNECTION LOST
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_cellular_disconnected
+  alias: "Alarma - Connexio cellular perduda"
+  description: "Alert when hub loses cellular/4G connection"
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.my_hub_cellular_connected
+      to: "off"
+      for:
+        minutes: 5
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma - Connexio 4G perduda"
+        message: >-
+          El hub ha perdut la connexio cellular (4G) fa mes de 5 minuts.
+          Pot afectar la comunicacio amb la CRA.
+        data:
+          tag: cellular-disconnected
+          priority: high
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 14. TEMPERATURE ANOMALY (high)
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_temperature_high
+  alias: "Alarma - Temperatura alta"
+  description: "Alert when any sensor detects temperature above 40C"
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.kitchen_door_temperature
+        - sensor.bedroom_door_temperature
+        - sensor.main_door_temperature
+        - sensor.bedroom_window_temperature
+        - sensor.bedroom2_window_temperature
+        - sensor.dressing_window_temperature
+        - sensor.hallway_temperature
+        - sensor.dining_temperature
+        - sensor.keypad_temperature
+      above: 40
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "ALERTA - Temperatura alta!"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}°C
+          Temperatura anormalment alta detectada.
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 0.8
+          tag: "temp-high-{{ trigger.entity_id }}"
+          priority: high
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 15. TEMPERATURE ANOMALY (low — possible heating failure)
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_temperature_low
+  alias: "Alarma - Temperatura baixa"
+  description: "Alert when temperature drops below 5C (possible heating failure or break-in)"
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.kitchen_door_temperature
+        - sensor.bedroom_door_temperature
+        - sensor.main_door_temperature
+        - sensor.bedroom_window_temperature
+        - sensor.bedroom2_window_temperature
+        - sensor.dressing_window_temperature
+        - sensor.hallway_temperature
+        - sensor.dining_temperature
+        - sensor.keypad_temperature
+      below: 5
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma - Temperatura baixa"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}°C
+          Temperatura molt baixa — comprova la calefaccio.
+        data:
+          tag: "temp-low-{{ trigger.entity_id }}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 16. AUTO-ARM at night (23:00)
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_auto_arm_night
+  alias: "Alarma - Armar automaticament a la nit"
+  description: "Automatically arm in night mode at 23:00 if currently disarmed"
+  triggers:
+    - trigger: time
+      at: "23:00:00"
+  conditions:
+    - condition: state
+      entity_id: alarm_control_panel.my_hub
+      state: "disarmed"
+  actions:
+    - action: alarm_control_panel.alarm_arm_night
+      target:
+        entity_id: alarm_control_panel.my_hub
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma Ajax"
+        message: "Mode nit activat automaticament (23:00)."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 17. AUTO-ARM when everyone leaves
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_auto_arm_away
+  alias: "Alarma - Armar quan tothom surt"
+  description: "Auto-arm when everyone leaves home (uses zone.home person tracking)"
+  triggers:
+    - trigger: state
+      entity_id: zone.home
+      to: "0"
+      for:
+        minutes: 5
+  conditions:
+    - condition: state
+      entity_id: alarm_control_panel.my_hub
+      state: "disarmed"
+  actions:
+    - action: alarm_control_panel.alarm_arm_away
+      target:
+        entity_id: alarm_control_panel.my_hub
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma Ajax"
+        message: "Alarma armada automaticament — tothom ha sortit de casa."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 18. AUTO-DISARM when arriving home
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_auto_disarm_arrive
+  alias: "Alarma - Desarmar en arribar a casa"
+  description: "Auto-disarm when the first person arrives home"
+  triggers:
+    - trigger: state
+      entity_id: zone.home
+      from: "0"
+  conditions:
+    - condition: state
+      entity_id: alarm_control_panel.my_hub
+      state:
+        - "armed_away"
+        - "armed_night"
+  actions:
+    - action: alarm_control_panel.alarm_disarm
+      target:
+        entity_id: alarm_control_panel.my_hub
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma Ajax"
+        message: "Alarma desarmada — benvingut a casa."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 19. SENSOR OFFLINE — any device loses connectivity
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_sensor_offline
+  alias: "Alarma - Sensor desconnectat"
+  description: "Alert when any Ajax sensor goes offline"
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.kitchen_door_connectivity
+        - binary_sensor.bedroom_door_connectivity
+        - binary_sensor.main_door_connectivity
+        - binary_sensor.bedroom_window_connectivity
+        - binary_sensor.bedroom2_window_connectivity
+        - binary_sensor.dressing_window_connectivity
+        - binary_sensor.hallway_connectivity
+        - binary_sensor.dining_connectivity
+        - binary_sensor.keypad_connectivity
+      to: "off"
+      for:
+        minutes: 10
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma - Sensor offline"
+        message: >-
+          {{ trigger.to_state.attributes.friendly_name }} ha perdut la connexio fa mes de 10 minuts.
+        data:
+          tag: "sensor-offline-{{ trigger.entity_id }}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 20. PROBLEM DETECTED on any device
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_device_problem
+  alias: "Alarma - Problema en dispositiu"
+  description: "Alert when any device reports a problem/malfunction"
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.kitchen_door_problem
+        - binary_sensor.bedroom_door_problem
+        - binary_sensor.main_door_problem
+        - binary_sensor.bedroom_window_problem
+        - binary_sensor.bedroom2_window_problem
+        - binary_sensor.dressing_window_problem
+        - binary_sensor.hallway_problem
+        - binary_sensor.dining_problem
+        - binary_sensor.keypad_problem
+        - binary_sensor.my_hub_problem
+      to: "on"
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Alarma - Problema detectat"
+        message: >-
+          Problema detectat a: {{ trigger.to_state.attributes.friendly_name }}
+          {% if trigger.to_state.attributes.malfunctions_count is defined %}
+          Nombre de problemes: {{ trigger.to_state.attributes.malfunctions_count }}
+          {% endif %}
+        data:
+          tag: "problem-{{ trigger.entity_id }}"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 21. REMINDER: Check open doors/windows before arming at night
+# ─────────────────────────────────────────────────────────────────────────────
+- id: ajax_open_check_before_night
+  alias: "Alarma - Recordatori portes obertes a la nit"
+  description: "Reminder at 22:30 if any doors/windows are open"
+  triggers:
+    - trigger: time
+      at: "22:30:00"
+  conditions:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.kitchen_door_door
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.bedroom_door_door
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.main_door_door
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.bedroom_window_door
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.bedroom2_window_door
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.dressing_window_door
+          state: "on"
+  actions:
+    - action: notify.mobile_app_user
+      data:
+        title: "Recordatori — Portes obertes"
+        message: >-
+          Abans d'anar a dormir, comprova:
+          {% set sensors = [
+            ('Porta cuina', 'binary_sensor.kitchen_door_door'),
+            ('Porta hab', 'binary_sensor.bedroom_door_door'),
+            ('Porta principal', 'binary_sensor.main_door_door'),
+            ('Finestra hab', 'binary_sensor.bedroom_window_door'),
+            ('Finestra hab 2', 'binary_sensor.bedroom2_window_door'),
+            ('Finestra vestidor', 'binary_sensor.dressing_window_door'),
+          ] %}
+          {% for name, entity in sensors %}
+          {% if is_state(entity, 'on') %}
+          - {{ name }}: OBERTA
+          {% endif %}
+          {% endfor %}

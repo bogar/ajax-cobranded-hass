@@ -71,7 +71,7 @@ class AjaxCobrandedConfigFlow(ConfigFlow, domain=DOMAIN):
             self._email = user_input["email"]
             self._password_hash = AjaxSession.hash_password(user_input["password"])
             self._app_label = user_input.get("app_label", APPLICATION_LABEL)
-            _LOGGER.debug("Config flow: email=%s, app_label=%s", self._email, self._app_label)
+            _LOGGER.debug("Config flow: app_label=%s", self._app_label)
             await self.async_set_unique_id(self._email)
             self._abort_if_unique_id_configured()
             try:
@@ -98,7 +98,7 @@ class AjaxCobrandedConfigFlow(ConfigFlow, domain=DOMAIN):
             except asyncio.CancelledError:
                 _LOGGER.error("Login was cancelled")
                 errors["base"] = "unknown"
-            except BaseException as e:
+            except Exception as e:
                 _LOGGER.error(
                     "Unexpected error during login: %s: %s",
                     type(e).__name__,

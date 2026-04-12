@@ -9,6 +9,7 @@ import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
 from homeassistant.helpers.storage import Store
 
@@ -175,14 +176,19 @@ class AjaxNotificationListener:
                 raw = base64.b64decode(encoded_data)
                 # Search for HTTPS URLs in the decoded protobuf
                 urls = re.findall(rb'https://[^\x00-\x1f\x7f-\x9f"\'\\]+', raw)
-                if urls:
-                    photo_url = urls[0].decode("utf-8", errors="ignore")
+                for raw_url in urls:
+                    photo_url = raw_url.decode("utf-8", errors="ignore")
+                    parsed = urlparse(photo_url)
+                    if not parsed.hostname or not parsed.hostname.endswith(".ajax.systems"):
+                        _LOGGER.debug("Rejected photo URL from unexpected domain")
+                        continue
                     _LOGGER.debug("Extracted photo URL from push: %s", photo_url[:60])
                     # Resolve any pending photo futures
                     for future in list(self._photo_callbacks.values()):
                         if not future.done():
                             future.set_result(photo_url)
                     self._photo_callbacks.clear()
+                    break
             except Exception:
                 _LOGGER.debug("Failed to parse ENCODED_DATA from push")
 

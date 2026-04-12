@@ -31,8 +31,8 @@ htmlcov/
 .ruff_cache/
 
 # Generated proto .pyi stubs (not needed for runtime)
-custom_components/ajax_protegim/proto/**/*_pb2.pyi
-custom_components/ajax_protegim/proto/*_pb2.pyi
+custom_components/ajax_cobranded/proto/**/*_pb2.pyi
+custom_components/ajax_cobranded/proto/*_pb2.pyi
 
 # Reverse engineering docs (local only)
 docs/reverse-engineering/

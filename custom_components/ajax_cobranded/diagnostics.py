@@ -15,7 +15,18 @@ if TYPE_CHECKING:
 
 type AjaxCobrandedConfigEntry = ConfigEntry[AjaxCobrandedCoordinator]
 
-TO_REDACT = {CONF_PASSWORD, "password_hash", "email", "session_token", "device_id", "push_token"}
+TO_REDACT = {
+    CONF_PASSWORD,
+    "password_hash",
+    "email",
+    "session_token",
+    "device_id",
+    "push_token",
+    "fcm_api_key",
+    "fcm_project_id",
+    "fcm_app_id",
+    "fcm_sender_id",
+}
 
 
 async def async_get_config_entry_diagnostics(

@@ -31,6 +31,18 @@ type AjaxCobrandedConfigEntry = ConfigEntry[AjaxCobrandedCoordinator]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry) -> bool:
+    # Migrate plaintext password to hash (one-time migration)
+    if "password" in entry.data and "password_hash" not in entry.data:
+        from custom_components.ajax_cobranded.api.session import AjaxSession  # noqa: PLC0415
+
+        new_data = dict(entry.data)
+        new_data["password_hash"] = AjaxSession.hash_password(new_data.pop("password"))
+        hass.config_entries.async_update_entry(entry, data=new_data)
+        _LOGGER.warning(
+            "Migrated plaintext password to hash for entry %s. Please reconfigure if issues arise.",
+            entry.entry_id,
+        )
+
     # Support legacy entries that stored plaintext password instead of hash
     if "password_hash" in entry.data:
         client = AjaxGrpcClient(
@@ -40,9 +52,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry
             app_label=entry.data.get("app_label", ""),
         )
     else:
+        _LOGGER.warning(
+            "Entry %s has neither password_hash nor password. Authentication may fail.",
+            entry.entry_id,
+        )
         client = AjaxGrpcClient(
             email=entry.data["email"],
-            password=entry.data["password"],
+            password=entry.data.get("password", ""),
             device_id=entry.data.get("device_id"),
             app_label=entry.data.get("app_label", ""),
         )
