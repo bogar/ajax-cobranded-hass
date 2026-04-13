@@ -75,6 +75,7 @@ class TestServiceRegistration:
         hass.data = {}
         hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
         hass.services.async_register = MagicMock()
+        hass.services.has_service = MagicMock(return_value=False)
 
         entry = MagicMock()
         entry.entry_id = "entry-1"
