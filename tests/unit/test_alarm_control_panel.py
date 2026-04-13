@@ -236,11 +236,9 @@ class TestAlarmControlPanel:
     @pytest.mark.asyncio
     async def test_alarm_disarm_from_armed(self) -> None:
         """Disarm tries night mode first (fails), then falls back to disarm."""
-        from custom_components.ajax_cobranded.api.security import SecurityError
-
         coordinator = MagicMock()
         coordinator.security_api.disarm_from_night_mode = AsyncMock(
-            side_effect=SecurityError("not in night mode")
+            side_effect=Exception("not in night mode")
         )
         coordinator.security_api.disarm = AsyncMock()
         coordinator.async_request_refresh = AsyncMock()
