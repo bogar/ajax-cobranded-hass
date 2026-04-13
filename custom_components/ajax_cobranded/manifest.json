@@ -3,7 +3,7 @@
     "name": "Ajax Security",
     "codeowners": ["@bvis"],
     "config_flow": true,
-    "dependencies": [],
+    "dependencies": ["media_source"],
     "documentation": "https://github.com/bvis/ajax-cobranded-hass",
     "integration_type": "hub",
     "iot_class": "cloud_push",
