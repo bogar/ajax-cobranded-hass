@@ -50,8 +50,8 @@ _EVENT_ICONS: dict[str, str] = {
 
 @callback
 def async_describe_events(
-    hass: HomeAssistant,
-    async_describe_event: object,
+    hass: HomeAssistant,  # noqa: ARG001
+    async_describe_event: object,  # noqa: ARG001
 ) -> None:
     """Describe logbook events (HA platform hook)."""
     # No custom logbook event descriptions registered at this time.
