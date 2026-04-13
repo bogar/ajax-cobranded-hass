@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from homeassistant.core import callback
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 _EVENT_DESCRIPTIONS: dict[str, str] = {
     "alarm": "Alarm: {device_name}",
@@ -41,6 +46,16 @@ _EVENT_ICONS: dict[str, str] = {
     "panic": "mdi:alert-octagon",
     "tamper": "mdi:alert",
 }
+
+
+@callback
+def async_describe_events(
+    hass: HomeAssistant,
+    async_describe_event: object,
+) -> None:
+    """Describe logbook events (HA platform hook)."""
+    # No custom logbook event descriptions registered at this time.
+    # This function exists to satisfy HA's logbook platform auto-discovery.
 
 
 def describe_event(event_type: str, data: dict[str, Any]) -> dict[str, str]:
