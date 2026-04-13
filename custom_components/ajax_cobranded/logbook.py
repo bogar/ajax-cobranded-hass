@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from custom_components.ajax_cobranded.const import DOMAIN
-
 _EVENT_DESCRIPTIONS: dict[str, str] = {
     "alarm": "Alarm: {device_name}",
     "arm": "Armed by {user_name}",

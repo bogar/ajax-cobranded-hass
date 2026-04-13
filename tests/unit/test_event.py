@@ -71,7 +71,7 @@ class TestEventConstants:
         assert "intrusion_alarm" in HUB_EVENT_TAG_MAP
 
     def test_all_event_types_are_sorted(self) -> None:
-        assert ALL_EVENT_TYPES == sorted(ALL_EVENT_TYPES)
+        assert sorted(ALL_EVENT_TYPES) == ALL_EVENT_TYPES
 
     def test_all_mapped_values_in_event_types(self) -> None:
         for value in HUB_EVENT_TAG_MAP.values():

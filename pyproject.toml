@@ -47,6 +47,9 @@ warn_return_any = true
 warn_unused_configs = true
 exclude = ["custom_components/ajax_cobranded/proto/"]
 
+[tool.coverage.run]
+omit = ["custom_components/ajax_cobranded/proto/*"]
+
 [tool.vulture]
 paths = ["custom_components/ajax_cobranded", "vulture_whitelist.py"]
 exclude = ["custom_components/ajax_cobranded/proto/"]

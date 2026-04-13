@@ -7,14 +7,13 @@ from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import ServiceCall
 
 from custom_components.ajax_cobranded.api.client import AjaxGrpcClient
 from custom_components.ajax_cobranded.const import DEFAULT_POLL_INTERVAL, DOMAIN
 from custom_components.ajax_cobranded.coordinator import AjaxCobrandedCoordinator
 
 if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
+    from homeassistant.core import HomeAssistant, ServiceCall
 
 _LOGGER = logging.getLogger(__name__)
 

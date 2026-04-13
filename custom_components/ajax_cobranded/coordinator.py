@@ -178,7 +178,7 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.devices[device.id] = updated
         self.async_set_updated_data({"spaces": self.spaces, "devices": self.devices})
 
-    def register_event_entity(self, space_id: str, entity: Any) -> None:
+    def register_event_entity(self, space_id: str, entity: object) -> None:
         """Register an event entity for a space."""
         self._event_entities[space_id] = entity
 
