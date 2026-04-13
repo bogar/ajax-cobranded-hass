@@ -122,17 +122,30 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         self._validate_code(code)
-        await self.coordinator.security_api.arm(self._space_id)
+        from custom_components.ajax_cobranded.api.security import SecurityError  # noqa: PLC0415
+
+        try:
+            await self.coordinator.security_api.arm(self._space_id)
+        except SecurityError as err:
+            raise HomeAssistantError(str(err)) from err
         await self.coordinator.async_request_refresh()
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         self._validate_code(code)
-        await self.coordinator.security_api.arm_night_mode(self._space_id)
+        from custom_components.ajax_cobranded.api.security import SecurityError  # noqa: PLC0415
+
+        try:
+            await self.coordinator.security_api.arm_night_mode(self._space_id)
+        except SecurityError as err:
+            raise HomeAssistantError(str(err)) from err
         await self.coordinator.async_request_refresh()
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         self._validate_code(code)
-        # The regular disarm() endpoint works from any armed state including
-        # night mode. disarm_from_night_mode() is rejected by the server.
-        await self.coordinator.security_api.disarm(self._space_id)
+        from custom_components.ajax_cobranded.api.security import SecurityError  # noqa: PLC0415
+
+        try:
+            await self.coordinator.security_api.disarm(self._space_id)
+        except SecurityError as err:
+            raise HomeAssistantError(str(err)) from err
         await self.coordinator.async_request_refresh()
