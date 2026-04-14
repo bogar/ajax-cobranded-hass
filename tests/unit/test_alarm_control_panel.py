@@ -217,7 +217,7 @@ class TestAlarmControlPanel:
     async def test_alarm_arm_away(self) -> None:
         coordinator = MagicMock()
         coordinator.security_api.arm = AsyncMock()
-        coordinator.async_request_refresh = AsyncMock()
+        coordinator.async_refresh = AsyncMock()
         coordinator.config_entry.options = {"use_pin_code": False}
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_arm_away()
@@ -227,7 +227,7 @@ class TestAlarmControlPanel:
     async def test_alarm_arm_night(self) -> None:
         coordinator = MagicMock()
         coordinator.security_api.arm_night_mode = AsyncMock()
-        coordinator.async_request_refresh = AsyncMock()
+        coordinator.async_refresh = AsyncMock()
         coordinator.config_entry.options = {"use_pin_code": False}
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_arm_night()
@@ -237,7 +237,7 @@ class TestAlarmControlPanel:
     async def test_alarm_disarm(self) -> None:
         coordinator = MagicMock()
         coordinator.security_api.disarm = AsyncMock()
-        coordinator.async_request_refresh = AsyncMock()
+        coordinator.async_refresh = AsyncMock()
         coordinator.config_entry.options = {"use_pin_code": False}
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_disarm()
@@ -248,7 +248,7 @@ class TestAlarmControlPanel:
         """Regular disarm() works from night mode — server handles it correctly."""
         coordinator = MagicMock()
         coordinator.security_api.disarm = AsyncMock()
-        coordinator.async_request_refresh = AsyncMock()
+        coordinator.async_refresh = AsyncMock()
         coordinator.config_entry.options = {"use_pin_code": False}
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_disarm()
@@ -258,7 +258,7 @@ class TestAlarmControlPanel:
     async def test_alarm_disarm_with_valid_pin(self) -> None:
         coordinator = self._make_coordinator(use_pin_code=True, pin_code="1234")
         coordinator.security_api.disarm = AsyncMock()
-        coordinator.async_request_refresh = AsyncMock()
+        coordinator.async_refresh = AsyncMock()
         coordinator.spaces = {"s1": self._make_space(SecurityState.ARMED)}
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_disarm(code="1234")
@@ -290,7 +290,7 @@ class TestAlarmControlPanel:
     async def test_alarm_arm_with_valid_pin(self) -> None:
         coordinator = self._make_coordinator(use_pin_code=True, pin_code="5678")
         coordinator.security_api.arm = AsyncMock()
-        coordinator.async_request_refresh = AsyncMock()
+        coordinator.async_refresh = AsyncMock()
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_arm_away(code="5678")
         coordinator.security_api.arm.assert_called_once_with("s1")

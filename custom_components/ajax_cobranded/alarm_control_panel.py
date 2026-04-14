@@ -128,7 +128,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             await self.coordinator.security_api.arm(self._space_id)
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
-        await self.coordinator.async_request_refresh()
+        await self.coordinator.async_refresh()
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         self._validate_code(code)
@@ -138,7 +138,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             await self.coordinator.security_api.arm_night_mode(self._space_id)
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
-        await self.coordinator.async_request_refresh()
+        await self.coordinator.async_refresh()
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         self._validate_code(code)
@@ -148,4 +148,4 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             await self.coordinator.security_api.disarm(self._space_id)
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
-        await self.coordinator.async_request_refresh()
+        await self.coordinator.async_refresh()

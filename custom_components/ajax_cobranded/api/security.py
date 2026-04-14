@@ -55,7 +55,11 @@ class SecurityApi:
         )
         response = await stub.arm(request, metadata=metadata, timeout=15)
         if response.HasField("failure"):
-            raise SecurityError("Arm command rejected by server")
+            error_type = response.failure.WhichOneof("error")
+            if error_type == "already_in_the_requested_security_state":
+                _LOGGER.debug("Space %s already armed", space_id)
+                return
+            raise SecurityError(f"Arm command rejected: {error_type}")
         _LOGGER.debug("Armed space %s", space_id)
 
     async def disarm(self, space_id: str) -> None:
@@ -75,7 +79,11 @@ class SecurityApi:
         )
         response = await stub.disarm(request, metadata=metadata, timeout=15)
         if response.HasField("failure"):
-            raise SecurityError("Disarm command rejected by server")
+            error_type = response.failure.WhichOneof("error")
+            if error_type == "already_in_the_requested_security_state":
+                _LOGGER.debug("Space %s already disarmed", space_id)
+                return
+            raise SecurityError(f"Disarm command rejected: {error_type}")
         _LOGGER.debug("Disarmed space %s", space_id)
 
     async def arm_night_mode(self, space_id: str, ignore_alarms: bool = False) -> None:
@@ -96,7 +104,11 @@ class SecurityApi:
         )
         response = await stub.armToNightMode(request, metadata=metadata, timeout=15)
         if response.HasField("failure"):
-            raise SecurityError("Arm to night mode command rejected by server")
+            error_type = response.failure.WhichOneof("error")
+            if error_type == "already_in_the_requested_security_state":
+                _LOGGER.debug("Space %s already in night mode", space_id)
+                return
+            raise SecurityError(f"Arm night mode rejected: {error_type}")
         _LOGGER.debug("Armed space %s in night mode", space_id)
 
     async def disarm_from_night_mode(self, space_id: str) -> None:

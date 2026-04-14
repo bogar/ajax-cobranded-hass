@@ -251,7 +251,7 @@ class TestArmNightMode:
                     ),
                 },
             ),
-            pytest.raises(SecurityError, match="night mode command rejected"),
+            pytest.raises(SecurityError, match="Arm night mode rejected"),
         ):
             await api.arm_night_mode("space-1")
 
