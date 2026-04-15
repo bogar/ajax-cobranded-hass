@@ -128,6 +128,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             await self.coordinator.security_api.arm(self._space_id)
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
+        self._optimistic_state_update(SecurityState.ARMED)
         await self.coordinator.async_refresh()
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
@@ -138,6 +139,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             await self.coordinator.security_api.arm_night_mode(self._space_id)
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
+        self._optimistic_state_update(SecurityState.NIGHT_MODE)
         await self.coordinator.async_refresh()
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
@@ -148,4 +150,29 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             await self.coordinator.security_api.disarm(self._space_id)
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
+        self._optimistic_state_update(SecurityState.DISARMED)
         await self.coordinator.async_refresh()
+
+    def _optimistic_state_update(self, new_state: SecurityState) -> None:
+        """Update the space state optimistically so the UI reflects the change immediately.
+
+        This avoids flicker when the server or stream returns stale state briefly
+        after a successful arm/disarm command.
+        """
+        space = self._space
+        if space is None:
+            return
+        from custom_components.ajax_cobranded.api.models import Space  # noqa: PLC0415
+
+        updated = Space(
+            id=space.id,
+            hub_id=space.hub_id,
+            name=space.name,
+            security_state=new_state,
+            connection_status=space.connection_status,
+            malfunctions_count=space.malfunctions_count,
+        )
+        self.coordinator.spaces[self._space_id] = updated
+        # Notify HA of the state change (may not have hass during tests)
+        if self.hass is not None:
+            self.async_write_ha_state()
