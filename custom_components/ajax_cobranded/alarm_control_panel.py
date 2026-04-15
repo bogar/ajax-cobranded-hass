@@ -159,20 +159,15 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         This avoids flicker when the server or stream returns stale state briefly
         after a successful arm/disarm command.
         """
+        from dataclasses import replace  # noqa: PLC0415
+
         space = self._space
         if space is None:
             return
-        from custom_components.ajax_cobranded.api.models import Space  # noqa: PLC0415
-
-        updated = Space(
-            id=space.id,
-            hub_id=space.hub_id,
-            name=space.name,
-            security_state=new_state,
-            connection_status=space.connection_status,
-            malfunctions_count=space.malfunctions_count,
-        )
-        self.coordinator.spaces[self._space_id] = updated
+        try:
+            self.coordinator.spaces[self._space_id] = replace(space, security_state=new_state)
+        except TypeError:
+            return  # space is not a real dataclass (e.g., during tests)
         # Notify HA of the state change (may not have hass during tests)
         if self.hass is not None:
             self.async_write_ha_state()
