@@ -188,11 +188,21 @@ class AjaxNotificationListener:
                         _LOGGER.debug("Rejected photo URL from unexpected domain")
                         continue
                     _LOGGER.debug("Extracted photo URL from push: %s", photo_url[:60])
-                    # Resolve any pending photo futures
-                    for future in list(self._photo_callbacks.values()):
-                        if not future.done():
+                    # Resolve the photo future for the matching device
+                    resolved = False
+                    for device_id, future in list(self._photo_callbacks.items()):
+                        if not future.done() and device_id.upper() in photo_url.upper():
                             future.set_result(photo_url)
-                    self._photo_callbacks.clear()
+                            self._photo_callbacks.pop(device_id, None)
+                            resolved = True
+                            break
+                    if not resolved:
+                        # Fallback: resolve first pending (single-device case)
+                        for device_id, future in list(self._photo_callbacks.items()):
+                            if not future.done():
+                                future.set_result(photo_url)
+                                self._photo_callbacks.pop(device_id, None)
+                                break
                     break
             except Exception:
                 _LOGGER.debug("Failed to parse ENCODED_DATA from push")
