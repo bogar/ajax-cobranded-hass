@@ -8,23 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0] - 2026-04-17
 
 ### Added
-- Hub network sensors via HTS protocol (resolves #2, #3, #5):
+- Hub network sensors via HTS protocol (related to #2, #3, #5):
   - `binary_sensor: Ethernet` — hub ethernet link status
   - `binary_sensor: Mains power` — hub external power supply
-  - `sensor: Connection type` — primary connection (ethernet/wifi/gsm)
-  - `sensor: Ethernet IP address` — hub IP
-  - `sensor: Ethernet gateway` — hub gateway
-  - `sensor: Ethernet DNS` — hub DNS server
-  - `sensor: Cellular signal` — GSM signal level (weak/normal/strong)
-  - `sensor: Cellular network` — network type (2g/3g/4g)
-- HTS binary protocol client for real-time hub network data
-- Translations for all new sensors in 14 languages
-- `pycryptodome` dependency for HTS protocol encryption
+  - `sensor: Connection type` — primary active connection (ethernet/wifi/gsm/none)
+  - `sensor: Ethernet IP address` — hub ethernet IP
+  - `sensor: Ethernet gateway` — hub ethernet default gateway
+  - `sensor: Ethernet DNS` — hub ethernet DNS server
+  - `sensor: Cellular signal` — cellular signal level (weak/normal/strong)
+  - `sensor: Cellular network` — cellular network type (2g/3g/4g)
+- HTS binary protocol client for real-time hub-level data not available via gRPC
+- Translations for all new sensors in 14 languages (ca, cs, de, es, fr, it, nl, pl, pt, pt-BR, ro, tr, uk)
+- `pycryptodome` dependency for protocol encryption
+- GitHub Actions release workflow for automated pre-release/release creation on tags
+- CI now runs on feature branches (`feat/**`)
 
 ### Notes
-- HTS connection runs alongside gRPC — graceful degradation if unavailable
-- No additional configuration required — uses existing credentials
-- Only one HTS connection per account allowed (shared with mobile app)
+- HTS runs alongside gRPC — if unavailable, only the new network sensors show as unavailable (graceful degradation)
+- No additional configuration required — reuses existing account credentials
+- Only one HTS connection per account is allowed by the server (shared with the mobile app session)
 
 ## [0.7.0] - 2026-04-16
 
