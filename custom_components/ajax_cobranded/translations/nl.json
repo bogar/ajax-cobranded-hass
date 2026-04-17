@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Ruimtes"
                 }
+            },
+            "reconfigure": {
+                "title": "Ajax Security herconfigureren",
+                "description": "Werk uw accountgegevens bij.",
+                "data": {
+                    "email": "E-mail",
+                    "password": "Wachtwoord",
+                    "app_label": "App-label"
+                }
             }
         },
         "error": {

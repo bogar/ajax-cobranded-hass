@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Простори"
                 }
+            },
+            "reconfigure": {
+                "title": "Переналаштувати Ajax Security",
+                "description": "Оновіть облікові дані.",
+                "data": {
+                    "email": "E-mail",
+                    "password": "Пароль",
+                    "app_label": "Мітка додатку"
+                }
             }
         },
         "error": {

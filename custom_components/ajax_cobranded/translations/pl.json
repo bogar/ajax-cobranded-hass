@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Przestrzenie"
                 }
+            },
+            "reconfigure": {
+                "title": "Rekonfiguracja Ajax Security",
+                "description": "Zaktualizuj dane logowania.",
+                "data": {
+                    "email": "E-mail",
+                    "password": "Hasło",
+                    "app_label": "Etykieta aplikacji"
+                }
             }
         },
         "error": {

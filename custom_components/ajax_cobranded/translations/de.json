@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Bereiche"
                 }
+            },
+            "reconfigure": {
+                "title": "Ajax Security neu konfigurieren",
+                "description": "Aktualisieren Sie Ihre Zugangsdaten.",
+                "data": {
+                    "email": "E-Mail",
+                    "password": "Passwort",
+                    "app_label": "App-Label"
+                }
             }
         },
         "error": {

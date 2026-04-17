@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Prostory"
                 }
+            },
+            "reconfigure": {
+                "title": "Překonfigurovat Ajax Security",
+                "description": "Aktualizujte přihlašovací údaje.",
+                "data": {
+                    "email": "E-mail",
+                    "password": "Heslo",
+                    "app_label": "Štítek aplikace"
+                }
             }
         },
         "error": {

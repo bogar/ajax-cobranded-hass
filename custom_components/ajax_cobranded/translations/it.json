@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Spazi"
                 }
+            },
+            "reconfigure": {
+                "title": "Riconfigura Ajax Security",
+                "description": "Aggiorna le credenziali dell'account.",
+                "data": {
+                    "email": "E-mail",
+                    "password": "Password",
+                    "app_label": "Etichetta app"
+                }
             }
         },
         "error": {

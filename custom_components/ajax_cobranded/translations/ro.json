@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Spații"
                 }
+            },
+            "reconfigure": {
+                "title": "Reconfigurare Ajax Security",
+                "description": "Actualizați datele de autentificare.",
+                "data": {
+                    "email": "E-mail",
+                    "password": "Parolă",
+                    "app_label": "Etichetă aplicație"
+                }
             }
         },
         "error": {

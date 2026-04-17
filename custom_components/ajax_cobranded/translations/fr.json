@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Espaces"
                 }
+            },
+            "reconfigure": {
+                "title": "Reconfigurer Ajax Security",
+                "description": "Mettez à jour vos identifiants.",
+                "data": {
+                    "email": "E-mail",
+                    "password": "Mot de passe",
+                    "app_label": "Label de l'application"
+                }
             }
         },
         "error": {

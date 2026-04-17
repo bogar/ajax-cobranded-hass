@@ -159,6 +159,64 @@ class AjaxCobrandedConfigFlow(ConfigFlow, domain=DOMAIN):
             ),
         )
 
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle reconfiguration (change credentials)."""
+        errors: dict[str, str] = {}
+        entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            email = user_input["email"]
+            password_hash = AjaxSession.hash_password(user_input["password"])
+            app_label = user_input.get("app_label", entry.data.get("app_label", APPLICATION_LABEL))
+            try:
+                client = AjaxGrpcClient(
+                    email=email,
+                    password_hash=password_hash,
+                    app_label=app_label,
+                )
+                await client.connect()
+                await asyncio.wait_for(client.login(), timeout=30)
+                await client.close()
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data={
+                        **entry.data,
+                        "email": email,
+                        "password_hash": password_hash,
+                        "app_label": app_label,
+                    },
+                )
+            except AuthenticationError:
+                errors["base"] = "invalid_auth"
+            except (ConnectionError, OSError, TimeoutError):
+                errors["base"] = "cannot_connect"
+            except Exception:
+                _LOGGER.exception("Unexpected error during reconfigure")
+                errors["base"] = "unknown"
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required("email", default=entry.data.get("email", "")): TextSelector(
+                        TextSelectorConfig(type=TextSelectorType.EMAIL)
+                    ),
+                    vol.Required("password"): TextSelector(
+                        TextSelectorConfig(type=TextSelectorType.PASSWORD)
+                    ),
+                    vol.Optional(
+                        "app_label",
+                        default=entry.data.get("app_label", APPLICATION_LABEL),
+                    ): SelectSelector(
+                        SelectSelectorConfig(options=KNOWN_APP_LABELS, custom_value=True, sort=True)
+                    ),
+                }
+            ),
+            errors=errors,
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> AjaxCobrandedOptionsFlow:

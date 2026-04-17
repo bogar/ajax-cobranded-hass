@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Espais"
                 }
+            },
+            "reconfigure": {
+                "title": "Reconfigurar Ajax Security",
+                "description": "Actualitza les credencials del compte.",
+                "data": {
+                    "email": "Correu electrònic",
+                    "password": "Contrasenya",
+                    "app_label": "Etiqueta de l'aplicació"
+                }
             }
         },
         "error": {

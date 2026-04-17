@@ -23,6 +23,15 @@
                 "data": {
                     "spaces": "Alanlar"
                 }
+            },
+            "reconfigure": {
+                "title": "Ajax Security'yi yeniden yapılandır",
+                "description": "Hesap kimlik bilgilerinizi güncelleyin.",
+                "data": {
+                    "email": "E-posta",
+                    "password": "Şifre",
+                    "app_label": "Uygulama etiketi"
+                }
             }
         },
         "error": {
