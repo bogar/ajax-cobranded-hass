@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2026-04-17
+
+### Fixed
+- Entity naming: add `translations/en.json` so HA resolves `translation_key` at runtime — fixes sensors showing device name with `_2`, `_3` suffixes instead of semantic names (#13)
+- Push event routing: events now matched to correct space by hub_id instead of broadcasting to all spaces (#8)
+- Photo concurrency: photo URLs now correlated to the requesting device instead of resolving all pending captures (#9)
+- Photo cleanup task: properly unregistered on integration reload to prevent duplicate tasks (#10)
+- Reconfigure: `unique_id` now updates when email changes (#11)
+- Device hierarchy: normalized `via_device` to use `hub_id` consistently across switch, light, sensor, and binary_sensor platforms (#12)
+
 ## [0.8.2] - 2026-04-17
 
 ### Fixed
