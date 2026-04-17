@@ -272,10 +272,25 @@ class AjaxNotificationListener:
             event_info = self._extract_event_from_proto(raw)
             if event_info:
                 event_type, event_data = event_info
-                for space_id in self._coordinator._space_ids:
-                    self._coordinator.fire_push_event(space_id, event_type, event_data)
+                # Try to route to the correct space by matching hub_id from raw bytes
+                target_space = self._find_space_for_event(raw)
+                if target_space:
+                    self._coordinator.fire_push_event(target_space, event_type, event_data)
+                else:
+                    # Fallback: single-space installations or unknown hub
+                    for space_id in self._coordinator._space_ids:
+                        self._coordinator.fire_push_event(space_id, event_type, event_data)
         except Exception:
             _LOGGER.debug("Failed to parse event from push notification")
+
+    def _find_space_for_event(self, raw: bytes) -> str | None:
+        """Try to match the event to a space by finding a known hub_id in raw bytes."""
+        for space in self._coordinator.spaces.values():
+            if space.hub_id:
+                hub_bytes = bytes.fromhex(space.hub_id)
+                if hub_bytes in raw:
+                    return space.id
+        return None
 
     def _extract_event_from_proto(self, raw: bytes) -> tuple[str, dict[str, Any]] | None:
         """Extract event type and data from raw protobuf bytes.
