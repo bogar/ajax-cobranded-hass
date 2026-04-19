@@ -1,9 +1,9 @@
 blueprint:
-  name: Ajax Remind to Arm When Nobody Home
+  name: Ajax Remind to Arm with Voice Announcement
   description: >-
-    If nobody is home (all configured person entities are not_home) and the
-    alarm has been disarmed for a configurable number of minutes, send a
-    reminder notification to arm the system.
+    When someone is home and the alarm has been disarmed for a configurable
+    number of minutes, send a push notification and optionally announce via
+    TTS on a media player.
   domain: automation
   input:
     alarm_entity:
@@ -17,7 +17,7 @@ blueprint:
       name: Person Entities
       description: >-
         List of person entities to monitor. The reminder triggers only when
-        ALL persons are not_home.
+        at least one person is home.
       selector:
         entity:
           filter:
@@ -26,77 +26,82 @@ blueprint:
     delay_minutes:
       name: Delay (minutes)
       description: >-
-        Minutes to wait after all persons leave before sending the reminder.
-      default: 10
+        Minutes to wait after the alarm is disarmed before sending the reminder.
+      default: 3
       selector:
         number:
           min: 1
-          max: 120
+          max: 60
           unit_of_measurement: minutes
           mode: slider
     notify_service:
       name: Notification Service
       description: The notification service to call (e.g. notify.mobile_app_phone).
+      default: "notify.mobile_app_ibasi"
       selector:
         text: {}
     tts_service:
       name: TTS Service
-      description: Optional TTS service (e.g. tts.google_translate_say).
-      default: ""
+      description: TTS service to use (e.g. tts.speak).
+      default: "tts.speak"
       selector:
         text: {}
     media_player:
       name: Media Player
-      description: Optional media player for TTS voice reminders.
+      description: Optional media player for TTS voice announcements.
       default: {}
       selector:
         entity:
           filter:
             domain: media_player
+    tts_message:
+      name: TTS Message
+      description: The message announced via TTS on the media player.
+      default: "La alarma está desactivada. ¿Quieres ponerla en modo casa?"
+      selector:
+        text: {}
+    push_message:
+      name: Push Notification Message
+      description: The message sent in the push notification.
+      default: "You're home but the alarm is disarmed! Arm it?"
+      selector:
+        text: {}
 
 variables:
   persons: !input person_entities
-  delay: !input delay_minutes
-  tts_service_input: !input tts_service
   media_player_input: !input media_player
+  tts_service_input: !input tts_service
 
 triggers:
   - trigger: state
-    entity_id: !input person_entities
-    to: "not_home"
+    entity_id: !input alarm_entity
+    to: "disarmed"
     for:
       minutes: !input delay_minutes
 
 conditions:
-  - condition: state
-    entity_id: !input alarm_entity
-    state: "disarmed"
   - condition: template
     value_template: >-
-      {{ persons | map('states') | select('ne', 'not_home') | list | length == 0 }}
+      {{ persons | map('states') | select('eq', 'home') | list | length > 0 }}
 
 actions:
   - action: !input notify_service
     data:
       title: "Ajax Security Reminder"
-      message: >-
-        Nobody is home and the alarm is disarmed. Consider arming the system.
+      message: !input push_message
       data:
         push:
           sound: default
-        tag: ajax-remind-arm
+        tag: ajax-remind-arm-tts
         actions:
-          - action: ARM_AWAY
-            title: "Arm Now"
+          - action: ARM_HOME
+            title: "Arm Home"
   - choose:
       - conditions:
           - condition: template
-            value_template: >-
-              {{ media_player_input is defined and media_player_input not in ['', none, {}]
-                 and tts_service_input not in ['', none] }}
+            value_template: "{{ media_player_input is defined and media_player_input not in ['', none, {}] }}"
         sequence:
           - action: "{{ tts_service_input }}"
             data:
               entity_id: !input media_player
-              message: >-
-                Nobody is home and the alarm is disarmed. Consider arming the system.
+              message: !input tts_message
