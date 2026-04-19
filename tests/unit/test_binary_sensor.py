@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
 from custom_components.ajax_cobranded.api.models import Device
 from custom_components.ajax_cobranded.binary_sensor import (
     _DEVICE_TYPE_SENSORS,
     BINARY_SENSOR_TYPES,
     AjaxBinarySensor,
     AjaxConnectivitySensor,
+    AjaxHubWifiSensor,
     AjaxProblemSensor,
 )
 from custom_components.ajax_cobranded.const import DeviceState
@@ -504,3 +506,40 @@ class TestAjaxProblemSensor:
         sensor = AjaxProblemSensor(coordinator=coordinator, device_id="dev-1")
         assert sensor._attr_device_info is not None
         assert ("ajax_cobranded", "dev-1") in sensor._attr_device_info["identifiers"]
+
+
+class TestAjaxHubWifiSensor:
+    def _make_coordinator(self, wifi_connected: bool = True) -> MagicMock:
+        hub_device = Device(
+            id="hub-1",
+            hub_id="hub-1",
+            name="Hub Two Plus",
+            device_type="hub_two_plus",
+            room_id=None,
+            group_id=None,
+            state=DeviceState.ONLINE,
+            malfunctions=0,
+            bypassed=False,
+            statuses={},
+            battery=None,
+        )
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": hub_device}
+        coordinator.hub_network = {"hub-1": HubNetworkState(wifi_connected=wifi_connected)}
+        return coordinator
+
+    def test_is_on_when_wifi_connected(self) -> None:
+        sensor = AjaxHubWifiSensor(self._make_coordinator(True), "hub-1")
+        assert sensor.is_on is True
+
+    def test_is_off_when_wifi_not_connected(self) -> None:
+        sensor = AjaxHubWifiSensor(self._make_coordinator(False), "hub-1")
+        assert sensor.is_on is False
+
+    def test_available_when_hub_network_exists(self) -> None:
+        sensor = AjaxHubWifiSensor(self._make_coordinator(True), "hub-1")
+        assert sensor.available is True
+
+    def test_translation_key(self) -> None:
+        sensor = AjaxHubWifiSensor(self._make_coordinator(True), "hub-1")
+        assert sensor._attr_translation_key == "wifi"

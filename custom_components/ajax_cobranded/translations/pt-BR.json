@@ -13,16 +13,12 @@
             "2fa": {
                 "title": "Autenticação de dois fatores",
                 "description": "Insira o código de 6 dígitos do seu aplicativo autenticador.",
-                "data": {
-                    "totp_code": "Código TOTP"
-                }
+                "data": {"totp_code": "Código TOTP"}
             },
             "select_spaces": {
                 "title": "Selecionar espaços",
                 "description": "Escolha quais espaços (hubs) adicionar.",
-                "data": {
-                    "spaces": "Espaços"
-                }
+                "data": {"spaces": "Espaços"}
             },
             "reconfigure": {
                 "title": "Reconfigurar Ajax Security",
@@ -76,11 +72,7 @@
         }
     },
     "entity": {
-        "button": {
-            "capture_photo": {
-                "name": "Tirar foto"
-            }
-        },
+        "button": {"capture_photo": {"name": "Tirar foto"}},
         "event": {
             "security_event": {
                 "name": "Evento de segurança",
@@ -109,103 +101,41 @@
             }
         },
         "binary_sensor": {
-            "monitoring": {
-                "name": "Conexão com central de monitoramento"
-            },
-            "gsm": {
-                "name": "Rede celular conectada"
-            },
-            "lid": {
-                "name": "Tampa aberta"
-            },
-            "ext_contact": {
-                "name": "Contato externo aberto"
-            },
-            "ext_alert": {
-                "name": "Alerta de contato externo"
-            },
-            "drilling": {
-                "name": "Perfuração da caixa detectada"
-            },
-            "anti_mask": {
-                "name": "Anti-mascaramento"
-            },
-            "malfunction": {
-                "name": "Falha"
-            },
-            "interference": {
-                "name": "Interferência"
-            },
-            "relay_stuck": {
-                "name": "Relé preso"
-            },
-            "always_active": {
-                "name": "Sempre ativo"
-            },
-            "glass_break": {
-                "name": "Quebra de vidro"
-            },
-            "vibration": {
-                "name": "Vibração"
-            },
-            "tamper": {
-                "name": "Violação da caixa"
-            },
-            "connectivity": {
-                "name": "Conectividade"
-            },
-            "problem": {
-                "name": "Problema do dispositivo"
-            },
-            "ethernet": {
-                "name": "Ethernet"
-            },
-            "mains_power": {
-                "name": "Energia externa"
-            }
+            "monitoring": {"name": "Conexão com central de monitoramento"},
+            "gsm": {"name": "Rede celular conectada"},
+            "lid": {"name": "Tampa aberta"},
+            "ext_contact": {"name": "Contato externo aberto"},
+            "ext_alert": {"name": "Alerta de contato externo"},
+            "drilling": {"name": "Perfuração da caixa detectada"},
+            "anti_mask": {"name": "Anti-mascaramento"},
+            "malfunction": {"name": "Falha"},
+            "interference": {"name": "Interferência"},
+            "relay_stuck": {"name": "Relé preso"},
+            "always_active": {"name": "Sempre ativo"},
+            "glass_break": {"name": "Quebra de vidro"},
+            "vibration": {"name": "Vibração"},
+            "tamper": {"name": "Violação da caixa"},
+            "connectivity": {"name": "Conectividade"},
+            "problem": {"name": "Problema do dispositivo"},
+            "ethernet": {"name": "Ethernet"},
+            "wifi": {"name": "Wi-Fi"},
+            "mains_power": {"name": "Energia externa"}
         },
         "sensor": {
-            "signal_strength": {
-                "name": "Intensidade do sinal"
-            },
-            "mobile_network_type": {
-                "name": "Tipo de rede móvel"
-            },
-            "wifi_signal_level": {
-                "name": "Nível de sinal Wi-Fi"
-            },
-            "sim_status": {
-                "name": "Status do SIM"
-            },
-            "sim_imei": {
-                "name": "IMEI"
-            },
-            "connection_type": {
-                "name": "Tipo de conexão"
-            },
-            "ethernet_ip": {
-                "name": "Endereço IP Ethernet"
-            },
-            "ethernet_gateway": {
-                "name": "Gateway Ethernet"
-            },
-            "ethernet_dns": {
-                "name": "DNS Ethernet"
-            },
-            "cellular_signal": {
-                "name": "Sinal celular"
-            },
-            "cellular_network": {
-                "name": "Rede celular"
-            }
+            "signal_strength": {"name": "Intensidade do sinal"},
+            "mobile_network_type": {"name": "Tipo de rede móvel"},
+            "wifi_signal_level": {"name": "Nível de sinal Wi-Fi"},
+            "sim_status": {"name": "Status do SIM"},
+            "sim_imei": {"name": "IMEI"},
+            "connection_type": {"name": "Tipo de conexão"},
+            "wifi_ssid": {"name": "SSID Wi-Fi"},
+            "wifi_ip": {"name": "Endereço IP Wi-Fi"},
+            "ethernet_ip": {"name": "Endereço IP Ethernet"},
+            "ethernet_gateway": {"name": "Gateway Ethernet"},
+            "ethernet_dns": {"name": "DNS Ethernet"},
+            "cellular_signal": {"name": "Sinal celular"},
+            "cellular_network": {"name": "Rede celular"}
         },
-        "switch": {
-            "channel_1": {
-                "name": "Canal 1"
-            },
-            "channel_2": {
-                "name": "Canal 2"
-            }
-        }
+        "switch": {"channel_1": {"name": "Canal 1"}, "channel_2": {"name": "Canal 2"}}
     }
 }

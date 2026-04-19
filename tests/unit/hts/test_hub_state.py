@@ -135,9 +135,9 @@ class TestEthernetIP:
         assert state.ethernet_mask == "255.255.255.0"
 
     def test_parse_gateway(self) -> None:
-        gw_bytes = bytes([192, 168, 1, 254])
+        gw_bytes = bytes([10, 0, 0, 254])
         state = parse_hub_params({KEY_ETH_GATE: gw_bytes})
-        assert state.ethernet_gateway == "192.168.1.254"
+        assert state.ethernet_gateway == "10.0.0.254"
 
     def test_parse_dns(self) -> None:
         dns_bytes = bytes([8, 8, 8, 8])

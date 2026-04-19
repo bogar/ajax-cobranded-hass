@@ -13,25 +13,17 @@
             "2fa": {
                 "title": "Twee-factor-authenticatie",
                 "description": "Voer de 6-cijferige code in van uw authenticator-app.",
-                "data": {
-                    "totp_code": "TOTP-code"
-                }
+                "data": {"totp_code": "TOTP-code"}
             },
             "select_spaces": {
                 "title": "Selecteer ruimtes",
                 "description": "Kies welke ruimtes (hubs) u wilt toevoegen.",
-                "data": {
-                    "spaces": "Ruimtes"
-                }
+                "data": {"spaces": "Ruimtes"}
             },
             "reconfigure": {
                 "title": "Ajax Security herconfigureren",
                 "description": "Werk uw accountgegevens bij.",
-                "data": {
-                    "email": "E-mail",
-                    "password": "Wachtwoord",
-                    "app_label": "App-label"
-                }
+                "data": {"email": "E-mail", "password": "Wachtwoord", "app_label": "App-label"}
             }
         },
         "error": {
@@ -76,11 +68,7 @@
         }
     },
     "entity": {
-        "button": {
-            "capture_photo": {
-                "name": "Foto maken"
-            }
-        },
+        "button": {"capture_photo": {"name": "Foto maken"}},
         "event": {
             "security_event": {
                 "name": "Beveiligingsgebeurtenis",
@@ -109,103 +97,41 @@
             }
         },
         "binary_sensor": {
-            "monitoring": {
-                "name": "Verbinding meldkamer"
-            },
-            "gsm": {
-                "name": "Mobiel netwerk verbonden"
-            },
-            "lid": {
-                "name": "Deksel geopend"
-            },
-            "ext_contact": {
-                "name": "Extern contact verbroken"
-            },
-            "ext_alert": {
-                "name": "Alarm extern contact"
-            },
-            "drilling": {
-                "name": "Boren in behuizing"
-            },
-            "anti_mask": {
-                "name": "Anti-masking"
-            },
-            "malfunction": {
-                "name": "Storing"
-            },
-            "interference": {
-                "name": "Interferentie"
-            },
-            "relay_stuck": {
-                "name": "Relais geblokkeerd"
-            },
-            "always_active": {
-                "name": "Altijd actief"
-            },
-            "glass_break": {
-                "name": "Glasbreuk"
-            },
-            "vibration": {
-                "name": "Vibratie"
-            },
-            "tamper": {
-                "name": "Behuizing sabotage"
-            },
-            "connectivity": {
-                "name": "Verbinding"
-            },
-            "problem": {
-                "name": "Apparaatprobleem"
-            },
-            "ethernet": {
-                "name": "Ethernet"
-            },
-            "mains_power": {
-                "name": "Netstroom"
-            }
+            "monitoring": {"name": "Verbinding meldkamer"},
+            "gsm": {"name": "Mobiel netwerk verbonden"},
+            "lid": {"name": "Deksel geopend"},
+            "ext_contact": {"name": "Extern contact verbroken"},
+            "ext_alert": {"name": "Alarm extern contact"},
+            "drilling": {"name": "Boren in behuizing"},
+            "anti_mask": {"name": "Anti-masking"},
+            "malfunction": {"name": "Storing"},
+            "interference": {"name": "Interferentie"},
+            "relay_stuck": {"name": "Relais geblokkeerd"},
+            "always_active": {"name": "Altijd actief"},
+            "glass_break": {"name": "Glasbreuk"},
+            "vibration": {"name": "Vibratie"},
+            "tamper": {"name": "Behuizing sabotage"},
+            "connectivity": {"name": "Verbinding"},
+            "problem": {"name": "Apparaatprobleem"},
+            "ethernet": {"name": "Ethernet"},
+            "wifi": {"name": "Wi-Fi"},
+            "mains_power": {"name": "Netstroom"}
         },
         "sensor": {
-            "signal_strength": {
-                "name": "Signaalsterkte"
-            },
-            "mobile_network_type": {
-                "name": "Mobiel netwerktype"
-            },
-            "wifi_signal_level": {
-                "name": "Wi-Fi-signaalsterkte"
-            },
-            "sim_status": {
-                "name": "SIM-status"
-            },
-            "sim_imei": {
-                "name": "IMEI"
-            },
-            "connection_type": {
-                "name": "Verbindingstype"
-            },
-            "ethernet_ip": {
-                "name": "Ethernet IP-adres"
-            },
-            "ethernet_gateway": {
-                "name": "Ethernet-gateway"
-            },
-            "ethernet_dns": {
-                "name": "Ethernet-DNS"
-            },
-            "cellular_signal": {
-                "name": "Mobiel signaal"
-            },
-            "cellular_network": {
-                "name": "Mobiel netwerk"
-            }
+            "signal_strength": {"name": "Signaalsterkte"},
+            "mobile_network_type": {"name": "Mobiel netwerktype"},
+            "wifi_signal_level": {"name": "Wi-Fi-signaalsterkte"},
+            "sim_status": {"name": "SIM-status"},
+            "sim_imei": {"name": "IMEI"},
+            "connection_type": {"name": "Verbindingstype"},
+            "wifi_ssid": {"name": "Wi-Fi-SSID"},
+            "wifi_ip": {"name": "Wi-Fi-IP-adres"},
+            "ethernet_ip": {"name": "Ethernet IP-adres"},
+            "ethernet_gateway": {"name": "Ethernet-gateway"},
+            "ethernet_dns": {"name": "Ethernet-DNS"},
+            "cellular_signal": {"name": "Mobiel signaal"},
+            "cellular_network": {"name": "Mobiel netwerk"}
         },
-        "switch": {
-            "channel_1": {
-                "name": "Kanaal 1"
-            },
-            "channel_2": {
-                "name": "Kanaal 2"
-            }
-        }
+        "switch": {"channel_1": {"name": "Kanaal 1"}, "channel_2": {"name": "Kanaal 2"}}
     }
 }

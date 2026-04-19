@@ -128,6 +128,9 @@ async def async_setup_entry(
     for space in coordinator.spaces.values():
         if space.hub_id and coordinator.devices.get(space.hub_id):
             entities.append(AjaxHubConnectionTypeSensor(coordinator, space.hub_id))
+            entities.append(AjaxHubWifiSsidSensor(coordinator, space.hub_id))
+            entities.append(AjaxHubWifiSignalSensor(coordinator, space.hub_id))
+            entities.append(AjaxHubWifiIpSensor(coordinator, space.hub_id))
             entities.append(AjaxHubEthernetIpSensor(coordinator, space.hub_id))
             entities.append(AjaxHubEthernetGatewaySensor(coordinator, space.hub_id))
             entities.append(AjaxHubEthernetDnsSensor(coordinator, space.hub_id))
@@ -275,6 +278,51 @@ class AjaxHubConnectionTypeSensor(_HubNetworkSensor):
     def native_value(self) -> str | None:
         state = self.coordinator.hub_network.get(self._hub_id)
         return state.primary_connection if state else None
+
+
+class AjaxHubWifiSsidSensor(_HubNetworkSensor):
+    """Hub Wi-Fi SSID."""
+
+    _attr_translation_key = "wifi_ssid"
+
+    def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
+        super().__init__(coordinator, hub_id)
+        self._attr_unique_id = f"ajax_cobranded_{hub_id}_wifi_ssid"
+
+    @property
+    def native_value(self) -> str | None:
+        state = self.coordinator.hub_network.get(self._hub_id)
+        return state.wifi_ssid if state and state.wifi_ssid else None
+
+
+class AjaxHubWifiSignalSensor(_HubNetworkSensor):
+    """Hub Wi-Fi signal level."""
+
+    _attr_translation_key = "wifi_signal_level"
+
+    def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
+        super().__init__(coordinator, hub_id)
+        self._attr_unique_id = f"ajax_cobranded_{hub_id}_wifi_signal_level"
+
+    @property
+    def native_value(self) -> str | None:
+        state = self.coordinator.hub_network.get(self._hub_id)
+        return state.wifi_signal_level if state else None
+
+
+class AjaxHubWifiIpSensor(_HubNetworkSensor):
+    """Hub Wi-Fi IP address."""
+
+    _attr_translation_key = "wifi_ip"
+
+    def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
+        super().__init__(coordinator, hub_id)
+        self._attr_unique_id = f"ajax_cobranded_{hub_id}_wifi_ip"
+
+    @property
+    def native_value(self) -> str | None:
+        state = self.coordinator.hub_network.get(self._hub_id)
+        return state.wifi_ip if state and state.wifi_ip else None
 
 
 class AjaxHubEthernetIpSensor(_HubNetworkSensor):

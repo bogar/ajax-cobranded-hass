@@ -4,11 +4,15 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
 from custom_components.ajax_cobranded.api.hub_object import SimCardInfo
 from custom_components.ajax_cobranded.api.models import BatteryInfo, Device
 from custom_components.ajax_cobranded.const import DeviceState
 from custom_components.ajax_cobranded.sensor import (
     SENSOR_TYPES,
+    AjaxHubWifiIpSensor,
+    AjaxHubWifiSignalSensor,
+    AjaxHubWifiSsidSensor,
     AjaxSensor,
     AjaxSimImeiSensor,
 )
@@ -297,3 +301,47 @@ class TestAjaxSimImeiSensor:
         coordinator = self._make_coordinator("hub-1", None)
         sensor = AjaxSimImeiSensor(coordinator=coordinator, hub_id="hub-1")
         assert sensor.available is False
+
+
+class TestHubWifiSensors:
+    def _make_coordinator(self, hub_id: str = "hub-1") -> MagicMock:
+        coordinator = MagicMock()
+        coordinator.devices = {hub_id: _make_hub_device(hub_id)}
+        coordinator.hub_network = {
+            hub_id: HubNetworkState(
+                wifi_connected=True,
+                wifi_ssid="TestWiFi",
+                wifi_signal_level="normal",
+                wifi_ip="10.0.0.42",
+            )
+        }
+        return coordinator
+
+    def test_wifi_ssid_sensor_returns_ssid(self) -> None:
+        coordinator = self._make_coordinator()
+        sensor = AjaxHubWifiSsidSensor(coordinator, "hub-1")
+        assert sensor.native_value == "TestWiFi"
+
+    def test_wifi_signal_sensor_returns_signal(self) -> None:
+        coordinator = self._make_coordinator()
+        sensor = AjaxHubWifiSignalSensor(coordinator, "hub-1")
+        assert sensor.native_value == "normal"
+
+    def test_wifi_ip_sensor_returns_ip(self) -> None:
+        coordinator = self._make_coordinator()
+        sensor = AjaxHubWifiIpSensor(coordinator, "hub-1")
+        assert sensor.native_value == "10.0.0.42"
+
+    def test_hub_wifi_sensors_available_with_hts_state(self) -> None:
+        coordinator = self._make_coordinator()
+        assert AjaxHubWifiSsidSensor(coordinator, "hub-1").available is True
+        assert AjaxHubWifiSignalSensor(coordinator, "hub-1").available is True
+        assert AjaxHubWifiIpSensor(coordinator, "hub-1").available is True
+
+    def test_hub_wifi_sensors_return_none_when_no_values(self) -> None:
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": _make_hub_device("hub-1")}
+        coordinator.hub_network = {"hub-1": HubNetworkState()}
+        assert AjaxHubWifiSsidSensor(coordinator, "hub-1").native_value is None
+        assert AjaxHubWifiIpSensor(coordinator, "hub-1").native_value is None
+        assert AjaxHubWifiSignalSensor(coordinator, "hub-1").native_value == "unknown"

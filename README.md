@@ -16,9 +16,9 @@ Ajax Systems provides co-branded versions of their mobile app to security compan
 
 - **Alarm Control Panel**: Arm away, disarm, night mode, group arming with PIN code support
 - **Force Arm Services**: `ajax_cobranded.force_arm` and `ajax_cobranded.force_arm_night` to arm ignoring open sensors
-- **Binary Sensors**: Door open/close, motion detection, smoke, leak, tamper, CO, heat, glass break, vibration, CRA monitoring, cellular connection, lid tamper, external contacts, anti-masking, interference detection, ethernet link, mains power
-- **Hub Network**: Real-time hub network data — ethernet/wifi/gsm connection status, IP addressing, cellular signal strength and network type, power supply status
-- **Sensors**: Battery level, temperature, humidity, CO2, signal strength, GSM type (2G/3G/4G), Wi-Fi signal level, IMEI, Ethernet IP/gateway/DNS, cellular signal/network, connection type
+- **Binary Sensors**: Door open/close, motion detection, smoke, leak, tamper, CO, heat, glass break, vibration, CRA monitoring, cellular connection, lid tamper, external contacts, anti-masking, interference detection, ethernet link, Wi-Fi link, mains power
+- **Hub Network**: Real-time hub network data — ethernet/wifi/gsm connection status, Wi-Fi SSID and signal strength, IP addressing, cellular signal strength and network type, power supply status
+- **Sensors**: Battery level, temperature, humidity, CO2, signal strength, GSM type (2G/3G/4G), Wi-Fi signal level, Wi-Fi SSID, Wi-Fi IP, IMEI, Ethernet IP/gateway/DNS, cellular signal/network, connection type
 - **Switches**: Relays, wall switches, sockets (multi-channel support)
 - **Lights**: Dimmers with brightness control
 - **Cameras**: MotionCam Photo on Demand — capture photos and view them in HA (PhOD models only)
@@ -124,7 +124,7 @@ You can type any custom label during setup if yours is not listed.
 
 | Type | Devices | Entities |
 |---|---|---|
-| Hub | Hub, Hub Plus, Hub 2, Hub 2 Plus, Hub 2 4G | Alarm panel, battery, GSM type/connected, CRA monitoring, lid tamper, IMEI |
+| Hub | Hub, Hub Plus, Hub 2, Hub 2 Plus, Hub 2 4G | Alarm panel, battery, GSM type/connected, CRA monitoring, lid tamper, IMEI, hub network sensors (Ethernet/Wi-Fi/GSM, IP data, cellular signal/network, mains power) |
 | Door Sensors | DoorProtect, DoorProtect Plus, DoorProtect Fibra, DoorProtect S/G3 | Door open/close, tamper, vibration (Plus), battery, temperature, signal, external contacts |
 | Motion Sensors | MotionProtect, MotionProtect Plus/Outdoor/Curtain | Motion detected (real-time), tamper, battery, temperature, signal |
 | Cameras | MotionCam PhOD, MotionCam Outdoor PhOD | Photo on-demand capture + storage, motion detected, tamper, battery |
@@ -163,9 +163,12 @@ Photos are automatically cleaned up based on your retention settings (configurab
 - **CRA connection** — binary sensor showing if the hub is connected to the monitoring station
 - **Cellular connected** — binary sensor for GSM/4G connection status
 - **GSM type** — sensor showing connection type (2G/3G/4G)
+- **Hub network sensors** — Ethernet/Wi-Fi connectivity, Wi-Fi SSID/signal, Ethernet/Wi-Fi IP addressing, cellular signal/network, and mains power status
 - **Lid opened** — tamper detection for the hub enclosure
 - **Battery** — hub battery level
 - **IMEI** — hub cellular modem identifier
+
+> **Note on hub network sensors**: These entities are backed by the HTS connection. If HTS is unavailable or reconnecting, they may temporarily become unavailable instead of showing stale data.
 
 ### Real-time event sensors
 Door open/close and motion detection are **transient events** — they appear when the event occurs and clear automatically. The integration uses a persistent gRPC stream for instant delivery (typically < 1 second latency).

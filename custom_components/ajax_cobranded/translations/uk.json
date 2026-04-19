@@ -13,25 +13,17 @@
             "2fa": {
                 "title": "Двофакторна автентифікація",
                 "description": "Введіть 6-значний код з вашого додатку автентифікації.",
-                "data": {
-                    "totp_code": "Код TOTP"
-                }
+                "data": {"totp_code": "Код TOTP"}
             },
             "select_spaces": {
                 "title": "Вибір просторів",
                 "description": "Виберіть простори (хаби) для додавання.",
-                "data": {
-                    "spaces": "Простори"
-                }
+                "data": {"spaces": "Простори"}
             },
             "reconfigure": {
                 "title": "Переналаштувати Ajax Security",
                 "description": "Оновіть облікові дані.",
-                "data": {
-                    "email": "E-mail",
-                    "password": "Пароль",
-                    "app_label": "Мітка додатку"
-                }
+                "data": {"email": "E-mail", "password": "Пароль", "app_label": "Мітка додатку"}
             }
         },
         "error": {
@@ -76,11 +68,7 @@
         }
     },
     "entity": {
-        "button": {
-            "capture_photo": {
-                "name": "Зробити фото"
-            }
-        },
+        "button": {"capture_photo": {"name": "Зробити фото"}},
         "event": {
             "security_event": {
                 "name": "Подія безпеки",
@@ -109,103 +97,41 @@
             }
         },
         "binary_sensor": {
-            "monitoring": {
-                "name": "Підключення до ЦМО"
-            },
-            "gsm": {
-                "name": "Стільниковий зв'язок"
-            },
-            "lid": {
-                "name": "Кришка відкрита"
-            },
-            "ext_contact": {
-                "name": "Зовнішній контакт розімкнений"
-            },
-            "ext_alert": {
-                "name": "Тривога зовнішнього контакту"
-            },
-            "drilling": {
-                "name": "Свердління корпусу"
-            },
-            "anti_mask": {
-                "name": "Антизамаскування"
-            },
-            "malfunction": {
-                "name": "Несправність"
-            },
-            "interference": {
-                "name": "Перешкоди"
-            },
-            "relay_stuck": {
-                "name": "Реле застрягло"
-            },
-            "always_active": {
-                "name": "Завжди активний"
-            },
-            "glass_break": {
-                "name": "Розбиття скла"
-            },
-            "vibration": {
-                "name": "Вібрація"
-            },
-            "tamper": {
-                "name": "Зламування корпусу"
-            },
-            "connectivity": {
-                "name": "Підключення"
-            },
-            "problem": {
-                "name": "Проблема пристрою"
-            },
-            "ethernet": {
-                "name": "Ethernet"
-            },
-            "mains_power": {
-                "name": "Зовнішнє живлення"
-            }
+            "monitoring": {"name": "Підключення до ЦМО"},
+            "gsm": {"name": "Стільниковий зв'язок"},
+            "lid": {"name": "Кришка відкрита"},
+            "ext_contact": {"name": "Зовнішній контакт розімкнений"},
+            "ext_alert": {"name": "Тривога зовнішнього контакту"},
+            "drilling": {"name": "Свердління корпусу"},
+            "anti_mask": {"name": "Антизамаскування"},
+            "malfunction": {"name": "Несправність"},
+            "interference": {"name": "Перешкоди"},
+            "relay_stuck": {"name": "Реле застрягло"},
+            "always_active": {"name": "Завжди активний"},
+            "glass_break": {"name": "Розбиття скла"},
+            "vibration": {"name": "Вібрація"},
+            "tamper": {"name": "Зламування корпусу"},
+            "connectivity": {"name": "Підключення"},
+            "problem": {"name": "Проблема пристрою"},
+            "ethernet": {"name": "Ethernet"},
+            "wifi": {"name": "Wi-Fi"},
+            "mains_power": {"name": "Зовнішнє живлення"}
         },
         "sensor": {
-            "signal_strength": {
-                "name": "Рівень сигналу"
-            },
-            "mobile_network_type": {
-                "name": "Тип мобільної мережі"
-            },
-            "wifi_signal_level": {
-                "name": "Рівень сигналу Wi-Fi"
-            },
-            "sim_status": {
-                "name": "Стан SIM-карти"
-            },
-            "sim_imei": {
-                "name": "IMEI"
-            },
-            "connection_type": {
-                "name": "Тип з'єднання"
-            },
-            "ethernet_ip": {
-                "name": "IP-адреса Ethernet"
-            },
-            "ethernet_gateway": {
-                "name": "Шлюз Ethernet"
-            },
-            "ethernet_dns": {
-                "name": "DNS Ethernet"
-            },
-            "cellular_signal": {
-                "name": "Сигнал мобільної мережі"
-            },
-            "cellular_network": {
-                "name": "Мобільна мережа"
-            }
+            "signal_strength": {"name": "Рівень сигналу"},
+            "mobile_network_type": {"name": "Тип мобільної мережі"},
+            "wifi_signal_level": {"name": "Рівень сигналу Wi-Fi"},
+            "sim_status": {"name": "Стан SIM-карти"},
+            "sim_imei": {"name": "IMEI"},
+            "connection_type": {"name": "Тип з'єднання"},
+            "wifi_ssid": {"name": "SSID Wi-Fi"},
+            "wifi_ip": {"name": "IP-адреса Wi-Fi"},
+            "ethernet_ip": {"name": "IP-адреса Ethernet"},
+            "ethernet_gateway": {"name": "Шлюз Ethernet"},
+            "ethernet_dns": {"name": "DNS Ethernet"},
+            "cellular_signal": {"name": "Сигнал мобільної мережі"},
+            "cellular_network": {"name": "Мобільна мережа"}
         },
-        "switch": {
-            "channel_1": {
-                "name": "Канал 1"
-            },
-            "channel_2": {
-                "name": "Канал 2"
-            }
-        }
+        "switch": {"channel_1": {"name": "Канал 1"}, "channel_2": {"name": "Канал 2"}}
     }
 }

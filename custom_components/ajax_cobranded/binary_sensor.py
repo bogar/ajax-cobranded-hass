@@ -122,6 +122,7 @@ async def async_setup_entry(
             hub_device = coordinator.devices.get(space.hub_id)
             if hub_device:
                 entities.append(AjaxHubEthernetSensor(coordinator, space.hub_id))
+                entities.append(AjaxHubWifiSensor(coordinator, space.hub_id))
                 entities.append(AjaxHubPowerSensor(coordinator, space.hub_id))
     async_add_entities(entities)
 
@@ -279,6 +280,22 @@ class AjaxHubEthernetSensor(_HubNetworkBinarySensor):
     def is_on(self) -> bool:
         state = self.coordinator.hub_network.get(self._hub_id)
         return state.ethernet_connected if state else False
+
+
+class AjaxHubWifiSensor(_HubNetworkBinarySensor):
+    """Hub Wi-Fi link status."""
+
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_translation_key = "wifi"
+
+    def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
+        super().__init__(coordinator, hub_id)
+        self._attr_unique_id = f"ajax_cobranded_{hub_id}_wifi"
+
+    @property
+    def is_on(self) -> bool:
+        state = self.coordinator.hub_network.get(self._hub_id)
+        return state.wifi_connected if state else False
 
 
 class AjaxHubPowerSensor(_HubNetworkBinarySensor):
