@@ -16,6 +16,11 @@ from custom_components.ajax_cobranded.api.hts.auth import (
 )
 from custom_components.ajax_cobranded.api.hts.crypto import decrypt, encrypt
 from custom_components.ajax_cobranded.api.hts.hub_state import (
+    KEY_ACTIVE_CHANNELS,
+    KEY_ETH_ENABLED,
+    KEY_GPRS_ENABLED,
+    KEY_HUB_POWERED,
+    KEY_WIFI_ENABLED,
     HubNetworkState,
     parse_hub_params,
 )
@@ -91,6 +96,7 @@ class HtsClient:
         self._ping_task: asyncio.Task[None] | None = None
         self._hub_states: dict[str, HubNetworkState] = {}
         self._on_state_update: Callable[[str, HubNetworkState], None] | None = None
+        self._refresh_tasks: dict[str, asyncio.Task[None]] = {}
 
     # ------------------------------------------------------------------
     # Properties
@@ -490,7 +496,7 @@ class HtsClient:
                     len(msg.payload),
                 )
                 if msg.msg_type == MsgType.UPDATES:
-                    self._handle_update(msg)
+                    await self._handle_update(msg)
                 elif msg.msg_type == MsgType.ACK:
                     pass  # expected
                 else:
@@ -502,18 +508,18 @@ class HtsClient:
     # Update handler
     # ------------------------------------------------------------------
 
-    def _handle_update(self, msg: HtsMessage) -> None:
+    async def _handle_update(self, msg: HtsMessage) -> None:
         """Parse an UPDATES message and update hub state."""
         params = tlv_decode(msg.payload)
         if not params:
             return
 
         sub_key = params[0][0] if params[0] else 0
+        hub_id = self._hub_id_from_message(msg)
 
         # SETTINGS_BODY (5) and STATUS_BODY (9) contain data for all devices.
         # Hub data is preceded by the hub_id (4 bytes) as a marker param.
         if sub_key in (5, 9):
-            hub_id = self._hubs[0].hub_id if self._hubs else None
             if not hub_id:
                 return
             hub_id_bytes = bytes.fromhex(hub_id)
@@ -530,6 +536,83 @@ class HtsClient:
                 self._hub_states[hub_id] = new_state
                 if self._on_state_update:
                     self._on_state_update(hub_id, new_state)
+            return
+
+        if not hub_id:
+            return
+
+        kv = self._extract_direct_kv(params[1:])
+        if kv and self._is_network_state_delta(kv):
+            _LOGGER.debug(
+                "Hub %s: parsed %d keys from delta sub-key %d",
+                hub_id,
+                len(kv),
+                sub_key,
+            )
+            existing = self._hub_states.get(hub_id)
+            new_state = parse_hub_params(kv, existing)
+            self._hub_states[hub_id] = new_state
+            if self._on_state_update:
+                self._on_state_update(hub_id, new_state)
+            return
+
+        self._schedule_hub_refresh(hub_id, f"unknown update sub-key {sub_key}")
+
+    def _hub_id_from_message(self, msg: HtsMessage) -> str | None:
+        """Return the hub id when the message is clearly associated with one hub."""
+        known_hubs = {hub.hub_id for hub in self._hubs}
+        for endpoint in (msg.sender, msg.receiver):
+            hub_id = f"{endpoint:08X}"
+            if hub_id in known_hubs:
+                return hub_id
+        if len(self._hubs) == 1:
+            return self._hubs[0].hub_id
+        return None
+
+    @staticmethod
+    def _extract_direct_kv(params: list[bytes]) -> dict[int, bytes]:
+        """Extract alternating 1-byte key/value pairs from a direct delta payload."""
+        kv: dict[int, bytes] = {}
+        i = 0
+        while i + 1 < len(params):
+            key_p = params[i]
+            val_p = params[i + 1]
+            if len(key_p) == 1:
+                kv[key_p[0]] = val_p
+            i += 2
+        return kv
+
+    @staticmethod
+    def _is_network_state_delta(kv: dict[int, bytes]) -> bool:
+        """Return True when the parsed delta contains HTS hub-network keys."""
+        return any(
+            key in kv
+            for key in (
+                KEY_ACTIVE_CHANNELS,
+                KEY_ETH_ENABLED,
+                KEY_WIFI_ENABLED,
+                KEY_GPRS_ENABLED,
+                KEY_HUB_POWERED,
+            )
+        )
+
+    def _schedule_hub_refresh(self, hub_id: str, reason: str) -> None:
+        """Refresh one hub state once when an unparsed hub update arrives."""
+        existing = self._refresh_tasks.get(hub_id)
+        if existing and not existing.done():
+            return
+
+        async def _refresh() -> None:
+            try:
+                _LOGGER.debug("Hub %s: requesting fresh HTS snapshot after %s", hub_id, reason)
+                await self.request_hub_data(hub_id)
+            except Exception:
+                _LOGGER.debug("Hub %s: HTS snapshot refresh failed", hub_id, exc_info=True)
+            finally:
+                self._refresh_tasks.pop(hub_id, None)
+
+        task = asyncio.create_task(_refresh())
+        self._refresh_tasks[hub_id] = task
 
     @staticmethod
     def _extract_device_kv(
@@ -584,6 +667,12 @@ class HtsClient:
     async def close(self) -> None:
         """Disconnect cleanly."""
         self._connected = False
+        refresh_tasks = list(self._refresh_tasks.values())
+        self._refresh_tasks.clear()
+        for task in refresh_tasks:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
         if self._ping_task is not None:
             self._ping_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):

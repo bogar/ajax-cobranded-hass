@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
 from custom_components.ajax_cobranded.api.models import Device, Space
 from custom_components.ajax_cobranded.const import ConnectionStatus, DeviceState, SecurityState
 
@@ -73,6 +74,10 @@ class TestCoordinatorInit:
     def test_devices_api_property(self) -> None:
         coordinator = _make_coordinator()
         assert coordinator.devices_api is coordinator._devices_api
+
+    def test_hub_network_initially_empty(self) -> None:
+        coordinator = _make_coordinator()
+        assert coordinator.hub_network == {}
 
 
 class TestAsyncUpdateData:
@@ -148,6 +153,30 @@ class TestAsyncUpdateData:
 
         await coordinator.async_shutdown()
         coordinator._client.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_update_restarts_hts_when_previous_task_finished(self) -> None:
+        coordinator = _make_coordinator()
+        coordinator._client.session.is_authenticated = True
+        coordinator._streams_started = True
+        coordinator.hub_network = {"hub-1": HubNetworkState(ethernet_connected=True)}
+        coordinator._hts_task = MagicMock()
+        coordinator._hts_task.done.return_value = True
+        coordinator._start_hts = AsyncMock()
+
+        space = _make_space("s1")
+        device = _make_device("d1")
+        coordinator._spaces_api = MagicMock()
+        coordinator._spaces_api.list_spaces = AsyncMock(return_value=[space])
+        coordinator._devices_api = MagicMock()
+        coordinator._devices_api.get_devices_snapshot = AsyncMock(return_value=[device])
+        coordinator.async_set_updated_data = MagicMock()
+
+        await coordinator._async_update_data()
+
+        assert coordinator.hub_network == {}
+        coordinator._start_hts.assert_awaited_once()
+        coordinator.async_set_updated_data.assert_called_once()
 
 
 class TestStreamHandlers:
@@ -258,6 +287,27 @@ class TestStreamHandlers:
         # No devices in coordinator
         coordinator._handle_status_update("nonexistent", "door_opened", {"op": 1})
         coordinator.async_set_updated_data.assert_not_called()
+
+    def test_handle_hts_disconnect_clears_stale_network_state(self) -> None:
+        coordinator = self._make_coordinator_with_stream()
+        coordinator.hub_network["hub-1"] = HubNetworkState(ethernet_connected=True)
+
+        coordinator._handle_hts_disconnect()
+
+        assert coordinator.hub_network == {}
+        coordinator.async_set_updated_data.assert_called_once()
+
+    def test_handle_hts_task_done_clears_state(self) -> None:
+        coordinator = self._make_coordinator_with_stream()
+        coordinator.hub_network["hub-1"] = HubNetworkState(ethernet_connected=True)
+        task = MagicMock(spec=asyncio.Task)
+        task.cancelled.return_value = False
+        task.result.return_value = None
+
+        coordinator._handle_hts_task_done(task)
+
+        assert coordinator.hub_network == {}
+        coordinator.async_set_updated_data.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_shutdown_cancels_stream_tasks(self) -> None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -11,6 +12,8 @@ from custom_components.ajax_cobranded.api.hts.client import (
     HTS_PORT,
     HtsClient,
 )
+from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
+from custom_components.ajax_cobranded.api.hts.messages import HtsMessage, MsgType, tlv_encode
 from custom_components.ajax_cobranded.api.hts.protocol import ETX, STX
 
 # ---------------------------------------------------------------------------
@@ -211,3 +214,97 @@ class TestSendMessage:
 
         assert len(captured) == 1
         assert isinstance(captured[0], bytes)
+
+
+class TestHandleUpdate:
+    @pytest.mark.asyncio
+    async def test_status_body_updates_hub_state(self) -> None:
+        client = _make_client()
+        client._hubs = [MagicMock(hub_id="12345678")]
+        client._on_state_update = MagicMock()
+        msg = HtsMessage(
+            sender=0x12345678,
+            receiver=client._sender_id,
+            seq_num=1,
+            link=10,
+            flags=0,
+            msg_type=MsgType.UPDATES,
+            payload=tlv_encode(
+                [
+                    b"\x09",
+                    bytes.fromhex("12345678"),
+                    b"\x48",
+                    b"\x02",
+                ]
+            ),
+        )
+
+        await client._handle_update(msg)
+
+        state = client.hub_states["12345678"]
+        assert state.wifi_connected is True
+        assert state.primary_connection == "wifi"
+        client._on_state_update.assert_called_once_with("12345678", state)
+
+    @pytest.mark.asyncio
+    async def test_direct_delta_update_clears_ethernet_and_keeps_wifi(self) -> None:
+        client = _make_client()
+        client._hubs = [MagicMock(hub_id="12345678")]
+        client._hub_states["12345678"] = HubNetworkState(
+            ethernet_connected=True,
+            wifi_connected=True,
+        )
+        client._on_state_update = MagicMock()
+        msg = HtsMessage(
+            sender=0x12345678,
+            receiver=client._sender_id,
+            seq_num=1,
+            link=10,
+            flags=0,
+            msg_type=MsgType.UPDATES,
+            payload=tlv_encode(
+                [
+                    b"\x0a",
+                    b"\x48",
+                    b"\x02",
+                ]
+            ),
+        )
+
+        await client._handle_update(msg)
+
+        state = client.hub_states["12345678"]
+        assert state.ethernet_connected is False
+        assert state.wifi_connected is True
+        assert state.primary_connection == "wifi"
+        client._on_state_update.assert_called_once_with("12345678", state)
+
+    @pytest.mark.asyncio
+    async def test_unknown_hub_update_requests_refresh_once(self) -> None:
+        client = _make_client()
+        client._hubs = [MagicMock(hub_id="12345678")]
+
+        async def _refresh(_: str) -> None:
+            await asyncio.sleep(0)
+
+        client.request_hub_data = AsyncMock(side_effect=_refresh)
+        msg = HtsMessage(
+            sender=0x12345678,
+            receiver=client._sender_id,
+            seq_num=1,
+            link=10,
+            flags=0,
+            msg_type=MsgType.UPDATES,
+            payload=tlv_encode(
+                [
+                    b"\x22",
+                    b"\x99",
+                    b"\x01",
+                ]
+            ),
+        )
+
+        await asyncio.gather(client._handle_update(msg), client._handle_update(msg))
+        await asyncio.sleep(0)
+
+        client.request_hub_data.assert_awaited_once_with("12345678")
