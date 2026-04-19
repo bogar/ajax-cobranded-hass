@@ -150,6 +150,11 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     all_devices[device.id] = device
             self.devices = all_devices
 
+            if self._hts_task and self._hts_task.done():
+                self._handle_hts_disconnect()
+            if self._hts_client is None:
+                await self._start_hts()
+
             return {"spaces": self.spaces, "devices": self.devices}
         except Exception as err:
             raise UpdateFailed("Error fetching Ajax data") from err
@@ -173,14 +178,32 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._hts_task = asyncio.create_task(
                 self._hts_client.listen(on_state_update=self._on_hts_update)
             )
+            self._hts_task.add_done_callback(self._handle_hts_task_done)
         except (HtsConnectionError, Exception):
             _LOGGER.debug("HTS connection failed (network sensors unavailable)", exc_info=True)
+            self._handle_hts_disconnect()
             self._hts_client = None
 
     def _on_hts_update(self, hub_id: str, state: HubNetworkState) -> None:
         """Handle hub network state update from HTS."""
         self.hub_network[hub_id] = state
         self.async_set_updated_data({"spaces": self.spaces, "devices": self.devices})
+
+    def _handle_hts_task_done(self, task: asyncio.Task[None]) -> None:
+        """Clear stale HTS state when the listen task exits."""
+        if task.cancelled():
+            return
+        with contextlib.suppress(Exception):
+            task.result()
+        self._handle_hts_disconnect()
+
+    def _handle_hts_disconnect(self) -> None:
+        """Drop stale HTS state so hub network entities become unavailable."""
+        self._hts_task = None
+        self._hts_client = None
+        if self.hub_network:
+            self.hub_network.clear()
+            self.async_set_updated_data({"spaces": self.spaces, "devices": self.devices})
 
     async def _start_device_streams(self) -> None:
         """Start persistent device streams for all spaces."""
