@@ -19,6 +19,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. ALARM TRIGGERED — Critical push + camera capture
 # ─────────────────────────────────────────────────────────────────────────────
+# TIP: Instead of listing camera buttons manually, use label_entities:
+#   entity_id: "{{ label_entities('aegis_camera') | select('match', 'button\\\\.') | list }}"
 - id: ajax_alarm_triggered
   alias: "Alarma - Sistema disparat"
   description: "Alert and capture photos when the alarm is triggered"
@@ -29,9 +31,7 @@
   actions:
     - action: button.press
       target:
-        entity_id:
-          - button.hallway_capturar_foto
-          - button.dining_capturar_foto
+        entity_id: "{{ label_entities('aegis_camera') | select('match', 'button\\\\.') | list }}"
     - action: notify.mobile_app_user
       data:
         title: "ALARMA DISPARADA!"
@@ -131,22 +131,14 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. LOW BATTERY on any device
 # ─────────────────────────────────────────────────────────────────────────────
+# TIP: Use label_entities('aegis_battery') to auto-detect all battery sensors
+#   instead of maintaining a manual list. New devices are included automatically.
 - id: ajax_low_battery
   alias: "Alarma - Bateria baixa"
   description: "Alert when any Ajax device battery drops below 15%"
   triggers:
     - trigger: numeric_state
-      entity_id:
-        - sensor.kitchen_door_battery
-        - sensor.bedroom_door_battery
-        - sensor.main_door_battery
-        - sensor.bedroom_window_battery
-        - sensor.bedroom2_window_battery
-        - sensor.dressing_window_battery
-        - sensor.hallway_battery
-        - sensor.dining_battery
-        - sensor.keypad_battery
-        - sensor.my_hub_battery
+      entity_id: "{{ label_entities('aegis_battery') | list }}"
       below: 15
   actions:
     - action: notify.mobile_app_user
@@ -165,17 +157,7 @@
   description: "Critical alert when any device battery is below 5%"
   triggers:
     - trigger: numeric_state
-      entity_id:
-        - sensor.kitchen_door_battery
-        - sensor.bedroom_door_battery
-        - sensor.main_door_battery
-        - sensor.bedroom_window_battery
-        - sensor.bedroom2_window_battery
-        - sensor.dressing_window_battery
-        - sensor.hallway_battery
-        - sensor.dining_battery
-        - sensor.keypad_battery
-        - sensor.my_hub_battery
+      entity_id: "{{ label_entities('aegis_battery') | list }}"
       below: 5
   actions:
     - action: notify.mobile_app_user
@@ -194,18 +176,13 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. DOOR/WINDOW LEFT OPEN too long
 # ─────────────────────────────────────────────────────────────────────────────
+# TIP: Use label_entities('aegis_door') to auto-detect all door/window sensors.
 - id: ajax_door_left_open
   alias: "Alarma - Porta/finestra oberta massa temps"
   description: "Alert when a door or window has been open for more than 10 minutes"
   triggers:
     - trigger: state
-      entity_id:
-        - binary_sensor.kitchen_door_door
-        - binary_sensor.bedroom_door_door
-        - binary_sensor.main_door_door
-        - binary_sensor.bedroom_window_door
-        - binary_sensor.bedroom2_window_door
-        - binary_sensor.dressing_window_door
+      entity_id: "{{ label_entities('aegis_door') | list }}"
       to: "on"
       for:
         minutes: 10
@@ -233,11 +210,10 @@
       entity_id: alarm_control_panel.my_hub
       state: "armed_away"
   actions:
+    # TIP: Auto-detect capture buttons via aegis_camera label
     - action: button.press
       target:
-        entity_id:
-          - button.hallway_capturar_foto
-          - button.dining_capturar_foto
+        entity_id: "{{ label_entities('aegis_camera') | select('match', 'button\\\\.') | list }}"
     - action: notify.mobile_app_user
       data:
         title: "ALERTA - Porta principal oberta!"
@@ -257,21 +233,13 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 9. TAMPER ALERT on any device
 # ─────────────────────────────────────────────────────────────────────────────
+# TIP: Use label_entities('aegis_tamper') to auto-detect all tamper sensors.
 - id: ajax_tamper_alert
   alias: "Alarma - Manipulacio detectada"
   description: "Alert when tamper is detected on any Ajax device"
   triggers:
     - trigger: state
-      entity_id:
-        - binary_sensor.kitchen_door_tamper
-        - binary_sensor.bedroom_door_tamper
-        - binary_sensor.main_door_tamper
-        - binary_sensor.bedroom_window_tamper
-        - binary_sensor.bedroom2_window_tamper
-        - binary_sensor.dressing_window_tamper
-        - binary_sensor.hallway_tamper
-        - binary_sensor.dining_tamper
-        - binary_sensor.keypad_tamper
+      entity_id: "{{ label_entities('aegis_tamper') | list }}"
       to: "on"
   actions:
     - action: notify.mobile_app_user
@@ -391,21 +359,13 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 14. TEMPERATURE ANOMALY (high)
 # ─────────────────────────────────────────────────────────────────────────────
+# TIP: Use label_entities('aegis_temperature') to auto-detect all temp sensors.
 - id: ajax_temperature_high
   alias: "Alarma - Temperatura alta"
   description: "Alert when any sensor detects temperature above 40C"
   triggers:
     - trigger: numeric_state
-      entity_id:
-        - sensor.kitchen_door_temperature
-        - sensor.bedroom_door_temperature
-        - sensor.main_door_temperature
-        - sensor.bedroom_window_temperature
-        - sensor.bedroom2_window_temperature
-        - sensor.dressing_window_temperature
-        - sensor.hallway_temperature
-        - sensor.dining_temperature
-        - sensor.keypad_temperature
+      entity_id: "{{ label_entities('aegis_temperature') | list }}"
       above: 40
   actions:
     - action: notify.mobile_app_user
@@ -431,16 +391,7 @@
   description: "Alert when temperature drops below 5C (possible heating failure or break-in)"
   triggers:
     - trigger: numeric_state
-      entity_id:
-        - sensor.kitchen_door_temperature
-        - sensor.bedroom_door_temperature
-        - sensor.main_door_temperature
-        - sensor.bedroom_window_temperature
-        - sensor.bedroom2_window_temperature
-        - sensor.dressing_window_temperature
-        - sensor.hallway_temperature
-        - sensor.dining_temperature
-        - sensor.keypad_temperature
+      entity_id: "{{ label_entities('aegis_temperature') | list }}"
       below: 5
   actions:
     - action: notify.mobile_app_user
@@ -527,21 +478,13 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 19. SENSOR OFFLINE — any device loses connectivity
 # ─────────────────────────────────────────────────────────────────────────────
+# TIP: Use label_entities('aegis_connectivity') to auto-detect all connectivity sensors.
 - id: ajax_sensor_offline
   alias: "Alarma - Sensor desconnectat"
   description: "Alert when any Ajax sensor goes offline"
   triggers:
     - trigger: state
-      entity_id:
-        - binary_sensor.kitchen_door_connectivity
-        - binary_sensor.bedroom_door_connectivity
-        - binary_sensor.main_door_connectivity
-        - binary_sensor.bedroom_window_connectivity
-        - binary_sensor.bedroom2_window_connectivity
-        - binary_sensor.dressing_window_connectivity
-        - binary_sensor.hallway_connectivity
-        - binary_sensor.dining_connectivity
-        - binary_sensor.keypad_connectivity
+      entity_id: "{{ label_entities('aegis_connectivity') | list }}"
       to: "off"
       for:
         minutes: 10
@@ -589,6 +532,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 21. REMINDER: Check open doors/windows before arming at night
 # ─────────────────────────────────────────────────────────────────────────────
+# Uses label_entities('aegis_door') to auto-detect all door/window sensors.
+# New devices added to the integration are included automatically.
 - id: ajax_open_check_before_night
   alias: "Alarma - Recordatori portes obertes a la nit"
   description: "Reminder at 22:30 if any doors/windows are open"
@@ -596,43 +541,19 @@
     - trigger: time
       at: "22:30:00"
   conditions:
-    - condition: or
-      conditions:
-        - condition: state
-          entity_id: binary_sensor.kitchen_door_door
-          state: "on"
-        - condition: state
-          entity_id: binary_sensor.bedroom_door_door
-          state: "on"
-        - condition: state
-          entity_id: binary_sensor.main_door_door
-          state: "on"
-        - condition: state
-          entity_id: binary_sensor.bedroom_window_door
-          state: "on"
-        - condition: state
-          entity_id: binary_sensor.bedroom2_window_door
-          state: "on"
-        - condition: state
-          entity_id: binary_sensor.dressing_window_door
-          state: "on"
+    - condition: template
+      value_template: >-
+        {{ label_entities('aegis_door')
+           | select('is_state', 'on') | list | length > 0 }}
   actions:
     - action: notify.mobile_app_user
       data:
         title: "Recordatori — Portes obertes"
         message: >-
           Abans d'anar a dormir, comprova:
-          {% set sensors = [
-            ('Porta cuina', 'binary_sensor.kitchen_door_door'),
-            ('Porta hab', 'binary_sensor.bedroom_door_door'),
-            ('Porta principal', 'binary_sensor.main_door_door'),
-            ('Finestra hab', 'binary_sensor.bedroom_window_door'),
-            ('Finestra hab 2', 'binary_sensor.bedroom2_window_door'),
-            ('Finestra vestidor', 'binary_sensor.dressing_window_door'),
-          ] %}
-          {% for name, entity in sensors %}
+          {% for entity in label_entities('aegis_door') %}
           {% if is_state(entity, 'on') %}
-          - {{ name }}: OBERTA
+          - {{ state_attr(entity, 'friendly_name') }}: OBERTA
           {% endif %}
           {% endfor %}
 
@@ -680,11 +601,10 @@
       to: "alarm"
   action:
     - parallel:
+        # Auto-detect all capture buttons via aegis_camera label
         - action: button.press
           target:
-            entity_id:
-              - button.hallway_capture_photo
-              - button.living_capture_photo
+            entity_id: "{{ label_entities('aegis_camera') | select('match', 'button\\\\.') | list }}"
         - action: notify.mobile_app_user
           data:
             title: "INTRUSION ALARM"

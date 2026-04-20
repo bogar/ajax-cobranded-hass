@@ -19,10 +19,12 @@ blueprint:
       selector:
         text: {}
     camera_buttons:
-      name: Camera Capture Buttons
+      name: Camera Capture Buttons (optional override)
       description: >-
-        List of button entities that trigger photo capture on your cameras
-        (e.g. button.hallway_capture_photo).
+        Leave empty to auto-detect all Ajax capture buttons via the
+        aegis_camera label (filtered to button. entities). Provide a
+        manual list here to override.
+      default: []
       selector:
         entity:
           filter:
@@ -45,6 +47,11 @@ blueprint:
 
 variables:
   custom_message: !input notification_message
+  buttons_input: !input camera_buttons
+  capture_buttons: >-
+    {{ buttons_input if buttons_input | length > 0
+       else label_entities('aegis_camera')
+            | select('match', 'button\\.') | list }}
 
 triggers:
   - trigger: state
@@ -60,7 +67,7 @@ actions:
   - parallel:
       - action: button.press
         target:
-          entity_id: !input camera_buttons
+          entity_id: "{{ capture_buttons }}"
       - action: !input notify_service
         data:
           title: !input notification_title

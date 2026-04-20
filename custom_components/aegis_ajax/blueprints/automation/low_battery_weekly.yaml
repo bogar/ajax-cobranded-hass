@@ -6,10 +6,11 @@ blueprint:
   domain: automation
   input:
     battery_sensors:
-      name: Battery Sensor Entities
+      name: Battery Sensor Entities (optional override)
       description: >-
-        List of battery sensor entities to check
-        (e.g. sensor.kitchen_door_battery, sensor.hallway_battery).
+        Leave empty to auto-detect all Ajax battery sensors via the
+        aegis_battery label. Provide a manual list here to override.
+      default: []
       selector:
         entity:
           filter:
@@ -60,7 +61,10 @@ blueprint:
         time: {}
 
 variables:
-  sensors: !input battery_sensors
+  sensors_input: !input battery_sensors
+  sensors: >-
+    {{ sensors_input if sensors_input | length > 0
+       else label_entities('aegis_battery') | list }}
   battery_threshold: !input threshold
   target_day: !input send_day
 
