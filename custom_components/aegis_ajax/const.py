@@ -5,6 +5,56 @@ from enum import IntEnum, StrEnum
 DOMAIN = "aegis_ajax"
 MANUFACTURER = "Ajax Systems"
 
+# Labels for automatic entity categorization
+LABEL_PREFIX = "aegis"
+LABELS: dict[str, dict[str, str]] = {
+    "aegis_door": {
+        "name": "Aegis: Doors & Windows",
+        "icon": "mdi:door",
+        "color": "#1E88E5",
+    },
+    "aegis_motion": {
+        "name": "Aegis: Motion",
+        "icon": "mdi:motion-sensor",
+        "color": "#FB8C00",
+    },
+    "aegis_camera": {
+        "name": "Aegis: Cameras",
+        "icon": "mdi:cctv",
+        "color": "#8E24AA",
+    },
+    "aegis_battery": {
+        "name": "Aegis: Batteries",
+        "icon": "mdi:battery",
+        "color": "#43A047",
+    },
+    "aegis_temperature": {
+        "name": "Aegis: Temperature",
+        "icon": "mdi:thermometer",
+        "color": "#E53935",
+    },
+    "aegis_tamper": {
+        "name": "Aegis: Tamper",
+        "icon": "mdi:shield-alert",
+        "color": "#D81B60",
+    },
+    "aegis_connectivity": {
+        "name": "Aegis: Connectivity",
+        "icon": "mdi:access-point-network",
+        "color": "#00ACC1",
+    },
+    "aegis_hub": {
+        "name": "Aegis: Hub",
+        "icon": "mdi:server-network",
+        "color": "#546E7A",
+    },
+    "aegis_alarm": {
+        "name": "Aegis: Alarm",
+        "icon": "mdi:shield-home",
+        "color": "#C62828",
+    },
+}
+
 GRPC_HOST = "mobile-gw.prod.ajax.systems"
 GRPC_PORT = 443
 

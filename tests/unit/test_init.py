@@ -187,6 +187,143 @@ class TestOptionsUpdateListener:
         entry.add_update_listener.assert_called_once()
 
 
+class TestAutoLabeling:
+    @pytest.mark.asyncio
+    async def test_apply_labels_creates_labels_and_assigns(self) -> None:
+        from custom_components.aegis_ajax import _async_apply_labels
+        from custom_components.aegis_ajax.const import LABELS
+
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+
+        # Mock label registry
+        mock_label_reg = MagicMock()
+        mock_label_reg.async_get_label.return_value = None  # labels don't exist yet
+
+        # Mock entity registry with a door sensor
+        mock_entity = MagicMock()
+        mock_entity.entity_id = "binary_sensor.porta_door"
+        mock_entity.original_device_class = "door"
+        mock_entity.labels = set()
+
+        mock_entity_reg = MagicMock()
+        mock_entries_fn = MagicMock(return_value=[mock_entity])
+
+        with (
+            patch("homeassistant.helpers.label_registry.async_get", return_value=mock_label_reg),
+            patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_reg),
+            patch(
+                "homeassistant.helpers.entity_registry.async_entries_for_config_entry",
+                mock_entries_fn,
+            ),
+        ):
+            await _async_apply_labels(hass, entry)
+
+        # Labels should be created
+        assert mock_label_reg.async_create.call_count == len(LABELS)
+
+        # Entity should get aegis_door label
+        mock_entity_reg.async_update_entity.assert_called_once()
+        call_kwargs = mock_entity_reg.async_update_entity.call_args
+        assert "aegis_door" in call_kwargs[1]["labels"]
+
+    @pytest.mark.asyncio
+    async def test_apply_labels_preserves_existing_labels(self) -> None:
+        from custom_components.aegis_ajax import _async_apply_labels
+
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+
+        mock_label_reg = MagicMock()
+        mock_label_reg.async_get_label.return_value = MagicMock()  # labels exist
+
+        mock_entity = MagicMock()
+        mock_entity.entity_id = "binary_sensor.porta_tamper"
+        mock_entity.original_device_class = "tamper"
+        mock_entity.labels = {"user_custom_label"}
+
+        mock_entity_reg = MagicMock()
+
+        with (
+            patch("homeassistant.helpers.label_registry.async_get", return_value=mock_label_reg),
+            patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_reg),
+            patch(
+                "homeassistant.helpers.entity_registry.async_entries_for_config_entry",
+                return_value=[mock_entity],
+            ),
+        ):
+            await _async_apply_labels(hass, entry)
+
+        # Should preserve user label and add aegis_tamper
+        call_kwargs = mock_entity_reg.async_update_entity.call_args[1]
+        assert "user_custom_label" in call_kwargs["labels"]
+        assert "aegis_tamper" in call_kwargs["labels"]
+
+    @pytest.mark.asyncio
+    async def test_apply_labels_skips_when_already_labeled(self) -> None:
+        from custom_components.aegis_ajax import _async_apply_labels
+
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+
+        mock_label_reg = MagicMock()
+        mock_label_reg.async_get_label.return_value = MagicMock()
+
+        mock_entity = MagicMock()
+        mock_entity.entity_id = "binary_sensor.porta_door"
+        mock_entity.original_device_class = "door"
+        mock_entity.labels = {"aegis_door"}  # already labeled
+
+        mock_entity_reg = MagicMock()
+
+        with (
+            patch("homeassistant.helpers.label_registry.async_get", return_value=mock_label_reg),
+            patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_reg),
+            patch(
+                "homeassistant.helpers.entity_registry.async_entries_for_config_entry",
+                return_value=[mock_entity],
+            ),
+        ):
+            await _async_apply_labels(hass, entry)
+
+        # Should not update since label already present
+        mock_entity_reg.async_update_entity.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_apply_labels_hub_entities_by_pattern(self) -> None:
+        from custom_components.aegis_ajax import _async_apply_labels
+
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+
+        mock_label_reg = MagicMock()
+        mock_label_reg.async_get_label.return_value = MagicMock()
+
+        mock_entity = MagicMock()
+        mock_entity.entity_id = "sensor.alarma_ajax_ip_ethernet"
+        mock_entity.original_device_class = None
+        mock_entity.labels = set()
+
+        mock_entity_reg = MagicMock()
+
+        with (
+            patch("homeassistant.helpers.label_registry.async_get", return_value=mock_label_reg),
+            patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_reg),
+            patch(
+                "homeassistant.helpers.entity_registry.async_entries_for_config_entry",
+                return_value=[mock_entity],
+            ),
+        ):
+            await _async_apply_labels(hass, entry)
+
+        call_kwargs = mock_entity_reg.async_update_entity.call_args[1]
+        assert "aegis_hub" in call_kwargs["labels"]
+
+
 class TestAsyncUnloadEntry:
     @pytest.mark.asyncio
     async def test_unload_entry_success(self) -> None:

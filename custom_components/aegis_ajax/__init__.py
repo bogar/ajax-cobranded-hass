@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 
 from custom_components.aegis_ajax.api.client import AjaxGrpcClient
-from custom_components.aegis_ajax.const import DEFAULT_POLL_INTERVAL, DOMAIN
+from custom_components.aegis_ajax.const import DEFAULT_POLL_INTERVAL, DOMAIN, LABELS
 from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 
 if TYPE_CHECKING:
@@ -123,6 +123,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # Auto-label entities for easy grouping in automations
+    try:
+        await _async_apply_labels(hass, entry)
+    except Exception:
+        _LOGGER.debug("Auto-labeling skipped (labels API not available)")
+
     async def _force_arm_handler(call: ServiceCall) -> None:
         await _async_handle_force_arm(hass, call)
 
@@ -137,6 +143,96 @@ async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry
     entry.async_on_unload(entry.add_update_listener(_async_options_update_listener))
 
     return True
+
+
+_LABEL_RULES: dict[str, set[str]] = {
+    "aegis_alarm": {"alarm_control_panel", "event"},
+    "aegis_hub": {"update"},
+}
+
+_DEVICE_CLASS_LABELS: dict[str, str] = {
+    "door": "aegis_door",
+    "window": "aegis_door",
+    "garage_door": "aegis_door",
+    "motion": "aegis_motion",
+    "occupancy": "aegis_motion",
+    "battery": "aegis_battery",
+    "temperature": "aegis_temperature",
+    "tamper": "aegis_tamper",
+    "connectivity": "aegis_connectivity",
+    "plug": "aegis_connectivity",
+    "power": "aegis_connectivity",
+}
+
+_ENTITY_ID_LABELS: dict[str, str] = {
+    "camera.": "aegis_camera",
+    "button.": "aegis_camera",
+    "_ethernet": "aegis_hub",
+    "_wifi": "aegis_hub",
+    "_wi_fi": "aegis_hub",
+    "_ssid": "aegis_hub",
+    "_celular": "aegis_hub",
+    "_cellular": "aegis_hub",
+    "_connection_type": "aegis_hub",
+    "_tipo_de_conexion": "aegis_hub",
+    "_tipo_de_red": "aegis_hub",
+    "_alimentacion": "aegis_hub",
+    "_mains_power": "aegis_hub",
+    "_dns_": "aegis_hub",
+    "_gateway": "aegis_hub",
+    "_puerta_de_enlace": "aegis_hub",
+    "_imei": "aegis_hub",
+    "_cra": "aegis_hub",
+    "_conexion_cra": "aegis_hub",
+}
+
+
+async def _async_apply_labels(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Create labels and assign them to entities based on domain and device_class."""
+    from homeassistant.helpers import entity_registry as er  # noqa: PLC0415
+    from homeassistant.helpers import label_registry as lr  # noqa: PLC0415
+
+    label_reg = lr.async_get(hass)
+    entity_reg = er.async_get(hass)
+
+    # Ensure labels exist
+    for label_id, props in LABELS.items():
+        if not label_reg.async_get_label(label_id):
+            label_reg.async_create(
+                name=props["name"],
+                icon=props.get("icon"),
+                color=props.get("color"),
+            )
+
+    # Assign labels to our entities
+    entries = er.async_entries_for_config_entry(entity_reg, entry.entry_id)
+    for entity_entry in entries:
+        labels_to_add: set[str] = set()
+        domain = entity_entry.entity_id.split(".")[0]
+
+        # Rule 1: platform-based labels
+        for label_id, domains in _LABEL_RULES.items():
+            if domain in domains:
+                labels_to_add.add(label_id)
+
+        # Rule 2: device_class-based labels
+        if entity_entry.original_device_class:
+            dc = str(entity_entry.original_device_class).split(".")[-1]
+            if dc in _DEVICE_CLASS_LABELS:
+                labels_to_add.add(_DEVICE_CLASS_LABELS[dc])
+
+        # Rule 3: entity_id pattern matching
+        eid = entity_entry.entity_id
+        for pattern, label_id in _ENTITY_ID_LABELS.items():
+            if pattern in eid:
+                labels_to_add.add(label_id)
+
+        # Apply labels (union with existing to preserve user labels)
+        if labels_to_add and not labels_to_add.issubset(entity_entry.labels):
+            entity_reg.async_update_entity(
+                entity_entry.entity_id,
+                labels=entity_entry.labels | labels_to_add,
+            )
 
 
 async def _async_options_update_listener(
