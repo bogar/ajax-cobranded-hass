@@ -7,14 +7,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hts.client import (
+from custom_components.aegis_ajax.api.hts.client import (
     HTS_HOST,
     HTS_PORT,
     HtsClient,
 )
-from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
-from custom_components.ajax_cobranded.api.hts.messages import HtsMessage, MsgType, tlv_encode
-from custom_components.ajax_cobranded.api.hts.protocol import ETX, STX
+from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
+from custom_components.aegis_ajax.api.hts.messages import HtsMessage, MsgType, tlv_encode
+from custom_components.aegis_ajax.api.hts.protocol import ETX, STX
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -160,7 +160,7 @@ class TestSendMessage:
         mock_writer.drain = AsyncMock()
         client._writer = mock_writer
 
-        from custom_components.ajax_cobranded.api.hts.messages import MsgType
+        from custom_components.aegis_ajax.api.hts.messages import MsgType
 
         await client._send_message(MsgType.PING, b"")
 
@@ -177,7 +177,7 @@ class TestSendMessage:
         mock_writer.drain = AsyncMock()
         client._writer = mock_writer
 
-        from custom_components.ajax_cobranded.api.hts.messages import MsgType
+        from custom_components.aegis_ajax.api.hts.messages import MsgType
 
         await client._send_message(MsgType.PING, b"")
 
@@ -192,7 +192,7 @@ class TestSendMessage:
         mock_writer.drain = AsyncMock()
         client._writer = mock_writer
 
-        from custom_components.ajax_cobranded.api.hts.messages import MsgType
+        from custom_components.aegis_ajax.api.hts.messages import MsgType
 
         assert client._seq_num == 1
         await client._send_message(MsgType.PING, b"")
@@ -208,7 +208,7 @@ class TestSendMessage:
         mock_writer.drain = AsyncMock()
         client._writer = mock_writer
 
-        from custom_components.ajax_cobranded.api.hts.messages import MsgType
+        from custom_components.aegis_ajax.api.hts.messages import MsgType
 
         await client._send_message(MsgType.PING, b"")
 

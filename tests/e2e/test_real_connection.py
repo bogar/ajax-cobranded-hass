@@ -9,8 +9,8 @@ import os
 
 import pytest
 
-from custom_components.ajax_cobranded.api.client import AjaxGrpcClient
-from custom_components.ajax_cobranded.api.spaces import SpacesApi
+from custom_components.aegis_ajax.api.client import AjaxGrpcClient
+from custom_components.aegis_ajax.api.spaces import SpacesApi
 
 pytestmark = [
     pytest.mark.e2e,

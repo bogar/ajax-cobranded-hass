@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
-from custom_components.ajax_cobranded.api.models import Device
-from custom_components.ajax_cobranded.binary_sensor import (
+from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
+from custom_components.aegis_ajax.api.models import Device
+from custom_components.aegis_ajax.binary_sensor import (
     _DEVICE_TYPE_SENSORS,
     BINARY_SENSOR_TYPES,
     AjaxBinarySensor,
@@ -14,7 +14,7 @@ from custom_components.ajax_cobranded.binary_sensor import (
     AjaxHubWifiSensor,
     AjaxProblemSensor,
 )
-from custom_components.ajax_cobranded.const import DeviceState
+from custom_components.aegis_ajax.const import DeviceState
 
 
 class TestBinarySensorTypes:
@@ -124,7 +124,7 @@ class TestAjaxBinarySensor:
         sensor = AjaxBinarySensor(
             coordinator=coordinator, device_id="dev-1", status_key="door_opened"
         )
-        assert sensor.unique_id == "ajax_cobranded_dev-1_door_opened"
+        assert sensor.unique_id == "aegis_ajax_dev-1_door_opened"
 
     def test_device_info_with_device(self) -> None:
         device = self._make_device({})
@@ -134,7 +134,7 @@ class TestAjaxBinarySensor:
             coordinator=coordinator, device_id="dev-1", status_key="door_opened"
         )
         assert sensor._attr_device_info is not None
-        assert ("ajax_cobranded", "dev-1") in sensor._attr_device_info["identifiers"]
+        assert ("aegis_ajax", "dev-1") in sensor._attr_device_info["identifiers"]
 
     def test_device_info_without_device(self) -> None:
         coordinator = MagicMock()
@@ -185,8 +185,8 @@ class TestAjaxBinarySensor:
         assert sensor.is_on is True
 
     def test_hub_device_has_no_via_device(self) -> None:
-        from custom_components.ajax_cobranded.api.models import Device
-        from custom_components.ajax_cobranded.const import DeviceState
+        from custom_components.aegis_ajax.api.models import Device
+        from custom_components.aegis_ajax.const import DeviceState
 
         hub_device = Device(
             id="hub-1",
@@ -217,11 +217,11 @@ class TestAjaxBinarySensor:
             coordinator=coordinator, device_id="dev-1", status_key="door_opened"
         )
         assert sensor._attr_device_info is not None
-        assert sensor._attr_device_info.get("via_device") == ("ajax_cobranded", "hub-1")
+        assert sensor._attr_device_info.get("via_device") == ("aegis_ajax", "hub-1")
 
     def test_monitoring_sensor_has_translation_key(self) -> None:
-        from custom_components.ajax_cobranded.api.models import Device
-        from custom_components.ajax_cobranded.const import DeviceState
+        from custom_components.aegis_ajax.api.models import Device
+        from custom_components.aegis_ajax.const import DeviceState
 
         hub_device = Device(
             id="hub-1",
@@ -380,7 +380,7 @@ class TestAjaxConnectivitySensor:
         coordinator = MagicMock()
         coordinator.devices = {"dev-1": device}
         sensor = AjaxConnectivitySensor(coordinator=coordinator, device_id="dev-1")
-        assert sensor.unique_id == "ajax_cobranded_dev-1_connectivity"
+        assert sensor.unique_id == "aegis_ajax_dev-1_connectivity"
 
     def test_entity_category_is_diagnostic(self) -> None:
         from homeassistant.const import EntityCategory
@@ -404,7 +404,7 @@ class TestAjaxConnectivitySensor:
         coordinator.devices = {"dev-1": device}
         sensor = AjaxConnectivitySensor(coordinator=coordinator, device_id="dev-1")
         assert sensor._attr_device_info is not None
-        assert ("ajax_cobranded", "dev-1") in sensor._attr_device_info["identifiers"]
+        assert ("aegis_ajax", "dev-1") in sensor._attr_device_info["identifiers"]
 
     def test_hub_device_no_via_device(self) -> None:
         hub_device = Device(
@@ -467,7 +467,7 @@ class TestAjaxProblemSensor:
         coordinator = MagicMock()
         coordinator.devices = {"dev-1": device}
         sensor = AjaxProblemSensor(coordinator=coordinator, device_id="dev-1")
-        assert sensor.unique_id == "ajax_cobranded_dev-1_problem"
+        assert sensor.unique_id == "aegis_ajax_dev-1_problem"
 
     def test_entity_category_is_diagnostic(self) -> None:
         from homeassistant.const import EntityCategory
@@ -505,7 +505,7 @@ class TestAjaxProblemSensor:
         coordinator.devices = {"dev-1": device}
         sensor = AjaxProblemSensor(coordinator=coordinator, device_id="dev-1")
         assert sensor._attr_device_info is not None
-        assert ("ajax_cobranded", "dev-1") in sensor._attr_device_info["identifiers"]
+        assert ("aegis_ajax", "dev-1") in sensor._attr_device_info["identifiers"]
 
 
 class TestAjaxHubWifiSensor:

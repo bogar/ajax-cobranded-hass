@@ -1,8 +1,8 @@
-# Ajax Security for Home Assistant
+# Aegis for Ajax — Home Assistant Integration
 
-> **Disclaimer**: This is an **unofficial** third-party integration and is not affiliated with, endorsed by, or supported by Ajax Systems. Use at your own risk. This integration communicates with Ajax Systems servers by emulating the official mobile app's protocol. Ajax Systems may change their API at any time, which could break this integration without notice.
+> **Disclaimer**: This is an **unofficial** third-party integration and is not affiliated with, endorsed by, or supported by Ajax Systems. Use at your own risk. This integration communicates with Ajax Systems servers using the same protocol as the official mobile app. Ajax Systems may change their API at any time, which could break this integration without notice.
 
-A Home Assistant custom integration for **Ajax Security Systems** — works with any co-branded Ajax app.
+**Aegis** is a Home Assistant custom integration for **Ajax Security Systems** — works with any co-branded Ajax app (Protegim, ADT, G4S, and many more).
 
 Communicates via **gRPC** (the same protocol the official mobile app uses). No Enterprise API key required — just your regular account credentials.
 
@@ -15,7 +15,7 @@ Ajax Systems provides co-branded versions of their mobile app to security compan
 ## Features
 
 - **Alarm Control Panel**: Arm away, disarm, night mode, group arming with PIN code support
-- **Force Arm Services**: `ajax_cobranded.force_arm` and `ajax_cobranded.force_arm_night` to arm ignoring open sensors
+- **Force Arm Services**: `aegis_ajax.force_arm` and `aegis_ajax.force_arm_night` to arm ignoring open sensors
 - **Binary Sensors**: Door open/close, motion detection, smoke, leak, tamper, CO, heat, glass break, vibration, CRA monitoring, cellular connection, lid tamper, external contacts, anti-masking, interference detection, ethernet link, Wi-Fi link, mains power
 - **Hub Network**: Real-time hub network data — ethernet/wifi/gsm connection status, Wi-Fi SSID and signal strength, IP addressing, cellular signal strength and network type, power supply status
 - **Sensors**: Battery level, temperature, humidity, CO2, signal strength, GSM type (2G/3G/4G), Wi-Fi signal level, Wi-Fi SSID, Wi-Fi IP, IMEI, Ethernet IP/gateway/DNS, cellular signal/network, connection type
@@ -44,17 +44,17 @@ Ajax Systems provides co-branded versions of their mobile app to security compan
 
 1. Open HACS in Home Assistant
 2. Click the three dots menu (top right) and select **Custom repositories**
-3. Add `https://github.com/bvis/ajax-cobranded-hass` with category **Integration**
-4. Search for "Ajax Security" in HACS and click **Install**
+3. Add `https://github.com/bvis/aegis-hass` with category **Integration**
+4. Search for "Aegis for Ajax" in HACS and click **Install**
 5. Restart Home Assistant
-6. Go to **Settings > Devices & Services > Add Integration** and search for "Ajax Security"
+6. Go to **Settings > Devices & Services > Add Integration** and search for "Aegis for Ajax"
 
 ### Manual
 
 1. Download this repository
-2. Copy `custom_components/ajax_cobranded/` to your Home Assistant `config/custom_components/` directory
+2. Copy `custom_components/aegis_ajax/` to your Home Assistant `config/custom_components/` directory
 3. Restart Home Assistant
-4. Go to **Settings > Devices & Services > Add Integration** and search for "Ajax Security"
+4. Go to **Settings > Devices & Services > Add Integration** and search for "Aegis for Ajax"
 
 ## Configuration
 
@@ -154,8 +154,8 @@ Photos are automatically cleaned up based on your retention settings (configurab
 
 | Service | Description |
 |---|---|
-| `ajax_cobranded.force_arm` | Arm the system ignoring open sensors and active alarms |
-| `ajax_cobranded.force_arm_night` | Arm night mode ignoring open sensors and active alarms |
+| `aegis_ajax.force_arm` | Arm the system ignoring open sensors and active alarms |
+| `aegis_ajax.force_arm_night` | Arm night mode ignoring open sensors and active alarms |
 
 ## Entity Details
 

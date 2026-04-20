@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.ajax_cobranded.alarm_control_panel import (
+from custom_components.aegis_ajax.alarm_control_panel import (
     AjaxAlarmControlPanel,
     map_security_state,
 )
-from custom_components.ajax_cobranded.api.models import Space
-from custom_components.ajax_cobranded.const import ConnectionStatus, SecurityState
+from custom_components.aegis_ajax.api.models import Space
+from custom_components.aegis_ajax.const import ConnectionStatus, SecurityState
 
 
 class TestMapSecurityState:
@@ -119,7 +119,7 @@ class TestAlarmControlPanel:
     def test_unique_id(self) -> None:
         coordinator = MagicMock()
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
-        assert panel.unique_id == "ajax_cobranded_alarm_s1"
+        assert panel.unique_id == "aegis_ajax_alarm_s1"
 
     def test_available_when_online(self) -> None:
         coordinator = MagicMock()
@@ -152,7 +152,7 @@ class TestAlarmControlPanel:
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         assert panel._attr_device_info is not None
         assert (
-            "ajax_cobranded",
+            "aegis_ajax",
             "h1",
         ) in panel._attr_device_info["identifiers"]
 

@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ajax_cobranded.api.session import AuthenticationError, TwoFactorRequiredError
-from custom_components.ajax_cobranded.config_flow import (
+from custom_components.aegis_ajax.api.session import AuthenticationError, TwoFactorRequiredError
+from custom_components.aegis_ajax.config_flow import (
     AjaxCobrandedConfigFlow,
     AjaxCobrandedOptionsFlow,
 )
-from custom_components.ajax_cobranded.const import DOMAIN
+from custom_components.aegis_ajax.const import DOMAIN
 
 
 class TestConfigFlowInit:
@@ -57,7 +57,7 @@ class TestAsyncStepUser:
         mock_client.connect = AsyncMock(side_effect=AuthenticationError("invalid"))
 
         with patch(
-            "custom_components.ajax_cobranded.config_flow.AjaxGrpcClient", return_value=mock_client
+            "custom_components.aegis_ajax.config_flow.AjaxGrpcClient", return_value=mock_client
         ):
             await flow.async_step_user({"email": "a@b.com", "password": "bad"})
 
@@ -74,7 +74,7 @@ class TestAsyncStepUser:
         mock_client.connect = AsyncMock(side_effect=ConnectionError("refused"))
 
         with patch(
-            "custom_components.ajax_cobranded.config_flow.AjaxGrpcClient", return_value=mock_client
+            "custom_components.aegis_ajax.config_flow.AjaxGrpcClient", return_value=mock_client
         ):
             await flow.async_step_user({"email": "a@b.com", "password": "pass"})
 
@@ -91,7 +91,7 @@ class TestAsyncStepUser:
         mock_client.connect = AsyncMock(side_effect=RuntimeError("unexpected"))
 
         with patch(
-            "custom_components.ajax_cobranded.config_flow.AjaxGrpcClient", return_value=mock_client
+            "custom_components.aegis_ajax.config_flow.AjaxGrpcClient", return_value=mock_client
         ):
             await flow.async_step_user({"email": "a@b.com", "password": "pass"})
 
@@ -108,7 +108,7 @@ class TestAsyncStepUser:
         mock_client.connect = AsyncMock(side_effect=TwoFactorRequiredError("req-123"))
 
         with patch(
-            "custom_components.ajax_cobranded.config_flow.AjaxGrpcClient", return_value=mock_client
+            "custom_components.aegis_ajax.config_flow.AjaxGrpcClient", return_value=mock_client
         ):
             await flow.async_step_user({"email": "a@b.com", "password": "pass"})
 
@@ -127,7 +127,7 @@ class TestAsyncStepUser:
         mock_client.connect = AsyncMock(side_effect=ConnectionError("refused"))
 
         with patch(
-            "custom_components.ajax_cobranded.config_flow.AjaxGrpcClient", return_value=mock_client
+            "custom_components.aegis_ajax.config_flow.AjaxGrpcClient", return_value=mock_client
         ):
             await flow.async_step_user({"email": "a@b.com", "password": "mypassword"})
 
@@ -249,7 +249,7 @@ class TestAsyncStepSelectSpaces:
         mock_spaces_api.list_spaces = AsyncMock(return_value=[mock_space])
 
         with patch(
-            "custom_components.ajax_cobranded.config_flow.SpacesApi", return_value=mock_spaces_api
+            "custom_components.aegis_ajax.config_flow.SpacesApi", return_value=mock_spaces_api
         ):
             await flow.async_step_select_spaces(None)
 

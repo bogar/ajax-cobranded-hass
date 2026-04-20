@@ -18,8 +18,8 @@ Expose `ignore_alarms=True` to users via custom HA services, so they can arm eve
 
 ### Services
 
-- `ajax_cobranded.force_arm` — calls `SecurityApi.arm(space_id, ignore_alarms=True)`
-- `ajax_cobranded.force_arm_night` — calls `SecurityApi.arm_night_mode(space_id, ignore_alarms=True)`
+- `aegis_ajax.force_arm` — calls `SecurityApi.arm(space_id, ignore_alarms=True)`
+- `aegis_ajax.force_arm_night` — calls `SecurityApi.arm_night_mode(space_id, ignore_alarms=True)`
 
 ### Files
 
@@ -153,7 +153,7 @@ Clean timeline of security events in HA logbook.
 
 ### Implementation
 
-- Register event handler via `async_describe_events()` for `ajax_cobranded_event` domain events
+- Register event handler via `async_describe_events()` for `aegis_ajax_event` domain events
 - Map event_types to human-readable descriptions:
   - `arm` → "Armed by {user_name}"
   - `disarm` → "Disarmed by {user_name}"

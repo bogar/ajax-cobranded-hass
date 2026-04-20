@@ -2,13 +2,13 @@
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hts.auth import (
+from custom_components.aegis_ajax.api.hts.auth import (
     ConnectedResponse,
     build_connect_request,
     parse_connected_response,
     solve_challenge,
 )
-from custom_components.ajax_cobranded.api.hts.messages import (
+from custom_components.aegis_ajax.api.hts.messages import (
     AUTH_KEY_CONNECTED,
     tlv_encode,
 )

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.ajax_cobranded.api.media import (
+from custom_components.aegis_ajax.api.media import (
     _encode_embedded_message,
     _encode_string_field,
     _encode_varint,

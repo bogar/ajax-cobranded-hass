@@ -5,8 +5,8 @@
 Everything runs in Docker. No local dependencies needed.
 
 ```bash
-git clone https://github.com/bvis/ajax-cobranded-hass.git
-cd ajax-cobranded-hass
+git clone https://github.com/bvis/aegis-hass.git
+cd aegis-hass
 
 # Build dev container
 make build-docker

@@ -9,7 +9,7 @@ Usage:
     docker run --rm -v $(pwd):/app -w /app \
       -e AJAX_EMAIL=your@email.com \
       -e AJAX_PASSWORD=yourpass \
-      ajax-cobranded-dev python scripts/test_hts_connection.py
+      aegis-ajax-dev python scripts/test_hts_connection.py
 """
 
 from __future__ import annotations
@@ -23,11 +23,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from typing import TYPE_CHECKING
 
-from custom_components.ajax_cobranded.api.client import AjaxGrpcClient
-from custom_components.ajax_cobranded.api.hts.client import HtsClient
+from custom_components.aegis_ajax.api.client import AjaxGrpcClient
+from custom_components.aegis_ajax.api.hts.client import HtsClient
 
 if TYPE_CHECKING:
-    from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
+    from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
 
 logging.basicConfig(
     level=logging.DEBUG,

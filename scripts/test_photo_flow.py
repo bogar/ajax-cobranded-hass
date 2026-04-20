@@ -2,7 +2,7 @@
 """Test the full Photo on Demand flow locally against the real Ajax API.
 
 Usage:
-    docker run --rm -v $(pwd):/app ajax-cobranded-dev python scripts/test_photo_flow.py
+    docker run --rm -v $(pwd):/app aegis-ajax-dev python scripts/test_photo_flow.py
 """
 
 from __future__ import annotations
@@ -13,9 +13,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from custom_components.ajax_cobranded.api.client import AjaxGrpcClient
-from custom_components.ajax_cobranded.api.devices import DevicesApi
-from custom_components.ajax_cobranded.api.media import MediaApi
+from custom_components.aegis_ajax.api.client import AjaxGrpcClient
+from custom_components.aegis_ajax.api.devices import DevicesApi
+from custom_components.aegis_ajax.api.media import MediaApi
 
 EMAIL = os.environ.get("AJAX_EMAIL", "")
 PASSWORD_HASH = os.environ.get("AJAX_PASSWORD_HASH", "")

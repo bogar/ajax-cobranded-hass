@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hts.protocol import (
+from custom_components.aegis_ajax.api.hts.protocol import (
     crc16,
     decode_frame,
     encode_frame,

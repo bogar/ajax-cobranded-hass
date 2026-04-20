@@ -13,9 +13,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from custom_components.ajax_cobranded.api.client import AjaxGrpcClient
-from custom_components.ajax_cobranded.api.security import SecurityApi
-from custom_components.ajax_cobranded.api.spaces import SpacesApi
+from custom_components.aegis_ajax.api.client import AjaxGrpcClient
+from custom_components.aegis_ajax.api.security import SecurityApi
+from custom_components.aegis_ajax.api.spaces import SpacesApi
 
 
 async def main() -> None:

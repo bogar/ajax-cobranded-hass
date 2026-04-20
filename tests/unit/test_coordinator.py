@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hts.hub_state import HubNetworkState
-from custom_components.ajax_cobranded.api.models import Device, Space
-from custom_components.ajax_cobranded.const import ConnectionStatus, DeviceState, SecurityState
+from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
+from custom_components.aegis_ajax.api.models import Device, Space
+from custom_components.aegis_ajax.const import ConnectionStatus, DeviceState, SecurityState
 
 
 def _make_space(space_id: str = "s1") -> Space:
@@ -43,7 +43,7 @@ def _make_coordinator(
     space_ids: list[str] | None = None,
 ) -> AjaxCobrandedCoordinator:  # noqa: F821
     """Create coordinator with DataUpdateCoordinator.__init__ patched."""
-    from custom_components.ajax_cobranded.coordinator import AjaxCobrandedCoordinator
+    from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 
     hass = MagicMock()
     client = MagicMock()
@@ -183,7 +183,7 @@ class TestStreamHandlers:
     """Tests for coordinator stream callback handlers."""
 
     def _make_coordinator_with_stream(self) -> AjaxCobrandedCoordinator:  # noqa: F821
-        from custom_components.ajax_cobranded.coordinator import AjaxCobrandedCoordinator
+        from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 
         hass = MagicMock()
         client = MagicMock()

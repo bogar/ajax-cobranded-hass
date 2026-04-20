@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ajax_cobranded.api.models import Space
-from custom_components.ajax_cobranded.api.spaces import SpacesApi
-from custom_components.ajax_cobranded.const import ConnectionStatus, SecurityState
+from custom_components.aegis_ajax.api.models import Space
+from custom_components.aegis_ajax.api.spaces import SpacesApi
+from custom_components.aegis_ajax.const import ConnectionStatus, SecurityState
 
 _FIND_SPACES_BASE = "v3.mobilegwsvc.service.find_user_spaces_with_pagination"
 

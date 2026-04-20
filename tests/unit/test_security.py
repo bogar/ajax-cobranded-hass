@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ajax_cobranded.api.security import SecurityApi, SecurityError
+from custom_components.aegis_ajax.api.security import SecurityApi, SecurityError
 
 _GRPC_MOD = "systems.ajax.api.mobile.v2.space.security.space_security_endpoints_pb2_grpc"
 

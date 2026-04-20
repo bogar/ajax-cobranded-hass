@@ -1,5 +1,5 @@
 [project]
-name = "ajax-cobranded-hass"
+name = "aegis-ajax-hass"
 version = "0.1.0"
 description = "Home Assistant integration for Ajax Security Systems (co-branded) via gRPC"
 requires-python = ">=3.12"
@@ -35,7 +35,7 @@ markers = [
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-exclude = ["custom_components/ajax_cobranded/proto/"]
+exclude = ["custom_components/aegis_ajax/proto/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "ANN", "B", "A", "SIM", "TCH"]
@@ -46,15 +46,15 @@ python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
-exclude = ["custom_components/ajax_cobranded/proto/"]
+exclude = ["custom_components/aegis_ajax/proto/"]
 
 [tool.coverage.run]
 omit = [
-    "custom_components/ajax_cobranded/proto/*",
-    "custom_components/ajax_cobranded/api/hts/client.py",
+    "custom_components/aegis_ajax/proto/*",
+    "custom_components/aegis_ajax/api/hts/client.py",
 ]
 
 [tool.vulture]
-paths = ["custom_components/ajax_cobranded", "vulture_whitelist.py"]
-exclude = ["custom_components/ajax_cobranded/proto/"]
+paths = ["custom_components/aegis_ajax", "vulture_whitelist.py"]
+exclude = ["custom_components/aegis_ajax/proto/"]
 min_confidence = 80

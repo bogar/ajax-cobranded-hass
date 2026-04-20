@@ -11,7 +11,7 @@ class TestForceArmService:
     @pytest.mark.asyncio
     async def test_force_arm_calls_security_api(self) -> None:
         """Verify arm is called with ignore_alarms=True for each space."""
-        from custom_components.ajax_cobranded import _async_handle_force_arm
+        from custom_components.aegis_ajax import _async_handle_force_arm
 
         mock_security_api = MagicMock()
         mock_security_api.arm = AsyncMock()
@@ -39,7 +39,7 @@ class TestForceArmService:
     @pytest.mark.asyncio
     async def test_force_arm_night_calls_security_api(self) -> None:
         """Verify arm_night_mode is called with ignore_alarms=True for each space."""
-        from custom_components.ajax_cobranded import _async_handle_force_arm_night
+        from custom_components.aegis_ajax import _async_handle_force_arm_night
 
         mock_security_api = MagicMock()
         mock_security_api.arm_night_mode = AsyncMock()
@@ -69,7 +69,7 @@ class TestServiceRegistration:
     @pytest.mark.asyncio
     async def test_services_registered_on_setup(self) -> None:
         """Verify services are registered during async_setup_entry."""
-        from custom_components.ajax_cobranded import async_setup_entry
+        from custom_components.aegis_ajax import async_setup_entry
 
         hass = MagicMock()
         hass.data = {}
@@ -96,11 +96,11 @@ class TestServiceRegistration:
 
         with (
             patch(
-                "custom_components.ajax_cobranded.AjaxGrpcClient",
+                "custom_components.aegis_ajax.AjaxGrpcClient",
                 return_value=mock_client,
             ),
             patch(
-                "custom_components.ajax_cobranded.AjaxCobrandedCoordinator",
+                "custom_components.aegis_ajax.AjaxCobrandedCoordinator",
                 return_value=mock_coordinator,
             ),
         ):
@@ -117,7 +117,7 @@ class TestServiceRegistration:
     @pytest.mark.asyncio
     async def test_services_removed_on_unload(self) -> None:
         """Verify services are removed during async_unload_entry."""
-        from custom_components.ajax_cobranded import async_unload_entry
+        from custom_components.aegis_ajax import async_unload_entry
 
         mock_coordinator = MagicMock()
         mock_coordinator.async_shutdown = AsyncMock()

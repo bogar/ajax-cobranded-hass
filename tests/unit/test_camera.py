@@ -26,7 +26,7 @@ def _stub_camera_module() -> None:
 
 _stub_camera_module()
 
-from custom_components.ajax_cobranded.camera import (  # noqa: E402
+from custom_components.aegis_ajax.camera import (  # noqa: E402
     CAMERA_DEVICE_TYPES,
     PHOD_DEVICE_TYPES,
     AjaxCamera,
@@ -73,7 +73,7 @@ class TestAjaxCamera:
         cam = AjaxCamera(
             coordinator=coordinator, device_id="d1", hub_id="h1", device_type="motion_cam_phod"
         )
-        assert cam.unique_id == "ajax_cobranded_d1_camera"
+        assert cam.unique_id == "aegis_ajax_d1_camera"
 
     def test_has_camera_image_method(self) -> None:
         coordinator = MagicMock()
@@ -105,7 +105,7 @@ class TestAjaxCamera:
             coordinator=coordinator, device_id="d1", hub_id="h1", device_type="motion_cam"
         )
         assert cam._attr_device_info is not None
-        assert ("ajax_cobranded", "d1") in cam._attr_device_info["identifiers"]
+        assert ("aegis_ajax", "d1") in cam._attr_device_info["identifiers"]
 
     def test_device_info_without_device(self) -> None:
         coordinator = MagicMock()
@@ -155,7 +155,7 @@ class TestAjaxCamera:
         mock_session.get = MagicMock(return_value=mock_resp)
 
         with patch(
-            "custom_components.ajax_cobranded.camera.async_get_clientsession",
+            "custom_components.aegis_ajax.camera.async_get_clientsession",
             return_value=mock_session,
         ):
             result = await cam.async_camera_image()
@@ -185,7 +185,7 @@ class TestAjaxCamera:
         mock_session.get = MagicMock(return_value=mock_resp)
 
         with patch(
-            "custom_components.ajax_cobranded.camera.async_get_clientsession",
+            "custom_components.aegis_ajax.camera.async_get_clientsession",
             return_value=mock_session,
         ):
             result = await cam.async_camera_image()
@@ -278,7 +278,7 @@ class TestAjaxCamera:
         mock_session.get = MagicMock(return_value=mock_resp)
 
         with patch(
-            "custom_components.ajax_cobranded.camera.async_get_clientsession",
+            "custom_components.aegis_ajax.camera.async_get_clientsession",
             return_value=mock_session,
         ):
             result = await cam.async_camera_image()
@@ -307,7 +307,7 @@ class TestAjaxCamera:
         mock_session.get = MagicMock(side_effect=Exception("network error"))
 
         with patch(
-            "custom_components.ajax_cobranded.camera.async_get_clientsession",
+            "custom_components.aegis_ajax.camera.async_get_clientsession",
             return_value=mock_session,
         ):
             result = await cam.async_camera_image()

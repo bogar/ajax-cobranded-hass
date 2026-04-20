@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hts.crypto import decrypt, encrypt
+from custom_components.aegis_ajax.api.hts.crypto import decrypt, encrypt
 
 
 class TestEncryptDecrypt:

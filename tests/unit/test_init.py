@@ -10,7 +10,7 @@ import pytest
 class TestAsyncSetupEntry:
     @pytest.mark.asyncio
     async def test_setup_entry_creates_coordinator(self) -> None:
-        from custom_components.ajax_cobranded import async_setup_entry
+        from custom_components.aegis_ajax import async_setup_entry
 
         hass = MagicMock()
         hass.data = {}
@@ -35,10 +35,10 @@ class TestAsyncSetupEntry:
 
         with (
             patch(
-                "custom_components.ajax_cobranded.AjaxGrpcClient", return_value=mock_client
+                "custom_components.aegis_ajax.AjaxGrpcClient", return_value=mock_client
             ) as mock_cls,
             patch(
-                "custom_components.ajax_cobranded.AjaxCobrandedCoordinator",
+                "custom_components.aegis_ajax.AjaxCobrandedCoordinator",
                 return_value=mock_coordinator,
             ),
         ):
@@ -55,7 +55,7 @@ class TestAsyncSetupEntry:
     @pytest.mark.asyncio
     async def test_setup_entry_with_legacy_password(self) -> None:
         """Test backward compatibility: legacy entries with plaintext password still work."""
-        from custom_components.ajax_cobranded import async_setup_entry
+        from custom_components.aegis_ajax import async_setup_entry
 
         hass = MagicMock()
         hass.data = {}
@@ -80,10 +80,10 @@ class TestAsyncSetupEntry:
 
         with (
             patch(
-                "custom_components.ajax_cobranded.AjaxGrpcClient", return_value=mock_client
+                "custom_components.aegis_ajax.AjaxGrpcClient", return_value=mock_client
             ) as mock_cls,
             patch(
-                "custom_components.ajax_cobranded.AjaxCobrandedCoordinator",
+                "custom_components.aegis_ajax.AjaxCobrandedCoordinator",
                 return_value=mock_coordinator,
             ),
         ):
@@ -98,7 +98,7 @@ class TestAsyncSetupEntry:
     @pytest.mark.asyncio
     async def test_setup_entry_does_not_restore_session_token(self) -> None:
         """Ensure session token is no longer read from config entry data."""
-        from custom_components.ajax_cobranded import async_setup_entry
+        from custom_components.aegis_ajax import async_setup_entry
 
         hass = MagicMock()
         hass.data = {}
@@ -122,9 +122,9 @@ class TestAsyncSetupEntry:
         mock_coordinator.async_start_push_notifications = AsyncMock()
 
         with (
-            patch("custom_components.ajax_cobranded.AjaxGrpcClient", return_value=mock_client),
+            patch("custom_components.aegis_ajax.AjaxGrpcClient", return_value=mock_client),
             patch(
-                "custom_components.ajax_cobranded.AjaxCobrandedCoordinator",
+                "custom_components.aegis_ajax.AjaxCobrandedCoordinator",
                 return_value=mock_coordinator,
             ),
         ):
@@ -138,7 +138,7 @@ class TestAsyncSetupEntry:
 class TestOptionsUpdateListener:
     @pytest.mark.asyncio
     async def test_options_change_triggers_reload(self) -> None:
-        from custom_components.ajax_cobranded import _async_options_update_listener
+        from custom_components.aegis_ajax import _async_options_update_listener
 
         hass = MagicMock()
         hass.config_entries.async_reload = AsyncMock()
@@ -152,7 +152,7 @@ class TestOptionsUpdateListener:
 
     @pytest.mark.asyncio
     async def test_setup_registers_update_listener(self) -> None:
-        from custom_components.ajax_cobranded import async_setup_entry
+        from custom_components.aegis_ajax import async_setup_entry
 
         hass = MagicMock()
         hass.data = {}
@@ -176,9 +176,9 @@ class TestOptionsUpdateListener:
         mock_coordinator.async_start_push_notifications = AsyncMock()
 
         with (
-            patch("custom_components.ajax_cobranded.AjaxGrpcClient", return_value=mock_client),
+            patch("custom_components.aegis_ajax.AjaxGrpcClient", return_value=mock_client),
             patch(
-                "custom_components.ajax_cobranded.AjaxCobrandedCoordinator",
+                "custom_components.aegis_ajax.AjaxCobrandedCoordinator",
                 return_value=mock_coordinator,
             ),
         ):
@@ -190,7 +190,7 @@ class TestOptionsUpdateListener:
 class TestAsyncUnloadEntry:
     @pytest.mark.asyncio
     async def test_unload_entry_success(self) -> None:
-        from custom_components.ajax_cobranded import async_unload_entry
+        from custom_components.aegis_ajax import async_unload_entry
 
         mock_coordinator = MagicMock()
         mock_coordinator.async_shutdown = AsyncMock()
@@ -209,7 +209,7 @@ class TestAsyncUnloadEntry:
 
     @pytest.mark.asyncio
     async def test_unload_entry_failure_does_not_clean_up(self) -> None:
-        from custom_components.ajax_cobranded import async_unload_entry
+        from custom_components.aegis_ajax import async_unload_entry
 
         mock_coordinator = MagicMock()
         mock_coordinator.async_shutdown = AsyncMock()

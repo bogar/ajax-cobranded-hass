@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-_ICONS_PATH = Path(__file__).parent.parent.parent / "custom_components/ajax_cobranded/icons.json"
+_ICONS_PATH = Path(__file__).parent.parent.parent / "custom_components/aegis_ajax/icons.json"
 
 
 class TestIconsJson:

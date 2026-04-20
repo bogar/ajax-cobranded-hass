@@ -1,12 +1,12 @@
 """Tests for API data models."""
 
-from custom_components.ajax_cobranded.api.models import (
+from custom_components.aegis_ajax.api.models import (
     BatteryInfo,
     Device,
     DeviceCommand,
     Space,
 )
-from custom_components.ajax_cobranded.const import (
+from custom_components.aegis_ajax.const import (
     ConnectionStatus,
     DeviceState,
     SecurityState,

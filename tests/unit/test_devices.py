@@ -12,13 +12,13 @@ if TYPE_CHECKING:
 
 import pytest
 
-from custom_components.ajax_cobranded.api.devices import (
+from custom_components.aegis_ajax.api.devices import (
     DevicesApi,
     _encode_string_field,
     _encode_varint_field,
 )
-from custom_components.ajax_cobranded.api.models import Device, DeviceCommand
-from custom_components.ajax_cobranded.const import DeviceState
+from custom_components.aegis_ajax.api.models import Device, DeviceCommand
+from custom_components.aegis_ajax.const import DeviceState
 
 
 class TestParseDevice:

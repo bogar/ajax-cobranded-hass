@@ -19,45 +19,45 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Build dev container
-        run: docker build -f Dockerfile.dev --build-arg PYTHON_VERSION=${{ matrix.python-version }} -t ajax-cobranded-dev .
+        run: docker build -f Dockerfile.dev --build-arg PYTHON_VERSION=${{ matrix.python-version }} -t aegis-ajax-dev .
       - name: Run tests
-        run: docker run --rm ajax-cobranded-dev pytest tests/unit/ -v --cov=custom_components/ajax_cobranded --cov-fail-under=80 --cov-report=term-missing
+        run: docker run --rm aegis-ajax-dev pytest tests/unit/ -v --cov=custom_components/aegis_ajax --cov-fail-under=80 --cov-report=term-missing
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Build dev container
-        run: docker build -f Dockerfile.dev -t ajax-cobranded-dev .
+        run: docker build -f Dockerfile.dev -t aegis-ajax-dev .
       - name: Run linter
-        run: docker run --rm ajax-cobranded-dev ruff check .
+        run: docker run --rm aegis-ajax-dev ruff check .
 
   format-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Build dev container
-        run: docker build -f Dockerfile.dev -t ajax-cobranded-dev .
+        run: docker build -f Dockerfile.dev -t aegis-ajax-dev .
       - name: Check formatting
-        run: docker run --rm ajax-cobranded-dev ruff format --check .
+        run: docker run --rm aegis-ajax-dev ruff format --check .
 
   type-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Build dev container
-        run: docker build -f Dockerfile.dev -t ajax-cobranded-dev .
+        run: docker build -f Dockerfile.dev -t aegis-ajax-dev .
       - name: Run type checker
-        run: docker run --rm ajax-cobranded-dev mypy custom_components/ajax_cobranded/ --ignore-missing-imports --exclude 'proto/'
+        run: docker run --rm aegis-ajax-dev mypy custom_components/aegis_ajax/ --ignore-missing-imports --exclude 'proto/'
 
   dead-code:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Build dev container
-        run: docker build -f Dockerfile.dev -t ajax-cobranded-dev .
+        run: docker build -f Dockerfile.dev -t aegis-ajax-dev .
       - name: Run dead code analysis
-        run: docker run --rm ajax-cobranded-dev vulture custom_components/ajax_cobranded/ vulture_whitelist.py --exclude custom_components/ajax_cobranded/proto/
+        run: docker run --rm aegis-ajax-dev vulture custom_components/aegis_ajax/ vulture_whitelist.py --exclude custom_components/aegis_ajax/proto/
 
   hassfest:
     runs-on: ubuntu-latest

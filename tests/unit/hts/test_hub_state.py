@@ -4,7 +4,7 @@ import dataclasses
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hts.hub_state import (
+from custom_components.aegis_ajax.api.hts.hub_state import (
     KEY_ACTIVE_CHANNELS,
     KEY_ETH_DHCP,
     KEY_ETH_DNS,

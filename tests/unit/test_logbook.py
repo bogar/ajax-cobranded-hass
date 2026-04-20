@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.ajax_cobranded.logbook import describe_event
+from custom_components.aegis_ajax.logbook import describe_event
 
 
 class TestDescribeEvent:
@@ -55,15 +55,15 @@ class TestDescribeEvent:
         assert result["icon"] == "mdi:shield-home"
 
     def test_all_event_types_have_descriptions(self) -> None:
-        from custom_components.ajax_cobranded.const import ALL_EVENT_TYPES
-        from custom_components.ajax_cobranded.logbook import _EVENT_DESCRIPTIONS
+        from custom_components.aegis_ajax.const import ALL_EVENT_TYPES
+        from custom_components.aegis_ajax.logbook import _EVENT_DESCRIPTIONS
 
         for event_type in ALL_EVENT_TYPES:
             assert event_type in _EVENT_DESCRIPTIONS, f"Missing description for {event_type}"
 
     def test_all_event_types_have_icons(self) -> None:
-        from custom_components.ajax_cobranded.const import ALL_EVENT_TYPES
-        from custom_components.ajax_cobranded.logbook import _EVENT_ICONS
+        from custom_components.aegis_ajax.const import ALL_EVENT_TYPES
+        from custom_components.aegis_ajax.logbook import _EVENT_ICONS
 
         for event_type in ALL_EVENT_TYPES:
             assert event_type in _EVENT_ICONS, f"Missing icon for {event_type}"

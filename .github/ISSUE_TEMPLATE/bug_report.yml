@@ -91,7 +91,7 @@ body:
         ```yaml
         logger:
           logs:
-            custom_components.ajax_cobranded: debug
+            custom_components.aegis_ajax: debug
         ```
         Then restart HA, reproduce the issue, and paste the relevant logs.
       render: text

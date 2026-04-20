@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.ajax_cobranded.switch import SWITCH_DEVICE_TYPES, AjaxSwitch
+from custom_components.aegis_ajax.switch import SWITCH_DEVICE_TYPES, AjaxSwitch
 
 
 class TestSwitchDeviceTypes:
@@ -29,7 +29,7 @@ class TestAjaxSwitch:
         sw = AjaxSwitch(
             coordinator=coordinator, device_id="d1", hub_id="h1", device_type="relay", channel=1
         )
-        assert sw.unique_id == "ajax_cobranded_d1_switch_1"
+        assert sw.unique_id == "aegis_ajax_d1_switch_1"
 
     def test_turn_on_callable(self) -> None:
         coordinator = MagicMock()
@@ -84,7 +84,7 @@ class TestAjaxSwitch:
             coordinator=coordinator, device_id="d1", hub_id="h1", device_type="relay", channel=1
         )
         assert sw._attr_device_info is not None
-        assert ("ajax_cobranded", "d1") in sw._attr_device_info["identifiers"]
+        assert ("aegis_ajax", "d1") in sw._attr_device_info["identifiers"]
 
     def test_device_info_without_device(self) -> None:
         coordinator = MagicMock()

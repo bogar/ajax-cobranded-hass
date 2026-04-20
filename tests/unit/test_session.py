@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 
-from custom_components.ajax_cobranded.api.session import AjaxSession
+from custom_components.aegis_ajax.api.session import AjaxSession
 
 
 class TestPasswordHashing:

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.ajax_cobranded.media_source import (
+from custom_components.aegis_ajax.media_source import (
     AjaxPhotoMediaSource,
     async_get_media_source,
 )
@@ -27,7 +27,7 @@ class TestAjaxPhotoMediaSource:
 
     def test_domain(self) -> None:
         source = AjaxPhotoMediaSource(_make_hass())
-        assert source.domain == "ajax_cobranded"
+        assert source.domain == "aegis_ajax"
 
     def test_base_path(self) -> None:
         source = AjaxPhotoMediaSource(_make_hass("/tmp/test_media"))

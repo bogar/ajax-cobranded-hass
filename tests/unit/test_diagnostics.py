@@ -6,9 +6,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.ajax_cobranded.api.models import BatteryInfo, Device, Space
-from custom_components.ajax_cobranded.const import ConnectionStatus, DeviceState, SecurityState
-from custom_components.ajax_cobranded.diagnostics import (
+from custom_components.aegis_ajax.api.models import BatteryInfo, Device, Space
+from custom_components.aegis_ajax.const import ConnectionStatus, DeviceState, SecurityState
+from custom_components.aegis_ajax.diagnostics import (
     TO_REDACT,
     async_get_config_entry_diagnostics,
 )

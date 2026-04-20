@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.ajax_cobranded.light import LIGHT_DEVICE_TYPES, AjaxLight
+from custom_components.aegis_ajax.light import LIGHT_DEVICE_TYPES, AjaxLight
 
 
 class TestLightDeviceTypes:
@@ -24,7 +24,7 @@ class TestAjaxLight:
             device_type="light_switch_dimmer",
             channel=1,
         )
-        assert light.unique_id == "ajax_cobranded_d1_light_1"
+        assert light.unique_id == "aegis_ajax_d1_light_1"
 
     def test_has_brightness_support(self) -> None:
         from homeassistant.components.light import ColorMode  # type: ignore[attr-defined]
@@ -70,7 +70,7 @@ class TestAjaxLight:
             channel=1,
         )
         assert light._attr_device_info is not None
-        assert ("ajax_cobranded", "d1") in light._attr_device_info["identifiers"]
+        assert ("aegis_ajax", "d1") in light._attr_device_info["identifiers"]
 
     def test_device_info_without_device(self) -> None:
         coordinator = MagicMock()

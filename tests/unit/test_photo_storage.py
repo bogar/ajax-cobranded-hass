@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.ajax_cobranded.photo_storage import _overlay_timestamp, _sanitize_name
+from custom_components.aegis_ajax.photo_storage import _overlay_timestamp, _sanitize_name
 
 
 class TestSanitizeName:

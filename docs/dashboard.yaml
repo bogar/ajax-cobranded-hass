@@ -7,7 +7,7 @@
 # Optional: Install mushroom cards (via HACS) for a more polished look.
 # The dashboard works without mushroom cards — just uses standard cards.
 #
-# Entity naming follows the ajax_cobranded integration conventions.
+# Entity naming follows the aegis_ajax integration conventions.
 # Adjust entity IDs if your HA slugifies device names differently.
 ###############################################################################
 

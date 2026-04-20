@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ajax_cobranded.notification import AjaxNotificationListener
+from custom_components.aegis_ajax.notification import AjaxNotificationListener
 
 _FCM_KWARGS = {
     "fcm_project_id": "test-project",

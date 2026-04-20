@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hts.messages import (
+from custom_components.aegis_ajax.api.hts.messages import (
     ACK_KEY_RECEIVED,
     AUTH_KEY_AUTHENTICATION_REQUEST,
     AUTH_KEY_AUTHENTICATION_RESPONSE,

@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.ajax_cobranded.api.client import AjaxGrpcClient
-from custom_components.ajax_cobranded.api.session import AjaxSession
-from custom_components.ajax_cobranded.const import GRPC_HOST, GRPC_PORT
+from custom_components.aegis_ajax.api.client import AjaxGrpcClient
+from custom_components.aegis_ajax.api.session import AjaxSession
+from custom_components.aegis_ajax.const import GRPC_HOST, GRPC_PORT
 
 
 class TestClientInit:

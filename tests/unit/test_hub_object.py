@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.ajax_cobranded.api.hub_object import HubObjectApi, SimCardInfo
+from custom_components.aegis_ajax.api.hub_object import HubObjectApi, SimCardInfo
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

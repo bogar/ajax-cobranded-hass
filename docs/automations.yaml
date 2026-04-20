@@ -1,7 +1,7 @@
 ###############################################################################
 # Ajax Security System — Home Assistant Automations
 #
-# Entity naming convention (based on ajax_cobranded integration):
+# Entity naming convention (based on aegis_ajax integration):
 #   alarm_control_panel.my_hub
 #   binary_sensor.<device_slug>_<sensor_type>
 #   sensor.<device_slug>_<sensor_type>

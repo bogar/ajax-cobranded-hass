@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from custom_components.ajax_cobranded.const import ALL_EVENT_TYPES, HUB_EVENT_TAG_MAP
-from custom_components.ajax_cobranded.event import AjaxSecurityEvent
+from custom_components.aegis_ajax.const import ALL_EVENT_TYPES, HUB_EVENT_TAG_MAP
+from custom_components.aegis_ajax.event import AjaxSecurityEvent
 
 
 class TestAjaxSecurityEvent:
@@ -18,7 +18,7 @@ class TestAjaxSecurityEvent:
 
     def test_unique_id(self) -> None:
         entity = self._make_event_entity()
-        assert entity.unique_id == "ajax_cobranded_hub-1_event"
+        assert entity.unique_id == "aegis_ajax_hub-1_event"
 
     def test_event_types(self) -> None:
         entity = self._make_event_entity()
@@ -74,7 +74,7 @@ class TestAjaxSecurityEvent:
     def test_device_info(self) -> None:
         entity = self._make_event_entity()
         assert entity._attr_device_info is not None
-        assert ("ajax_cobranded", "hub-1") in entity._attr_device_info["identifiers"]
+        assert ("aegis_ajax", "hub-1") in entity._attr_device_info["identifiers"]
 
 
 class TestEventConstants:
@@ -100,7 +100,7 @@ class TestEventConstants:
 
 class TestCoordinatorEventDispatch:
     def test_register_and_fire_event(self) -> None:
-        from custom_components.ajax_cobranded.coordinator import AjaxCobrandedCoordinator
+        from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 
         coordinator = MagicMock(spec=AjaxCobrandedCoordinator)
         coordinator._event_entities = {}
@@ -113,7 +113,7 @@ class TestCoordinatorEventDispatch:
         entity.handle_event.assert_called_once_with("alarm", {"test": True})
 
     def test_fire_event_no_entity(self) -> None:
-        from custom_components.ajax_cobranded.coordinator import AjaxCobrandedCoordinator
+        from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 
         coordinator = MagicMock(spec=AjaxCobrandedCoordinator)
         coordinator._event_entities = {}
@@ -127,7 +127,7 @@ class TestNotificationEventParsing:
         """Verify _parse_and_fire_event is called when ENCODED_DATA present."""
         import base64
 
-        from custom_components.ajax_cobranded.notification import AjaxNotificationListener
+        from custom_components.aegis_ajax.notification import AjaxNotificationListener
 
         hass = MagicMock()
         hass.loop = MagicMock()
@@ -151,7 +151,7 @@ class TestNotificationEventParsing:
         listener._parse_and_fire_event.assert_called_once_with(encoded)
 
     def test_extract_event_raw_returns_none(self) -> None:
-        from custom_components.ajax_cobranded.notification import AjaxNotificationListener
+        from custom_components.aegis_ajax.notification import AjaxNotificationListener
 
         result = AjaxNotificationListener._extract_event_raw(b"\x00\x01\x02")
         assert result is None

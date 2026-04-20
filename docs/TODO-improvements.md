@@ -8,7 +8,7 @@ Prioritized list of improvements based on analysis of foXaCe/ajax-security-hass,
 Implemented with 16 event types and enriched device source info (device_name, device_id, device_type, room_name).
 
 ### 1.2 ~~Force Arm Services~~ ✅ DONE (v0.5.0)
-`ajax_cobranded.force_arm` and `ajax_cobranded.force_arm_night` services available.
+`aegis_ajax.force_arm` and `aegis_ajax.force_arm_night` services available.
 
 ### 1.3 ~~Logbook Integration (`logbook.py`)~~ ✅ DONE (v0.5.0)
 Human-readable event descriptions with icons in the HA logbook.
