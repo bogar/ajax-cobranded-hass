@@ -158,6 +158,22 @@ Photos are automatically cleaned up based on your retention settings (configurab
 | `aegis_ajax.force_arm` | Arm the system ignoring open sensors and active alarms |
 | `aegis_ajax.force_arm_night` | Arm night mode ignoring open sensors and active alarms |
 
+## Example Dashboard
+
+An example Lovelace dashboard is included in [`docs/dashboard.yaml`](docs/dashboard.yaml) with sections for:
+
+- Alarm control panel + system status
+- Hub network (Ethernet, Wi-Fi, cellular, power)
+- Door & window sensors with batteries
+- Cameras & motion detectors with photo capture buttons
+- Temperature overview with 24h history
+- Tamper, connectivity, and problem diagnostics
+- Alarm, door, window, motion, and hub connectivity history
+
+To use it, copy the YAML into a new dashboard view in **Settings → Dashboards → Edit → Add View → YAML mode**, and replace the example entity IDs with your own.
+
+An [example automations file](docs/automations.yaml) is also available with 24 automation examples covering common security scenarios.
+
 ## Entity Details
 
 ### Hub sensors
