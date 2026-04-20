@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Shield shape -->
+  <path d="M256 28 L462 100 C462 100 470 280 256 484 C42 280 50 100 50 100 Z"
+        fill="#1a5276" stroke="#2980b9" stroke-width="8" stroke-linejoin="round"/>
+
+  <!-- Inner shield highlight -->
+  <path d="M256 60 L432 122 C432 122 438 272 256 452 C74 272 80 122 80 122 Z"
+        fill="#2471a3" opacity="0.4"/>
+
+  <!-- Letter A stylized as a shield/chevron -->
+  <g transform="translate(256,260)" fill="white">
+    <!-- A crossbar -->
+    <rect x="-58" y="-10" width="116" height="18" rx="4"/>
+    <!-- A left leg -->
+    <polygon points="-8,-130 -78,80 -48,80 8,-90"/>
+    <!-- A right leg -->
+    <polygon points="8,-130 78,80 48,80 -8,-90"/>
+    <!-- A peak (top triangle) -->
+    <polygon points="0,-138 -16,-90 16,-90"/>
+  </g>
+
+  <!-- Small keyhole/lock detail at base of A -->
+  <circle cx="256" cy="290" r="14" fill="#1a5276"/>
+  <circle cx="256" cy="290" r="8" fill="white"/>
+  <rect x="253" y="290" width="6" height="16" rx="2" fill="white"/>
+</svg>
