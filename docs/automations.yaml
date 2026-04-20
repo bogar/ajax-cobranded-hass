@@ -22,7 +22,7 @@
 # TIP: Instead of listing camera buttons manually, use label_entities:
 #   entity_id: "{{ label_entities('aegis_camera') | select('match', 'button\\\\.') | list }}"
 - id: ajax_alarm_triggered
-  alias: "Alarma - Sistema disparat"
+  alias: "Alarm — System triggered"
   description: "Alert and capture photos when the alarm is triggered"
   triggers:
     - trigger: state
@@ -34,10 +34,10 @@
         entity_id: "{{ label_entities('aegis_camera') | select('match', 'button\\\\.') | list }}"
     - action: notify.mobile_app_user
       data:
-        title: "ALARMA DISPARADA!"
+        title: "ALARM TRIGGERED!"
         message: >-
-          El sistema d'alarma s'ha disparat.
-          Estat anterior: {{ trigger.from_state.state }}
+          The alarm system has been triggered.
+          Previous state: {{ trigger.from_state.state }}
         data:
           push:
             sound:
@@ -52,7 +52,7 @@
 # 2. ALARM STATE CHANGES — Notify on arm/disarm/night
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_alarm_state_change
-  alias: "Alarma - Canvi d'estat"
+  alias: "Alarm — State change"
   description: "Notify when alarm is armed, disarmed, or set to night mode"
   triggers:
     - trigger: state
@@ -68,21 +68,21 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma Ajax"
+        title: "Ajax Alarm"
         message: >-
           {% set states_map = {
-            'armed_away': 'Armada (fora)',
-            'armed_night': 'Mode nit',
-            'armed_home': 'Armada (casa)',
-            'disarmed': 'Desarmada'
+            'armed_away': 'Armed (away)',
+            'armed_night': 'Night mode',
+            'armed_home': 'Armed (home)',
+            'disarmed': 'Disarmed'
           } %}
-          Estat: {{ states_map.get(states('alarm_control_panel.my_hub'), 'Desconegut') }}
+          State: {{ states_map.get(states('alarm_control_panel.my_hub'), 'Unknown') }}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. HUB OFFLINE — Alert when hub loses connectivity
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_hub_offline
-  alias: "Alarma - Hub desconnectat"
+  alias: "Alarm — Hub disconnected"
   description: "Alert when the Ajax hub goes offline"
   triggers:
     - trigger: state
@@ -93,10 +93,10 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "ALARMA - Hub Offline!"
+        title: "ALARM — Hub Offline!"
         message: >-
-          El hub Ajax ha perdut la connexio fa mes de 2 minuts.
-          Comprova la connexio a internet i l'alimentacio.
+          The Ajax hub has lost connection for more than 2 minutes.
+          Check the internet connection and power supply.
         data:
           push:
             sound:
@@ -111,7 +111,7 @@
 # 4. HUB BACK ONLINE
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_hub_back_online
-  alias: "Alarma - Hub reconnectat"
+  alias: "Alarm — Hub reconnected"
   description: "Notify when hub connectivity is restored"
   triggers:
     - trigger: state
@@ -123,8 +123,8 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma Ajax"
-        message: "El hub ha recuperat la connexio."
+        title: "Ajax Alarm"
+        message: "The hub has recovered connection."
         data:
           tag: hub-offline
 
@@ -134,7 +134,7 @@
 # TIP: Use label_entities('aegis_battery') to auto-detect all battery sensors
 #   instead of maintaining a manual list. New devices are included automatically.
 - id: ajax_low_battery
-  alias: "Alarma - Bateria baixa"
+  alias: "Alarm — Low battery"
   description: "Alert when any Ajax device battery drops below 15%"
   triggers:
     - trigger: numeric_state
@@ -143,7 +143,7 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma - Bateria baixa"
+        title: "Alarm — Low battery"
         message: >-
           {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}%
         data:
@@ -153,7 +153,7 @@
 # 6. CRITICAL BATTERY (below 5%)
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_critical_battery
-  alias: "Alarma - Bateria critica"
+  alias: "Alarm — Critical battery"
   description: "Critical alert when any device battery is below 5%"
   triggers:
     - trigger: numeric_state
@@ -162,9 +162,9 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "BATERIA CRITICA!"
+        title: "CRITICAL BATTERY!"
         message: >-
-          {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}% — Substituir immediatament!
+          {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}% — Replace immediately!
         data:
           push:
             sound:
@@ -178,7 +178,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # TIP: Use label_entities('aegis_door') to auto-detect all door/window sensors.
 - id: ajax_door_left_open
-  alias: "Alarma - Porta/finestra oberta massa temps"
+  alias: "Alarm — Door/window open too long"
   description: "Alert when a door or window has been open for more than 10 minutes"
   triggers:
     - trigger: state
@@ -189,9 +189,9 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Porta/finestra oberta"
+        title: "Door/window open"
         message: >-
-          {{ trigger.to_state.attributes.friendly_name }} main_door mes de 10 minuts oberta.
+          {{ trigger.to_state.attributes.friendly_name }} has been open for more than 10 minutes.
         data:
           tag: "door-open-{{ trigger.entity_id }}"
 
@@ -199,7 +199,7 @@
 # 8. MAIN DOOR opens while alarm is armed (nobody home)
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_main_door_opens_armed
-  alias: "Alarma - Porta principal oberta amb alarma"
+  alias: "Alarm — Main door opened while armed"
   description: "Alert if main door opens while system is armed (away)"
   triggers:
     - trigger: state
@@ -216,10 +216,10 @@
         entity_id: "{{ label_entities('aegis_camera') | select('match', 'button\\\\.') | list }}"
     - action: notify.mobile_app_user
       data:
-        title: "ALERTA - Porta principal oberta!"
+        title: "ALERT — Main door opened!"
         message: >-
-          La main_door principal s'ha obert amb l'alarma armada.
-          S'han capturat fotos de les cameres.
+          The main door was opened while the alarm was armed.
+          Photos have been captured from the cameras.
         data:
           push:
             sound:
@@ -235,7 +235,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # TIP: Use label_entities('aegis_tamper') to auto-detect all tamper sensors.
 - id: ajax_tamper_alert
-  alias: "Alarma - Manipulacio detectada"
+  alias: "Alarm — Tamper detected"
   description: "Alert when tamper is detected on any Ajax device"
   triggers:
     - trigger: state
@@ -244,9 +244,9 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "ALERTA - Manipulacio!"
+        title: "ALERT — Tamper!"
         message: >-
-          Manipulacio detectada a: {{ trigger.to_state.attributes.friendly_name }}
+          Tamper detected on: {{ trigger.to_state.attributes.friendly_name }}
         data:
           push:
             sound:
@@ -261,7 +261,7 @@
 # 10. HUB LID OPENED (physical tamper)
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_hub_lid_opened
-  alias: "Alarma - Tapa del hub oberta"
+  alias: "Alarm — Hub lid opened"
   description: "Alert when the hub lid/enclosure is opened"
   triggers:
     - trigger: state
@@ -270,9 +270,9 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "ALERTA - Tapa del hub oberta!"
+        title: "ALERT — Hub lid opened!"
         message: >-
-          La carcassa del hub Ajax s'ha obert. Possible intent de manipulacio.
+          The Ajax hub enclosure has been opened. Possible tamper attempt.
         data:
           push:
             sound:
@@ -287,8 +287,8 @@
 # 11. CRA MONITORING DISCONNECTED
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_cra_disconnected
-  alias: "Alarma - CRA desconnectada"
-  description: "Alert when CRA (Central Receptora d'Alarmes) monitoring is lost"
+  alias: "Alarm — Monitoring station disconnected"
+  description: "Alert when CRA (monitoring station) connection is lost"
   triggers:
     - trigger: state
       entity_id: binary_sensor.my_hub_cra_connection
@@ -298,10 +298,10 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "ALERTA - CRA desconnectada!"
+        title: "ALERT — Monitoring station disconnected!"
         message: >-
-          La connexio amb la Central Receptora d'Alarmes s'ha perdut.
-          Contacta amb Protegim si no es restaura en breu.
+          The connection with the monitoring station (CRA) has been lost.
+          Contact Protegim if it is not restored shortly.
         data:
           push:
             sound:
@@ -316,7 +316,7 @@
 # 12. CRA MONITORING RESTORED
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_cra_restored
-  alias: "Alarma - CRA restaurada"
+  alias: "Alarm — Monitoring station restored"
   description: "Notify when CRA monitoring connection is restored"
   triggers:
     - trigger: state
@@ -328,8 +328,8 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma Ajax"
-        message: "Connexio amb la CRA restaurada correctament."
+        title: "Ajax Alarm"
+        message: "Connection with the monitoring station (CRA) restored successfully."
         data:
           tag: cra-disconnected
 
@@ -337,7 +337,7 @@
 # 13. CELLULAR CONNECTION LOST
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_cellular_disconnected
-  alias: "Alarma - Connexio cellular perduda"
+  alias: "Alarm — Cellular connection lost"
   description: "Alert when hub loses cellular/4G connection"
   triggers:
     - trigger: state
@@ -348,10 +348,10 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma - Connexio 4G perduda"
+        title: "Alarm — 4G connection lost"
         message: >-
-          El hub ha perdut la connexio cellular (4G) fa mes de 5 minuts.
-          Pot afectar la comunicacio amb la CRA.
+          The hub has lost cellular connection (4G) for more than 5 minutes.
+          This may affect communication with the monitoring station.
         data:
           tag: cellular-disconnected
           priority: high
@@ -361,7 +361,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # TIP: Use label_entities('aegis_temperature') to auto-detect all temp sensors.
 - id: ajax_temperature_high
-  alias: "Alarma - Temperatura alta"
+  alias: "Alarm — High temperature"
   description: "Alert when any sensor detects temperature above 40C"
   triggers:
     - trigger: numeric_state
@@ -370,10 +370,10 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "ALERTA - Temperatura alta!"
+        title: "ALERT — High temperature!"
         message: >-
           {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}°C
-          Temperatura anormalment alta detectada.
+          Abnormally high temperature detected.
         data:
           push:
             sound:
@@ -387,7 +387,7 @@
 # 15. TEMPERATURE ANOMALY (low — possible heating failure)
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_temperature_low
-  alias: "Alarma - Temperatura baixa"
+  alias: "Alarm — Low temperature"
   description: "Alert when temperature drops below 5C (possible heating failure or break-in)"
   triggers:
     - trigger: numeric_state
@@ -396,10 +396,10 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma - Temperatura baixa"
+        title: "Alarm — Low temperature"
         message: >-
           {{ trigger.to_state.attributes.friendly_name }}: {{ trigger.to_state.state }}°C
-          Temperatura molt baixa — comprova la calefaccio.
+          Very low temperature — check the heating.
         data:
           tag: "temp-low-{{ trigger.entity_id }}"
 
@@ -407,7 +407,7 @@
 # 16. AUTO-ARM at night (23:00)
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_auto_arm_night
-  alias: "Alarma - Armar automaticament a la nit"
+  alias: "Alarm — Auto-arm at night"
   description: "Automatically arm in night mode at 23:00 if currently disarmed"
   triggers:
     - trigger: time
@@ -422,14 +422,14 @@
         entity_id: alarm_control_panel.my_hub
     - action: notify.mobile_app_user
       data:
-        title: "Alarma Ajax"
-        message: "Mode nit activat automaticament (23:00)."
+        title: "Ajax Alarm"
+        message: "Night mode armed automatically (23:00)."
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 17. AUTO-ARM when everyone leaves
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_auto_arm_away
-  alias: "Alarma - Armar quan tothom surt"
+  alias: "Alarm — Arm when everyone leaves"
   description: "Auto-arm when everyone leaves home (uses zone.home person tracking)"
   triggers:
     - trigger: state
@@ -447,14 +447,14 @@
         entity_id: alarm_control_panel.my_hub
     - action: notify.mobile_app_user
       data:
-        title: "Alarma Ajax"
-        message: "Alarma armada automaticament — tothom ha sortit de casa."
+        title: "Ajax Alarm"
+        message: "Alarm armed automatically — everyone has left home."
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 18. AUTO-DISARM when arriving home
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_auto_disarm_arrive
-  alias: "Alarma - Desarmar en arribar a casa"
+  alias: "Alarm — Disarm on arrival home"
   description: "Auto-disarm when the first person arrives home"
   triggers:
     - trigger: state
@@ -472,15 +472,15 @@
         entity_id: alarm_control_panel.my_hub
     - action: notify.mobile_app_user
       data:
-        title: "Alarma Ajax"
-        message: "Alarma desarmada — benvingut a casa."
+        title: "Ajax Alarm"
+        message: "Alarm disarmed — welcome home."
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 19. SENSOR OFFLINE — any device loses connectivity
 # ─────────────────────────────────────────────────────────────────────────────
 # TIP: Use label_entities('aegis_connectivity') to auto-detect all connectivity sensors.
 - id: ajax_sensor_offline
-  alias: "Alarma - Sensor desconnectat"
+  alias: "Alarm — Sensor offline"
   description: "Alert when any Ajax sensor goes offline"
   triggers:
     - trigger: state
@@ -491,9 +491,9 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma - Sensor offline"
+        title: "Alarm — Sensor offline"
         message: >-
-          {{ trigger.to_state.attributes.friendly_name }} ha perdut la connexio fa mes de 10 minuts.
+          {{ trigger.to_state.attributes.friendly_name }} has lost connection for more than 10 minutes.
         data:
           tag: "sensor-offline-{{ trigger.entity_id }}"
 
@@ -501,7 +501,7 @@
 # 20. PROBLEM DETECTED on any device
 # ─────────────────────────────────────────────────────────────────────────────
 - id: ajax_device_problem
-  alias: "Alarma - Problema en dispositiu"
+  alias: "Alarm — Device problem"
   description: "Alert when any device reports a problem/malfunction"
   triggers:
     - trigger: state
@@ -520,11 +520,11 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Alarma - Problema detectat"
+        title: "Alarm — Problem detected"
         message: >-
-          Problema detectat a: {{ trigger.to_state.attributes.friendly_name }}
+          Problem detected on: {{ trigger.to_state.attributes.friendly_name }}
           {% if trigger.to_state.attributes.malfunctions_count is defined %}
-          Nombre de problemes: {{ trigger.to_state.attributes.malfunctions_count }}
+          Number of problems: {{ trigger.to_state.attributes.malfunctions_count }}
           {% endif %}
         data:
           tag: "problem-{{ trigger.entity_id }}"
@@ -535,7 +535,7 @@
 # Uses label_entities('aegis_door') to auto-detect all door/window sensors.
 # New devices added to the integration are included automatically.
 - id: ajax_open_check_before_night
-  alias: "Alarma - Recordatori portes obertes a la nit"
+  alias: "Alarm — Open doors reminder at night"
   description: "Reminder at 22:30 if any doors/windows are open"
   triggers:
     - trigger: time
@@ -548,12 +548,12 @@
   actions:
     - action: notify.mobile_app_user
       data:
-        title: "Recordatori — Portes obertes"
+        title: "Reminder — Open doors"
         message: >-
-          Abans d'anar a dormir, comprova:
+          Before going to bed, check:
           {% for entity in label_entities('aegis_door') %}
           {% if is_state(entity, 'on') %}
-          - {{ state_attr(entity, 'friendly_name') }}: OBERTA
+          - {{ state_attr(entity, 'friendly_name') }}: OPEN
           {% endif %}
           {% endfor %}
 
