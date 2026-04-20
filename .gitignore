@@ -35,8 +35,8 @@ htmlcov/
 custom_components/ajax_cobranded/proto/**/*_pb2.pyi
 custom_components/ajax_cobranded/proto/*_pb2.pyi
 
-# Reverse engineering docs (local only)
-docs/reverse-engineering/
+# Internal protocol docs (local only)
+docs/protocol-notes/
 
 # Environment
 .env

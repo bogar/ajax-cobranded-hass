@@ -116,7 +116,7 @@ If your provider is not in the list above, you can find the correct label by:
 
 1. **Check the app's Google Play URL** — search for the package name (e.g. `com.ajaxsystems.yourapp`) and cross-reference with the table
 2. **Inspect network traffic** — the app sends its label in the `application-label` gRPC metadata header on every request
-3. **Decompile the APK** — the label is hardcoded in the app's resources as `ajax_app_name` in `strings.xml`
+3. **Check the app's resources** — the label is stored as `ajax_app_name` in `strings.xml`
 
 You can type any custom label during setup if yours is not listed.
 
@@ -227,7 +227,7 @@ Use these in automation templates, e.g. `{{ trigger.event.data.device_name }}`.
 
 ## Push Notifications (Optional)
 
-For real-time push notifications via Firebase Cloud Messaging (FCM), you need to provide your own FCM credentials. These can be obtained by decompiling your co-branded Ajax app's APK and extracting the Firebase configuration.
+For real-time push notifications via Firebase Cloud Messaging (FCM), you need to provide FCM credentials. These are the standard Firebase configuration values used by the Ajax mobile app.
 
 The required fields (configured in the integration's Options):
 - **FCM Project ID** — Firebase project identifier
@@ -237,10 +237,7 @@ The required fields (configured in the integration's Options):
 
 ### How to obtain FCM credentials
 
-1. Download your co-branded Ajax app's APK (from APKMirror, APKPure, or similar)
-2. Decompile the APK using [jadx](https://github.com/skylot/jadx)
-3. Look in `res/values/strings.xml` for `google_app_id`, `gcm_defaultSenderId`, `project_id`
-4. The API key may be in `strings.xml` as `google_api_key`, or in a native library (`lib/*/libnative-lib.so` — search for strings starting with `AIza`)
+The FCM credentials can be found in the app's resources (`res/values/strings.xml`) or native libraries. Look for `google_app_id`, `gcm_defaultSenderId`, `project_id`, and `google_api_key`.
 
 If FCM credentials are not configured, the integration will still work using the persistent gRPC stream for real-time updates. FCM adds an additional push notification channel for faster event delivery and enables Photo on Demand URL retrieval.
 
@@ -254,7 +251,7 @@ This integration is provided for **personal, non-commercial use** and for **inte
 
 - This project is **not affiliated with Ajax Systems** in any way
 - Ajax Systems trademarks and product names belong to their respective owners
-- The protobuf definitions included in this integration were derived through reverse engineering of publicly available mobile applications for interoperability purposes
+- The protobuf definitions included in this integration were derived from publicly available mobile applications for interoperability purposes
 - **No warranty** is provided — this software is provided "as is"
 - The authors are not responsible for any damage, data loss, or security issues arising from the use of this integration
 - By using this integration, you accept full responsibility for its use with your Ajax security system

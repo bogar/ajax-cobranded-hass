@@ -92,7 +92,7 @@ Add to `_DEVICE_TYPE_SENSORS`:
 
 ### Changes to `devices.py`
 
-Parse status fields for glass_break and vibration from `LightDeviceStatus`. Verify exact field numbers in APK protos.
+Parse status fields for glass_break and vibration from `LightDeviceStatus`. Verify exact field numbers in the proto definitions.
 
 ### Not included
 
@@ -183,13 +183,13 @@ All tests run in Docker. Coverage must stay >80%.
 ```
 Force Arm → (none)
 icons.json → (none)
-Binary Sensors → (none, verify protos in APK)
-Event Platform → Binary Sensors (shared device type knowledge), APK proto investigation
+Binary Sensors → (none, verify proto definitions)
+Event Platform → Binary Sensors (shared device type knowledge), proto investigation
 Logbook → Event Platform (uses same events)
 ```
 
 ## Constraints
 
 - No real devices for Event Platform testing — design from protos, log unknowns
-- FCM push notification format must be verified against APK
+- FCM push notification format must be verified against real push data
 - All code must pass mypy strict, ruff lint/format, vulture
