@@ -21,7 +21,20 @@ jobs:
       - name: Build dev container
         run: docker build -f Dockerfile.dev --build-arg PYTHON_VERSION=${{ matrix.python-version }} -t aegis-ajax-dev .
       - name: Run tests
-        run: docker run --rm aegis-ajax-dev pytest tests/unit/ -v --cov=custom_components/aegis_ajax --cov-fail-under=80 --cov-report=term-missing
+        run: |
+          mkdir -p coverage
+          docker run --rm -v "$(pwd)/coverage:/coverage" aegis-ajax-dev \
+            pytest tests/unit/ -v \
+              --cov=custom_components/aegis_ajax \
+              --cov-fail-under=80 \
+              --cov-report=term-missing \
+              --cov-report=json:/coverage/coverage.json
+      - name: Upload coverage
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/coverage.json
 
   lint:
     runs-on: ubuntu-latest
