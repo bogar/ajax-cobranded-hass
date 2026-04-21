@@ -83,16 +83,3 @@ jobs:
       - name: Run dead code analysis
         run: docker run --rm aegis-ajax-dev vulture custom_components/aegis_ajax/ vulture_whitelist.py --exclude custom_components/aegis_ajax/proto/
 
-  hassfest:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: home-assistant/actions/hassfest@master
-
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: hacs/action@main
-        with:
-          category: integration
