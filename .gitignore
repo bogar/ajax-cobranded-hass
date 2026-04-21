@@ -37,8 +37,7 @@ custom_components/aegis_ajax/proto/*_pb2.pyi
 
 # Internal docs (local only)
 docs/protocol-notes/
-docs/reverse-engineering/
-docs/superpowers/
+docs/design-specs/
 
 # Environment
 .env
