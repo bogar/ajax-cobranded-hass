@@ -29,12 +29,23 @@ jobs:
               --cov-fail-under=80 \
               --cov-report=term-missing \
               --cov-report=json:/coverage/coverage.json
-      - name: Upload coverage
+      - name: Coverage summary
         if: matrix.python-version == '3.12'
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/coverage.json
+        run: |
+          python3 -c "
+          import json
+          with open('coverage/coverage.json') as f:
+              data = json.load(f)
+          pct = data['totals']['percent_covered_display']
+          stmts = data['totals']['num_statements']
+          miss = data['totals']['missing_lines']
+          print('## Test Coverage')
+          print(f'| Metric | Value |')
+          print(f'|--------|-------|')
+          print(f'| **Coverage** | **{pct}%** |')
+          print(f'| Statements | {stmts} |')
+          print(f'| Missing | {miss} |')
+          " >> "$GITHUB_STEP_SUMMARY"
 
   lint:
     runs-on: ubuntu-latest
