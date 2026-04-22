@@ -6,6 +6,7 @@ import asyncio
 import logging
 import re
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 if TYPE_CHECKING:
     from custom_components.aegis_ajax.api.client import AjaxGrpcClient
@@ -91,7 +92,11 @@ class MediaApi:
                     urls = re.findall(rb'https://[^\x00-\x1f\x7f-\x9f"\'\\]+', raw_response)
                     for raw_url in urls:
                         url: str = raw_url.decode("utf-8", errors="ignore")
-                        if ".ajax.systems" in url or "hubs-uploaded-resources" in url:
+                        parsed = urlparse(url)
+                        hostname = parsed.hostname or ""
+                        is_ajax = hostname.endswith(".ajax.systems")
+                        is_s3 = "hubs-uploaded-resources" in hostname
+                        if is_ajax or is_s3:
                             _LOGGER.debug("Photo URL from media stream: %s", url[:80])
                             return url
                     _LOGGER.debug(

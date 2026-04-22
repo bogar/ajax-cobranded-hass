@@ -55,6 +55,7 @@ def _make_coordinator(
         coordinator = AjaxCobrandedCoordinator(
             hass=hass, client=client, space_ids=space_ids or ["s1"], poll_interval=30
         )
+    coordinator.hass = hass
     return coordinator
 
 
@@ -208,6 +209,7 @@ class TestStreamHandlers:
             coordinator = AjaxCobrandedCoordinator(
                 hass=hass, client=client, space_ids=["s1"], poll_interval=300
             )
+        coordinator.hass = hass
         coordinator.async_set_updated_data = MagicMock()
         return coordinator
 

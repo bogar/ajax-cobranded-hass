@@ -47,6 +47,7 @@
                 "data": {
                     "poll_interval": "Reserve-pollinginterval (seconden, 60-300)",
                     "use_pin_code": "PIN-code vereisen voor in-/uitschakelen",
+                    "pin_code": "PIN-code",
                     "fcm_project_id": "FCM-project-ID (voor pushmeldingen)",
                     "fcm_app_id": "FCM-app-ID",
                     "fcm_api_key": "FCM-API-sleutel",

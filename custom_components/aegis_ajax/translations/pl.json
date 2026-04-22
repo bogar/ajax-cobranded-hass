@@ -47,6 +47,7 @@
                 "data": {
                     "poll_interval": "Zapasowy interwał odpytywania (sekundy, 60-300)",
                     "use_pin_code": "Wymagaj kodu PIN do uzbrojenia/rozbrojenia",
+                    "pin_code": "Kod PIN",
                     "fcm_project_id": "ID projektu FCM (dla powiadomień push)",
                     "fcm_app_id": "ID aplikacji FCM",
                     "fcm_api_key": "Klucz API FCM",

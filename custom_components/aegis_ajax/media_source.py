@@ -64,33 +64,37 @@ class AjaxPhotoMediaSource(MediaSource):
     async def async_browse_media(self, item: MediaSourceItem) -> BrowseMediaSource:
         """Browse photo folders and files."""
         if not item.identifier:
-            return self._browse_root()
-        return self._browse_folder(item.identifier)
+            return await self._browse_root()
+        return await self._browse_folder(item.identifier)
 
-    def _browse_root(self) -> BrowseMediaSource:
+    async def _browse_root(self) -> BrowseMediaSource:
         """List device folders."""
-        children: list[BrowseMediaSource] = []
         base = self._base_path
 
-        if base.is_dir():
-            for folder in sorted(base.iterdir()):
-                if folder.is_dir():
-                    photo_count = sum(
-                        1
-                        for f in folder.iterdir()
-                        if f.is_file() and f.suffix == ".jpg" and f.name != "last.jpg"
-                    )
-                    children.append(
-                        BrowseMediaSource(
-                            domain=DOMAIN,
-                            identifier=folder.name,
-                            media_class=MediaClass.DIRECTORY,
-                            media_content_type="",
-                            title=f"{folder.name} ({photo_count})",
-                            can_play=False,
-                            can_expand=True,
+        def _scan_root() -> list[BrowseMediaSource]:
+            items: list[BrowseMediaSource] = []
+            if base.is_dir():
+                for folder in sorted(base.iterdir()):
+                    if folder.is_dir():
+                        photo_count = sum(
+                            1
+                            for f in folder.iterdir()
+                            if f.is_file() and f.suffix == ".jpg" and f.name != "last.jpg"
                         )
-                    )
+                        items.append(
+                            BrowseMediaSource(
+                                domain=DOMAIN,
+                                identifier=folder.name,
+                                media_class=MediaClass.DIRECTORY,
+                                media_content_type="",
+                                title=f"{folder.name} ({photo_count})",
+                                can_play=False,
+                                can_expand=True,
+                            )
+                        )
+            return items
+
+        children = await self.hass.async_add_executor_job(_scan_root)
 
         return BrowseMediaSource(
             domain=DOMAIN,
@@ -103,46 +107,50 @@ class AjaxPhotoMediaSource(MediaSource):
             children=children,
         )
 
-    def _browse_folder(self, folder_name: str) -> BrowseMediaSource:
+    async def _browse_folder(self, folder_name: str) -> BrowseMediaSource:
         """List photos in a device folder."""
         folder_path = self._base_path / folder_name
         try:
             folder_path.resolve().relative_to(self._base_path.resolve())
         except ValueError:
-            return self._browse_root()
+            return await self._browse_root()
 
-        children: list[BrowseMediaSource] = []
-        if folder_path.is_dir():
-            photos = sorted(
-                [
-                    f
-                    for f in folder_path.iterdir()
-                    if f.is_file() and f.suffix == ".jpg" and f.name != "last.jpg"
-                ],
-                key=lambda f: f.name,
-                reverse=True,
-            )
-            for photo in photos:
-                # Format "2026-04-14_00-23-18.jpg" -> "2026-04-14 00:23:18"
-                parts = photo.stem.split("_", 1)
-                if len(parts) == 2:
-                    title = parts[0] + " " + parts[1].replace("-", ":")
-                else:
-                    title = photo.stem
-
-                identifier = f"{folder_name}/{photo.name}"
-                children.append(
-                    BrowseMediaSource(
-                        domain=DOMAIN,
-                        identifier=identifier,
-                        media_class=MediaClass.IMAGE,
-                        media_content_type="image/jpeg",
-                        title=title,
-                        can_play=True,
-                        can_expand=False,
-                        thumbnail=f"/media/local/{PHOTOS_BASE_DIR}/{identifier}",
-                    )
+        def _scan_folder() -> list[BrowseMediaSource]:
+            items: list[BrowseMediaSource] = []
+            if folder_path.is_dir():
+                photos = sorted(
+                    [
+                        f
+                        for f in folder_path.iterdir()
+                        if f.is_file() and f.suffix == ".jpg" and f.name != "last.jpg"
+                    ],
+                    key=lambda f: f.name,
+                    reverse=True,
                 )
+                for photo in photos:
+                    # Format "2026-04-14_00-23-18.jpg" -> "2026-04-14 00:23:18"
+                    parts = photo.stem.split("_", 1)
+                    if len(parts) == 2:
+                        title = parts[0] + " " + parts[1].replace("-", ":")
+                    else:
+                        title = photo.stem
+
+                    identifier = f"{folder_name}/{photo.name}"
+                    items.append(
+                        BrowseMediaSource(
+                            domain=DOMAIN,
+                            identifier=identifier,
+                            media_class=MediaClass.IMAGE,
+                            media_content_type="image/jpeg",
+                            title=title,
+                            can_play=True,
+                            can_expand=False,
+                            thumbnail=f"/media/local/{PHOTOS_BASE_DIR}/{identifier}",
+                        )
+                    )
+            return items
+
+        children = await self.hass.async_add_executor_job(_scan_folder)
 
         return BrowseMediaSource(
             domain=DOMAIN,

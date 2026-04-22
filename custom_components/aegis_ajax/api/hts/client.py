@@ -65,6 +65,15 @@ class HtsAuthError(Exception):
 class HtsClient:
     """Async TCP+TLS client for the Ajax HTS binary protocol."""
 
+    _ssl_ctx: ssl.SSLContext | None = None
+
+    @classmethod
+    def _get_ssl_context(cls) -> ssl.SSLContext:
+        """Return a cached SSL context (created once, reused across instances)."""
+        if cls._ssl_ctx is None:
+            cls._ssl_ctx = ssl.create_default_context()
+        return cls._ssl_ctx
+
     def __init__(
         self,
         login_token: bytes,
@@ -136,7 +145,7 @@ class HtsClient:
             HtsConnectionError: If the TCP/TLS connection cannot be established.
             HtsAuthError: If the auth handshake fails.
         """
-        ssl_ctx = ssl.create_default_context()
+        ssl_ctx = self._get_ssl_context()
         try:
             self._reader, self._writer = await asyncio.wait_for(
                 asyncio.open_connection(self._host, self._port, ssl=ssl_ctx),

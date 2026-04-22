@@ -224,6 +224,7 @@ class AjaxSimImeiSensor(AjaxSimBaseSensor):
     """Sensor exposing the hub IMEI number."""
 
     _attr_translation_key = "sim_imei"
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
         super().__init__(coordinator, hub_id)

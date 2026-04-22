@@ -86,12 +86,11 @@ class AjaxNotificationListener:
             _LOGGER.debug("Registering with FCM...")
             try:
                 registerer = FcmRegister(config=fcm_config)
-                raw_result: Any = registerer.register()  # noqa: ANN401
                 # register() may be sync or async depending on library version
-                import inspect  # noqa: PLC0415
-
-                if inspect.isawaitable(raw_result):
-                    raw_result = await raw_result
+                if asyncio.iscoroutinefunction(registerer.register):
+                    raw_result: Any = await registerer.register()  # noqa: ANN401
+                else:
+                    raw_result = await self._hass.async_add_executor_job(registerer.register)
                 self._credentials = dict(raw_result)
                 await self._store.async_save(self._credentials)
                 _LOGGER.debug("FCM registration successful")
@@ -116,9 +115,10 @@ class AjaxNotificationListener:
                 fcm_config=fcm_config,
                 credentials=self._credentials,
             )
-            start_result = self._push_client.start()
-            if hasattr(start_result, "__await__"):
-                await start_result
+            if asyncio.iscoroutinefunction(self._push_client.start):
+                await self._push_client.start()
+            else:
+                await self._hass.async_add_executor_job(self._push_client.start)
             _LOGGER.debug("FCM push client started for Ajax")
         except Exception:
             _LOGGER.exception("Failed to start FCM push client")

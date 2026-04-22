@@ -35,6 +35,18 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+# Map proto status field name to internal key used by binary_sensor/sensor.
+# Module-level constant to avoid recreating on every status update.
+_STATUS_KEY_MAP: dict[str, str] = {
+    "co_level_detected": "co_detected",
+    "high_temperature_detected": "high_temperature",
+    "case_drilling_detected": "case_drilling",
+    "anti_masking_alert": "anti_masking",
+    "interference_detected": "interference",
+    "glass_break_detected": "glass_break",
+    "vibration_detected": "vibration",
+}
+
 
 class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(
@@ -187,13 +199,15 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._hts_task.add_done_callback(self._handle_hts_task_done)
         except (HtsConnectionError, Exception):
             _LOGGER.debug("HTS connection failed (network sensors unavailable)", exc_info=True)
-            self._handle_hts_disconnect()
+            self._handle_hts_disconnect(reconnect=False)
             self._hts_client = None
 
     def _on_hts_update(self, hub_id: str, state: HubNetworkState) -> None:
         """Handle hub network state update from HTS."""
         self.hub_network[hub_id] = state
-        self.async_set_updated_data({"spaces": self.spaces, "devices": self.devices})
+        self.hass.loop.call_soon_threadsafe(
+            self.async_set_updated_data, {"spaces": self.spaces, "devices": self.devices}
+        )
 
     def _handle_hts_task_done(self, task: asyncio.Task[None]) -> None:
         """Clear stale HTS state when the listen task exits."""
@@ -203,13 +217,16 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             task.result()
         self._handle_hts_disconnect()
 
-    def _handle_hts_disconnect(self) -> None:
+    def _handle_hts_disconnect(self, *, reconnect: bool = True) -> None:
         """Drop stale HTS state so hub network entities become unavailable."""
         self._hts_task = None
         self._hts_client = None
         if self.hub_network:
             self.hub_network.clear()
             self.async_set_updated_data({"spaces": self.spaces, "devices": self.devices})
+        if reconnect:
+            # Schedule an immediate reconnect attempt instead of waiting for next poll
+            self.hass.async_create_task(self._start_hts())
 
     async def _start_device_streams(self) -> None:
         """Start persistent device streams for all spaces."""
@@ -244,17 +261,7 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         op = data.get("op", 2)
         new_statuses = dict(device.statuses)
 
-        # Map proto status field name to internal key used by binary_sensor/sensor
-        _status_key_map = {
-            "co_level_detected": "co_detected",
-            "high_temperature_detected": "high_temperature",
-            "case_drilling_detected": "case_drilling",
-            "anti_masking_alert": "anti_masking",
-            "interference_detected": "interference",
-            "glass_break_detected": "glass_break",
-            "vibration_detected": "vibration",
-        }
-        key = _status_key_map.get(status_name, status_name)
+        key = _STATUS_KEY_MAP.get(status_name, status_name)
         _LOGGER.debug(
             "Status update: device=%s status=%s key=%s op=%s",
             device_id,

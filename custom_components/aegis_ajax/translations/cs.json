@@ -47,6 +47,7 @@
                 "data": {
                     "poll_interval": "Záložní interval dotazování (sekundy, 60-300)",
                     "use_pin_code": "Vyžadovat PIN kód pro střežení/odstřežení",
+                    "pin_code": "PIN kód",
                     "fcm_project_id": "ID projektu FCM (pro push notifikace)",
                     "fcm_app_id": "ID aplikace FCM",
                     "fcm_api_key": "API klíč FCM",

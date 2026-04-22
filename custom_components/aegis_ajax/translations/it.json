@@ -47,6 +47,7 @@
                 "data": {
                     "poll_interval": "Intervallo di polling di riserva (secondi, 60-300)",
                     "use_pin_code": "Richiedi codice PIN per inserire/disinserire",
+                    "pin_code": "Codice PIN",
                     "fcm_project_id": "ID progetto FCM (per notifiche push)",
                     "fcm_app_id": "ID app FCM",
                     "fcm_api_key": "Chiave API FCM",

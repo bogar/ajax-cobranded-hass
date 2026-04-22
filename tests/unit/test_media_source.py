@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -17,6 +17,7 @@ def _make_hass(media_dir: str = "/media") -> MagicMock:
     """Create a mock hass with media_dirs configured."""
     hass = MagicMock()
     hass.config.media_dirs = {"local": media_dir}
+    hass.async_add_executor_job = AsyncMock(side_effect=lambda fn, *a: fn(*a))
     return hass
 
 

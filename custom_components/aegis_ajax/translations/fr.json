@@ -51,6 +51,7 @@
                 "data": {
                     "poll_interval": "Intervalle d'interrogation de secours (secondes, 60-300)",
                     "use_pin_code": "Exiger un code PIN pour armer/désarmer",
+                    "pin_code": "Code PIN",
                     "fcm_project_id": "ID de projet FCM (pour les notifications push)",
                     "fcm_app_id": "ID d'application FCM",
                     "fcm_api_key": "Clé API FCM",

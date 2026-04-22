@@ -51,6 +51,7 @@
                 "data": {
                     "poll_interval": "Intervalo de sondagem reserva (segundos, 60-300)",
                     "use_pin_code": "Exigir código PIN para armar/desarmar",
+                    "pin_code": "Código PIN",
                     "fcm_project_id": "ID do projeto FCM (para notificações push)",
                     "fcm_app_id": "ID do aplicativo FCM",
                     "fcm_api_key": "Chave de API FCM",

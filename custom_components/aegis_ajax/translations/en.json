@@ -51,6 +51,7 @@
                 "data": {
                     "poll_interval": "Fallback poll interval (seconds, 60-300)",
                     "use_pin_code": "Require PIN code for arm/disarm",
+                    "pin_code": "PIN code",
                     "fcm_project_id": "FCM Project ID (for push notifications)",
                     "fcm_app_id": "FCM App ID",
                     "fcm_api_key": "FCM API Key",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -90,7 +91,8 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         if not self.code_arm_required:
             return
         stored_hash = self._get_options().get("pin_code_hash", "")
-        if not code or hashlib.sha256(code.encode()).hexdigest() != stored_hash:
+        computed = hashlib.sha256(code.encode()).hexdigest() if code else ""
+        if not code or not hmac.compare_digest(computed, stored_hash):
             raise HomeAssistantError("Invalid alarm code")
 
     @property

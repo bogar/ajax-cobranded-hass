@@ -47,6 +47,7 @@
                 "data": {
                     "poll_interval": "Ersatz-Abfrageintervall (Sekunden, 60-300)",
                     "use_pin_code": "PIN-Code für Scharf-/Unscharfschalten erforderlich",
+                    "pin_code": "PIN-Code",
                     "fcm_project_id": "FCM-Projekt-ID (für Push-Benachrichtigungen)",
                     "fcm_app_id": "FCM-App-ID",
                     "fcm_api_key": "FCM-API-Schlüssel",
