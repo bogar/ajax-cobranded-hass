@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 PROTO_SRC="$PROJECT_ROOT/proto_src"
-PROTO_OUT="$PROJECT_ROOT/custom_components/ajax_cobranded/proto"
+PROTO_OUT="$PROJECT_ROOT/custom_components/aegis_ajax/proto"
 
 if [ ! -d "$PROTO_SRC" ]; then
     echo "Error: proto_src/ directory not found at $PROTO_SRC"

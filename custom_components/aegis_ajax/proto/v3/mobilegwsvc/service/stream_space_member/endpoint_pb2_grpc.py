@@ -6,7 +6,7 @@ import warnings
 from v3.mobilegwsvc.service.stream_space_member import request_pb2 as v3_dot_mobilegwsvc_dot_service_dot_stream__space__member_dot_request__pb2
 from v3.mobilegwsvc.service.stream_space_member import response_pb2 as v3_dot_mobilegwsvc_dot_service_dot_stream__space__member_dot_response__pb2
 
-GRPC_GENERATED_VERSION = '1.78.0'
+GRPC_GENERATED_VERSION = '1.75.1'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -19,7 +19,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in v3/mobilegwsvc/service/stream_space_member/endpoint_pb2_grpc.py depends on'
+        + f' but the generated code in v3/mobilegwsvc/service/stream_space_member/endpoint_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
