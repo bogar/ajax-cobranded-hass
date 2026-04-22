@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.logbook import LOGBOOK_ENTRY_MESSAGE, LOGBOOK_ENTRY_NAME
 from homeassistant.core import Event, callback
 
 from custom_components.aegis_ajax.const import DOMAIN
@@ -13,6 +12,9 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from homeassistant.core import HomeAssistant
+
+LOGBOOK_ENTRY_NAME = "name"
+LOGBOOK_ENTRY_MESSAGE = "message"
 
 _EVENT_DESCRIPTIONS: dict[str, str] = {
     "alarm": "Alarm triggered (via {device_name})",
@@ -43,10 +45,10 @@ def async_describe_events(
 
     @callback
     def async_describe_aegis_event(event: Event) -> dict[str, str]:
-        data: dict[str, Any] = event.data
-        event_type = data.get("event_type", "unknown")
-        device_name = data.get("device_name", "Unknown device")
-        room_name = data.get("room_name")
+        data: dict[str, Any] = dict(event.data)
+        event_type: str = data.get("event_type", "unknown")
+        device_name: str = data.get("device_name", "Unknown device")
+        room_name: str | None = data.get("room_name")
 
         template = _EVENT_DESCRIPTIONS.get(event_type, "Security event: {device_name}")
         message = template.format(device_name=device_name)

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from homeassistant.components.logbook import LOGBOOK_ENTRY_MESSAGE, LOGBOOK_ENTRY_NAME
-
 from custom_components.aegis_ajax.const import ALL_EVENT_TYPES, DOMAIN
 from custom_components.aegis_ajax.logbook import (
     _EVENT_DESCRIPTIONS,
+    LOGBOOK_ENTRY_MESSAGE,
+    LOGBOOK_ENTRY_NAME,
     async_describe_events,
 )
 
