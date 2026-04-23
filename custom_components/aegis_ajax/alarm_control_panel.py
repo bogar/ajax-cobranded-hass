@@ -28,6 +28,74 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+_ISSUE_LABELS: dict[str, dict[str, str]] = {
+    "open": {
+        "en": "open",
+        "es": "abierto",
+        "ca": "obert",
+        "de": "offen",
+        "fr": "ouvert",
+        "it": "aperto",
+        "nl": "open",
+        "pl": "otwarty",
+        "pt": "aberto",
+        "pt-BR": "aberto",
+        "ro": "deschis",
+        "tr": "açık",
+        "uk": "відкритий",
+        "cs": "otevřený",
+    },
+    "low_battery": {
+        "en": "low battery",
+        "es": "batería baja",
+        "ca": "bateria baixa",
+        "de": "Akku schwach",
+        "fr": "batterie faible",
+        "it": "batteria scarica",
+        "nl": "lage batterij",
+        "pl": "słaba bateria",
+        "pt": "bateria fraca",
+        "pt-BR": "bateria fraca",
+        "ro": "baterie descărcată",
+        "tr": "düşük pil",
+        "uk": "низький заряд",
+        "cs": "slabá baterie",
+    },
+    "malfunction": {
+        "en": "malfunction",
+        "es": "avería",
+        "ca": "avaria",
+        "de": "Störung",
+        "fr": "dysfonctionnement",
+        "it": "malfunzionamento",
+        "nl": "storing",
+        "pl": "awaria",
+        "pt": "avaria",
+        "pt-BR": "falha",
+        "ro": "defecțiune",
+        "tr": "arıza",
+        "uk": "несправність",
+        "cs": "porucha",
+    },
+    "tamper": {
+        "en": "tamper",
+        "es": "manipulación",
+        "ca": "manipulació",
+        "de": "Sabotage",
+        "fr": "sabotage",
+        "it": "manomissione",
+        "nl": "sabotage",
+        "pl": "sabotaż",
+        "pt": "violação",
+        "pt-BR": "violação",
+        "ro": "sabotaj",
+        "tr": "müdahale",
+        "uk": "втручання",
+        "cs": "sabotáž",
+    },
+}
+
+
 _STATE_MAP = {
     SecurityState.ARMED: AlarmControlPanelState.ARMED_AWAY,
     SecurityState.DISARMED: AlarmControlPanelState.DISARMED,
@@ -129,6 +197,11 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         """Return True when the user opted to always ignore malfunctions."""
         return bool(self._get_options().get(CONF_FORCE_ARM, False))
 
+    def _issue_label(self, key: str) -> str:
+        """Return a translated issue label for the current HA language."""
+        lang = self.hass.config.language if self.hass else "en"
+        return _ISSUE_LABELS.get(key, {}).get(lang, _ISSUE_LABELS.get(key, {}).get("en", key))
+
     def _describe_blocking_issues(self) -> str:
         """Scan devices for issues that prevent arming and return a description."""
         space = self._space
@@ -139,13 +212,13 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             if device.hub_id != space.hub_id:
                 continue
             if device.malfunctions > 0:
-                issues.append(f"{device.name}: malfunction")
+                issues.append(f"{device.name}: {self._issue_label('malfunction')}")
             if device.battery and device.battery.is_low:
-                issues.append(f"{device.name}: low battery")
+                issues.append(f"{device.name}: {self._issue_label('low_battery')}")
             if device.statuses.get("door_opened"):
-                issues.append(f"{device.name}: open")
+                issues.append(f"{device.name}: {self._issue_label('open')}")
             if device.statuses.get("tamper"):
-                issues.append(f"{device.name}: tamper")
+                issues.append(f"{device.name}: {self._issue_label('tamper')}")
         return "; ".join(issues[:5]) if issues else ""
 
     def _arm_error(self, err: Exception) -> HomeAssistantError:
