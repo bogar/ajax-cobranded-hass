@@ -61,11 +61,23 @@
     "services": {
         "force_arm": {
             "name": "Erzwungenes Scharfschalten",
-            "description": "System scharfschalten und offene Sensoren sowie aktive Alarme ignorieren."
+            "description": "System scharfschalten und offene Sensoren sowie aktive Alarme ignorieren.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entität",
+                    "description": "Alarmzentrale zum Scharfschalten. Ohne Angabe werden alle Zentralen scharf geschaltet."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Erzwungener Nachtmodus",
-            "description": "Nachtmodus aktivieren und offene Sensoren sowie aktive Alarme ignorieren."
+            "description": "Nachtmodus aktivieren und offene Sensoren sowie aktive Alarme ignorieren.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entität",
+                    "description": "Alarmzentrale zum Scharfschalten. Ohne Angabe werden alle Zentralen scharf geschaltet."
+                }
+            }
         }
     },
     "entity": {

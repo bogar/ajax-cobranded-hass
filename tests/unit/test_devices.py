@@ -354,22 +354,23 @@ class TestDevicesApiInit:
 
 class TestSendCommand:
     @pytest.mark.asyncio
-    async def test_send_command_on(self) -> None:
+    async def test_send_command_on_raises_not_implemented(self) -> None:
         client = MagicMock()
         api = DevicesApi(client)
         cmd = DeviceCommand.on(hub_id="h1", device_id="d1", device_type="relay", channels=[1])
-        # Should not raise
-        await api.send_command(cmd)
+        with pytest.raises(NotImplementedError):
+            await api.send_command(cmd)
 
     @pytest.mark.asyncio
-    async def test_send_command_off(self) -> None:
+    async def test_send_command_off_raises_not_implemented(self) -> None:
         client = MagicMock()
         api = DevicesApi(client)
         cmd = DeviceCommand.off(hub_id="h1", device_id="d1", device_type="relay", channels=[1])
-        await api.send_command(cmd)
+        with pytest.raises(NotImplementedError):
+            await api.send_command(cmd)
 
     @pytest.mark.asyncio
-    async def test_send_command_brightness(self) -> None:
+    async def test_send_command_brightness_raises_not_implemented(self) -> None:
         client = MagicMock()
         api = DevicesApi(client)
         cmd = DeviceCommand.set_brightness(
@@ -379,7 +380,8 @@ class TestSendCommand:
             brightness=50,
             channels=[1],
         )
-        await api.send_command(cmd)
+        with pytest.raises(NotImplementedError):
+            await api.send_command(cmd)
 
 
 class TestGetDevicesSnapshot:

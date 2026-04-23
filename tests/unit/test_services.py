@@ -28,6 +28,7 @@ class TestForceArmService:
         hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
         call = MagicMock()
+        call.data = {}  # No entity_id → all spaces
 
         await _async_handle_force_arm(hass, call)
 
@@ -56,6 +57,7 @@ class TestForceArmService:
         hass.config_entries.async_entries = MagicMock(return_value=[mock_entry])
 
         call = MagicMock()
+        call.data = {}  # No entity_id → all spaces
 
         await _async_handle_force_arm_night(hass, call)
 

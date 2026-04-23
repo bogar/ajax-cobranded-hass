@@ -84,8 +84,8 @@ class MediaApi:
         # Poll the media stream with retries — the first response may have
         # IMAGE_STATUS_IN_PROGRESS (no URL). Retry after a delay until READY.
         poll_interval = 5.0
-        deadline = asyncio.get_event_loop().time() + timeout
-        while asyncio.get_event_loop().time() < deadline:
+        deadline = asyncio.get_running_loop().time() + timeout
+        while asyncio.get_running_loop().time() < deadline:
             try:
                 stream = method(request_bytes, metadata=metadata, timeout=10)
                 async for raw_response in stream:

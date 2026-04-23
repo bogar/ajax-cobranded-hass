@@ -96,6 +96,8 @@ class HtsClient:
         self._hubs: list[HubInfo] = []
 
         self._ping_task: asyncio.Task[None] | None = None
+        self._data_request_task: asyncio.Task[None] | None = None
+        self._read_buf = bytearray()
         self._hub_states: dict[str, HubNetworkState] = {}
         self._on_state_update: Callable[[str, HubNetworkState], None] | None = None
         self._refresh_tasks: dict[str, asyncio.Task[None]] = {}
@@ -186,12 +188,10 @@ class HtsClient:
 
         params = tlv_decode(auth_req.payload)
         _LOGGER.debug(
-            "Auth request: %d params, payload hex: %s",
+            "Auth request: %d params, payload=%db",
             len(params),
-            auth_req.payload.hex(),
+            len(auth_req.payload),
         )
-        for idx, p in enumerate(params):
-            _LOGGER.debug("  param[%d]: %s", idx, p.hex() if p else "(empty)")
 
         # params[0] should be AUTH_KEY_AUTHENTICATION_REQUEST (0x00)
         # params[1] should be the 2-byte challenge
@@ -217,7 +217,6 @@ class HtsClient:
         auth_resp_payload = tlv_encode(
             [bytes([AUTH_KEY_AUTHENTICATION_RESPONSE]), response_bytes]
         )  # tlv_encode adds trailing delimiter
-        _LOGGER.debug("Auth response payload hex: %s", auth_resp_payload.hex())
         # Build the auth response message manually for exact control
         auth_resp_msg = HtsMessage(
             sender=self._sender_id,
@@ -229,13 +228,14 @@ class HtsClient:
             payload=auth_resp_payload,
         )
         raw = build_message(auth_resp_msg)
-        _LOGGER.debug("Auth response raw (%db): %s", len(raw), raw.hex())
         padded = pad16(raw)
-        _LOGGER.debug("Auth response padded (%db): %s", len(padded), padded.hex())
         encrypted = encrypt(padded)
         frame = encode_frame(encrypted)
-        _LOGGER.debug("Auth response frame (%db): %s", len(frame), frame.hex())
-        assert self._writer is not None
+        _LOGGER.debug(
+            "Auth response: raw=%db padded=%db frame=%db", len(raw), len(padded), len(frame)
+        )
+        if self._writer is None:
+            raise HtsConnectionError("Not connected")
         self._writer.write(frame)
         await self._writer.drain()
 
@@ -260,10 +260,10 @@ class HtsClient:
                 f"got 0x{int(connected_msg.msg_type):02X}"
             )
 
-        _LOGGER.debug("Connected response payload hex: %s", connected_msg.payload.hex())
         params2 = tlv_decode(connected_msg.payload)
-        for idx, p in enumerate(params2):
-            _LOGGER.debug("  connected param[%d]: %s", idx, p.hex() if p else "(empty)")
+        _LOGGER.debug(
+            "Connected response: %d params, payload=%db", len(params2), len(connected_msg.payload)
+        )
 
         try:
             connected = parse_connected_response(connected_msg.payload)
@@ -275,9 +275,9 @@ class HtsClient:
         self._connected = True
 
         _LOGGER.debug(
-            "HTS authenticated: %d hub(s), token=%s",
+            "HTS authenticated: %d hub(s), token=%s...",
             len(connected.hubs),
-            connected.token.hex(),
+            connected.token[:4].hex(),
         )
         return connected
 
@@ -309,9 +309,8 @@ class HtsClient:
             len(encrypted),
             len(frame),
         )
-        _LOGGER.debug("  raw: %s", raw[:64].hex())
-        _LOGGER.debug("  frame: %s", frame[:80].hex())
-        assert self._writer is not None
+        if self._writer is None:
+            raise HtsConnectionError("Not connected")
         self._writer.write(frame)
         await self._writer.drain()
 
@@ -341,7 +340,8 @@ class HtsClient:
             msg.seq_num,
             len(frame),
         )
-        assert self._writer is not None
+        if self._writer is None:
+            raise HtsConnectionError("Not connected")
         self._writer.write(frame)
         await self._writer.drain()
 
@@ -360,11 +360,11 @@ class HtsClient:
             payload=ack_payload,
         )
         raw = build_message(msg)
-        _LOGGER.debug("ACK raw (%db): %s", len(raw), raw.hex())
         padded = pad16(raw)
         encrypted = encrypt(padded)
         frame = encode_frame(encrypted)
-        assert self._writer is not None
+        if self._writer is None:
+            raise HtsConnectionError("Not connected")
         self._writer.write(frame)
         await self._writer.drain()
 
@@ -376,27 +376,28 @@ class HtsClient:
         return parse_message(plaintext)
 
     async def _read_frame(self) -> bytes:
-        """Read bytes from the stream until a complete STX...ETX frame is assembled."""
-        assert self._reader is not None
-        buf = bytearray()
-        in_frame = False
+        """Read a complete STX...ETX frame using buffered chunk reads."""
+        if self._reader is None:
+            raise HtsConnectionError("Not connected")
 
         while True:
-            byte_data = await asyncio.wait_for(
-                self._reader.read(1),
+            # Try to extract a frame from the existing buffer
+            stx_pos = self._read_buf.find(STX)
+            if stx_pos != -1:
+                etx_pos = self._read_buf.find(ETX, stx_pos + 1)
+                if etx_pos != -1:
+                    frame = bytes(self._read_buf[stx_pos : etx_pos + 1])
+                    del self._read_buf[: etx_pos + 1]
+                    return frame
+
+            # Need more data — read a chunk
+            chunk = await asyncio.wait_for(
+                self._reader.read(4096),
                 timeout=READ_TIMEOUT,
             )
-            if not byte_data:
+            if not chunk:
                 raise ConnectionError("Connection closed by remote")
-            byte = byte_data[0]
-            if not in_frame:
-                if byte == STX:
-                    buf = bytearray([byte])
-                    in_frame = True
-            else:
-                buf.append(byte)
-                if byte == ETX:
-                    return bytes(buf)
+            self._read_buf.extend(chunk)
 
     # ------------------------------------------------------------------
     # Listen loop
@@ -405,7 +406,8 @@ class HtsClient:
     async def request_hub_data(self, hub_id: str) -> None:
         """Send REQUEST_SETTINGS_ID, REQUEST_FULL_SETTINGS, and REQUEST_FULL_STATUS."""
         hub_id_int = int(hub_id, 16)
-        assert self._writer is not None
+        if self._writer is None:
+            raise HtsConnectionError("Not connected")
 
         # REQUEST_FULL_SETTINGS (sub-key=3)
         settings_payload = tlv_encode([bytes([3]), bytes([1]), bytes([1])])
@@ -422,11 +424,11 @@ class HtsClient:
         padded = pad16(raw)
         encrypted = encrypt(padded)
         frame = encode_frame(encrypted)
-        assert self._writer is not None
+        if self._writer is None:
+            raise HtsConnectionError("Not connected")
         self._writer.write(frame)
         await self._writer.drain()
         _LOGGER.debug("Sent REQUEST_FULL_SETTINGS to %s", hub_id)
-        await asyncio.sleep(2)  # wait for settings response
 
         # REQUEST_FULL_STATUS (sub-key=7)
         status_payload = tlv_encode([bytes([7]), bytes([1]), bytes([1])])
@@ -446,8 +448,6 @@ class HtsClient:
         self._writer.write(frame2)
         await self._writer.drain()
         _LOGGER.debug("Sent REQUEST_FULL_STATUS to %s", hub_id)
-
-        await asyncio.sleep(1)
 
     async def listen(
         self,
@@ -471,7 +471,7 @@ class HtsClient:
                 except Exception as e:
                     _LOGGER.warning("Failed to request hub data: %s", e)
 
-        asyncio.create_task(_request_data())
+        self._data_request_task = asyncio.create_task(_request_data())
 
         try:
             while self._connected:
@@ -671,6 +671,11 @@ class HtsClient:
     async def close(self) -> None:
         """Disconnect cleanly."""
         self._connected = False
+        if self._data_request_task is not None:
+            self._data_request_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._data_request_task
+            self._data_request_task = None
         refresh_tasks = list(self._refresh_tasks.values())
         self._refresh_tasks.clear()
         for task in refresh_tasks:
@@ -688,3 +693,4 @@ class HtsClient:
                 await self._writer.wait_closed()
             self._writer = None
         self._reader = None
+        self._read_buf.clear()

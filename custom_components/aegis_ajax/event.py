@@ -55,6 +55,11 @@ class AjaxSecurityEvent(CoordinatorEntity[AjaxCobrandedCoordinator], EventEntity
     def event_types(self) -> list[str]:
         return self._attr_event_types
 
+    async def async_will_remove_from_hass(self) -> None:
+        """Unregister from coordinator when removed."""
+        self.coordinator._event_entities.pop(self._space_id, None)
+        await super().async_will_remove_from_hass()
+
     def handle_event(self, event_type: str, data: dict[str, Any]) -> None:
         """Called by coordinator when a push event arrives."""
         if event_type not in ALL_EVENT_TYPES:

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from custom_components.aegis_ajax.api.devices import DevicesApi
-from custom_components.aegis_ajax.api.hts.client import HtsClient, HtsConnectionError
+from custom_components.aegis_ajax.api.hts.client import HtsClient
 from custom_components.aegis_ajax.api.hub_object import HubObjectApi, SimCardInfo
 from custom_components.aegis_ajax.api.media import MediaApi
 from custom_components.aegis_ajax.api.models import Device as DeviceModel
@@ -60,6 +60,7 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         super().__init__(
             hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=poll_interval)
         )
+        self._poll_interval = poll_interval
         self._client = client
         self._space_ids = space_ids
         self._spaces_api = SpacesApi(client)
@@ -77,6 +78,8 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_photo_urls: dict[str, str] = {}
         # space_id -> (expiry_time, security_state)
         self._optimistic_space_states: dict[str, tuple[float, Any]] = {}
+        # SIM info is mostly static — cache and refresh once per hour
+        self._sim_info_last_fetch: float = 0.0
         # HTS client for hub network data (ethernet, wifi, gsm, power)
         self._hts_client: HtsClient | None = None
         self._hts_task: asyncio.Task[None] | None = None
@@ -108,6 +111,9 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if not self._client.session.is_authenticated:
                 try:
                     await self._client.login()
+                    # Restore normal interval after successful re-auth
+                    configured = max(MIN_POLL_INTERVAL, min(MAX_POLL_INTERVAL, self._poll_interval))
+                    self.update_interval = timedelta(seconds=configured)
                 except AuthenticationError as err:
                     # Slow down retries to prevent account lockout
                     self.update_interval = timedelta(minutes=30)
@@ -120,7 +126,7 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Refresh spaces
             all_spaces = await self._spaces_api.list_spaces()
-            now = asyncio.get_event_loop().time()
+            now = asyncio.get_running_loop().time()
             new_spaces: dict[str, Space] = {}
             for s in all_spaces:
                 if s.id not in self._space_ids:
@@ -136,12 +142,15 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 new_spaces[s.id] = s
             self.spaces = new_spaces
 
-            # Fetch SIM info for each hub
-            for space in self.spaces.values():
-                if space.hub_id:
-                    sim = await self._hub_object_api.get_sim_info(space.hub_id)
-                    if sim:
-                        self.sim_info[space.hub_id] = sim
+            # Fetch SIM info for each hub (cached, refresh once per hour)
+            sim_refresh_interval = 3600.0
+            if now - self._sim_info_last_fetch > sim_refresh_interval:
+                for space in self.spaces.values():
+                    if space.hub_id and space.hub_id not in self.sim_info:
+                        sim = await self._hub_object_api.get_sim_info(space.hub_id)
+                        if sim:
+                            self.sim_info[space.hub_id] = sim
+                self._sim_info_last_fetch = now
 
             # Start persistent device streams on first update (once only)
             if not self._streams_started:
@@ -160,13 +169,16 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 await self._start_hts()
                 return {"spaces": self.spaces, "devices": self.devices}
 
-            # Fallback poll: refresh devices from snapshot for each space
-            all_devices: dict[str, Device] = {}
-            for space_id in self.spaces:
-                space_devices = await self._devices_api.get_devices_snapshot(space_id)
-                for device in space_devices:
-                    all_devices[device.id] = device
-            self.devices = all_devices
+            # Skip device snapshot if all persistent streams are alive
+            streams_healthy = self._stream_tasks and all(not t.done() for t in self._stream_tasks)
+            if not streams_healthy:
+                # Fallback poll: refresh devices from snapshot for each space
+                all_devices: dict[str, Device] = {}
+                for space_id in self.spaces:
+                    space_devices = await self._devices_api.get_devices_snapshot(space_id)
+                    for device in space_devices:
+                        all_devices[device.id] = device
+                self.devices = all_devices
 
             if self._hts_task and self._hts_task.done():
                 self._handle_hts_disconnect()
@@ -181,7 +193,7 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Start HTS connection for hub network data (graceful degradation)."""
         try:
             session = self._client.session
-            token_hex = session._session_token
+            token_hex = session.session_token
             if not token_hex:
                 _LOGGER.debug("No session token, skipping HTS")
                 return
@@ -194,9 +206,9 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
             self._hts_client = HtsClient(
                 login_token=bytes.fromhex(token_hex),
-                user_hex_id=session._user_hex_id or "",
-                device_id=session._device_id,
-                app_label=session._app_label,
+                user_hex_id=session.user_hex_id or "",
+                device_id=session.device_id,
+                app_label=session.app_label,
             )
             result = await self._hts_client.connect()
             _LOGGER.info("HTS connected, %d hub(s)", len(result.hubs))
@@ -204,7 +216,7 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._hts_client.listen(on_state_update=self._on_hts_update)
             )
             self._hts_task.add_done_callback(self._handle_hts_task_done)
-        except (HtsConnectionError, Exception):
+        except Exception:
             _LOGGER.debug("HTS connection failed (network sensors unavailable)", exc_info=True)
             self._handle_hts_disconnect(reconnect=False)
             self._hts_client = None
@@ -212,9 +224,7 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _on_hts_update(self, hub_id: str, state: HubNetworkState) -> None:
         """Handle hub network state update from HTS."""
         self.hub_network[hub_id] = state
-        self.hass.loop.call_soon_threadsafe(
-            self.async_set_updated_data, {"spaces": self.spaces, "devices": self.devices}
-        )
+        self.async_set_updated_data({"spaces": self.spaces, "devices": self.devices})
 
     def _handle_hts_task_done(self, task: asyncio.Task[None]) -> None:
         """Clear stale HTS state when the listen task exits."""
@@ -232,8 +242,8 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.hub_network.clear()
             self.async_set_updated_data({"spaces": self.spaces, "devices": self.devices})
         if reconnect:
-            # Schedule an immediate reconnect attempt instead of waiting for next poll
-            self.hass.async_create_task(self._start_hts())
+            # Schedule reconnect on next poll cycle rather than immediate retry
+            _LOGGER.debug("HTS disconnected; will reconnect on next poll cycle")
 
     async def _start_device_streams(self) -> None:
         """Start persistent device streams for all spaces."""

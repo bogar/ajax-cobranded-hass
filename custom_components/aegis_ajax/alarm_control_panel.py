@@ -131,7 +131,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
         self._optimistic_state_update(SecurityState.ARMED)
-        await self.coordinator.async_refresh()
+        await self.coordinator.async_request_refresh()
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         self._validate_code(code)
@@ -142,7 +142,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
         self._optimistic_state_update(SecurityState.NIGHT_MODE)
-        await self.coordinator.async_refresh()
+        await self.coordinator.async_request_refresh()
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         self._validate_code(code)
@@ -153,7 +153,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         except SecurityError as err:
             raise HomeAssistantError(str(err)) from err
         self._optimistic_state_update(SecurityState.DISARMED)
-        await self.coordinator.async_refresh()
+        await self.coordinator.async_request_refresh()
 
     def _optimistic_state_update(self, new_state: SecurityState) -> None:
         """Update the space state optimistically so the UI reflects the change immediately.
@@ -173,7 +173,7 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         except TypeError:
             return  # space is not a real dataclass (e.g., during tests)
         # Protect the optimistic state from being overwritten by stale server data
-        expiry = asyncio.get_event_loop().time() + 10
+        expiry = asyncio.get_running_loop().time() + 10
         self.coordinator._optimistic_space_states[self._space_id] = (expiry, new_state)
         # Notify HA of the state change (may not have hass during tests)
         if self.hass is not None:

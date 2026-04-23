@@ -65,11 +65,23 @@
     "services": {
         "force_arm": {
             "name": "Armare fortata",
-            "description": "Armeaza sistemul ignorand senzorii deschisi si alarmele active."
+            "description": "Armeaza sistemul ignorand senzorii deschisi si alarmele active.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entitate",
+                    "description": "Panoul de alarmă de armat forțat. Dacă este omis, armează toate panourile."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Mod noapte fortat",
-            "description": "Activeaza modul noapte ignorand senzorii deschisi si alarmele active."
+            "description": "Activeaza modul noapte ignorand senzorii deschisi si alarmele active.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entitate",
+                    "description": "Panoul de alarmă de armat forțat. Dacă este omis, armează toate panourile."
+                }
+            }
         }
     },
     "entity": {

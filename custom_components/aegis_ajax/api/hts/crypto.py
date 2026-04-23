@@ -2,6 +2,9 @@
 
 from Crypto.Cipher import AES
 
+# Protocol-defined AES key and IV used by the Ajax HTS transport layer.
+# These are fixed constants required by the protocol specification;
+# the server expects exactly these values for all HTS connections.
 _KEY = b"We@zEd;80Z1@pc2Y"
 _IV = b"V:e<*tMv6qVU#WRC"
 

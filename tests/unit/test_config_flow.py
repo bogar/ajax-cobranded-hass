@@ -34,7 +34,7 @@ class TestConfigFlowInit:
 
     def test_version(self) -> None:
         flow = AjaxCobrandedConfigFlow()
-        assert flow.VERSION == 1
+        assert flow.VERSION == 2
 
 
 class TestAsyncStepUser:

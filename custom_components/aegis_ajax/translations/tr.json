@@ -61,11 +61,23 @@
     "services": {
         "force_arm": {
             "name": "Zorla kurma",
-            "description": "Acik sensorleri ve aktif alarmlari yok sayarak sistemi kurun."
+            "description": "Acik sensorleri ve aktif alarmlari yok sayarak sistemi kurun.",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık",
+                    "description": "Zorla kurulacak alarm paneli. Belirtilmezse tüm paneller kurulur."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Zorla gece modu",
-            "description": "Acik sensorleri ve aktif alarmlari yok sayarak gece modunu etkinlestirin."
+            "description": "Acik sensorleri ve aktif alarmlari yok sayarak gece modunu etkinlestirin.",
+            "fields": {
+                "entity_id": {
+                    "name": "Varlık",
+                    "description": "Zorla kurulacak alarm paneli. Belirtilmezse tüm paneller kurulur."
+                }
+            }
         }
     },
     "entity": {
