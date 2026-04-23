@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2026-04-23
+
+### Fixed
+- Proto C extension imports moved to module level in `client.py` — fixes `Detected blocking call to import_module` crash on HA 2025+/2026+
+- Reconfigure flow now handles 2FA (`TwoFactorRequiredError`) — previously showed "unknown error" for 2FA accounts
+- Session token persisted in config entry to survive HA restarts — avoids re-login and repeated 2FA prompts
+- Document SHA-256 password hash as protocol constraint (CodeQL false positive)
+- Add `permissions: contents: read` to hassfest workflow (CodeQL `actions/missing-workflow-permissions`)
+
+### Added
+- `reconfigure_2fa` config flow step with translations for all 14 languages
+
 ## [1.0.7] - 2026-04-23
 
 ### Security
