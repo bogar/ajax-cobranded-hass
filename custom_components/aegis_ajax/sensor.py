@@ -81,7 +81,7 @@ SENSOR_TYPES: dict[str, SensorTypeInfo] = {
         "status",
         EntityCategory.DIAGNOSTIC,
         translation_key="mobile_network_type",
-        entity_registry_enabled_default=True,
+        entity_registry_enabled_default=False,
     ),
     "wifi_signal_level": SensorTypeInfo(
         None,
@@ -246,6 +246,7 @@ class _HubNetworkSensor(CoordinatorEntity[AjaxCobrandedCoordinator], SensorEntit
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
         super().__init__(coordinator)
@@ -268,6 +269,7 @@ class AjaxHubConnectionTypeSensor(_HubNetworkSensor):
     """Primary connection type: ethernet, wifi, gsm, or none."""
 
     _attr_translation_key = "connection_type"
+    _attr_entity_registry_enabled_default = True  # useful summary, keep enabled
 
     def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
         super().__init__(coordinator, hub_id)

@@ -185,6 +185,7 @@ class AjaxConnectivitySensor(CoordinatorEntity[AjaxCobrandedCoordinator], Binary
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "connectivity"
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: AjaxCobrandedCoordinator, device_id: str) -> None:
         super().__init__(coordinator)
@@ -214,6 +215,7 @@ class AjaxProblemSensor(CoordinatorEntity[AjaxCobrandedCoordinator], BinarySenso
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "problem"
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: AjaxCobrandedCoordinator, device_id: str) -> None:
         super().__init__(coordinator)
@@ -252,6 +254,7 @@ class _HubNetworkBinarySensor(CoordinatorEntity[AjaxCobrandedCoordinator], Binar
 
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: AjaxCobrandedCoordinator, hub_id: str) -> None:
         super().__init__(coordinator)
