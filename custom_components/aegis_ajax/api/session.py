@@ -61,8 +61,13 @@ class AjaxSession:
 
     @staticmethod
     def hash_password(password: str) -> str:
-        """Return the SHA-256 hex digest of the given password (public API)."""
-        return hashlib.sha256(password.encode("utf-8")).hexdigest()
+        """Return the SHA-256 hex digest of the given password.
+
+        The Ajax API requires ``password_sha256_hash`` in the login request —
+        this is a protocol constraint, not a design choice.  We cannot use a
+        stronger KDF here because the server expects this exact format.
+        """
+        return hashlib.sha256(password.encode("utf-8")).hexdigest()  # noqa: S324
 
     def set_credentials(self, email: str, password: str) -> None:
         self._email = email

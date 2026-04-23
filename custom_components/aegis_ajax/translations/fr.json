@@ -28,6 +28,11 @@
                     "password": "Mot de passe",
                     "app_label": "Label de l'application"
                 }
+            },
+            "reconfigure_2fa": {
+                "title": "Authentification à deux facteurs",
+                "description": "Entrez le code à 6 chiffres de votre application d'authentification.",
+                "data": {"totp_code": "Code TOTP"}
             }
         },
         "error": {

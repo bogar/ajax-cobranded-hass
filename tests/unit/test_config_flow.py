@@ -229,9 +229,9 @@ class TestAsyncStepSelectSpaces:
         # Ensure password_hash is stored, not plaintext password
         assert "password_hash" in call_kwargs["data"]
         assert "password" not in call_kwargs["data"]
-        # Ensure session token is NOT stored
-        assert "session_token" not in call_kwargs["data"]
-        assert "user_hex_id" not in call_kwargs["data"]
+        # Session token persisted to survive restarts (avoids re-login / 2FA)
+        assert "session_token" in call_kwargs["data"]
+        assert "user_hex_id" in call_kwargs["data"]
 
     @pytest.mark.asyncio
     async def test_step_select_spaces_with_client_loads_spaces(self) -> None:

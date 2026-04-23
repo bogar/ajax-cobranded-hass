@@ -24,6 +24,11 @@
                 "title": "Aegis for Ajax herconfigureren",
                 "description": "Werk uw accountgegevens bij.",
                 "data": {"email": "E-mail", "password": "Wachtwoord", "app_label": "App-label"}
+            },
+            "reconfigure_2fa": {
+                "title": "Twee-factor-authenticatie",
+                "description": "Voer de 6-cijferige code in van uw authenticator-app.",
+                "data": {"totp_code": "TOTP-code"}
             }
         },
         "error": {

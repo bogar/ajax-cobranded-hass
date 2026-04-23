@@ -24,6 +24,11 @@
                 "title": "Překonfigurovat Aegis for Ajax",
                 "description": "Aktualizujte přihlašovací údaje.",
                 "data": {"email": "E-mail", "password": "Heslo", "app_label": "Štítek aplikace"}
+            },
+            "reconfigure_2fa": {
+                "title": "Dvoufaktorové ověření",
+                "description": "Zadejte 6místný kód z vaší ověřovací aplikace.",
+                "data": {"totp_code": "Kód TOTP"}
             }
         },
         "error": {

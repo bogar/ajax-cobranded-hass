@@ -24,6 +24,11 @@
                 "title": "Riconfigura Aegis for Ajax",
                 "description": "Aggiorna le credenziali dell'account.",
                 "data": {"email": "E-mail", "password": "Password", "app_label": "Etichetta app"}
+            },
+            "reconfigure_2fa": {
+                "title": "Autenticazione a due fattori",
+                "description": "Inserisci il codice a 6 cifre dalla tua app di autenticazione.",
+                "data": {"totp_code": "Codice TOTP"}
             }
         },
         "error": {

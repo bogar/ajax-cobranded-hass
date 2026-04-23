@@ -24,6 +24,11 @@
                 "title": "Переналаштувати Aegis for Ajax",
                 "description": "Оновіть облікові дані.",
                 "data": {"email": "E-mail", "password": "Пароль", "app_label": "Мітка додатку"}
+            },
+            "reconfigure_2fa": {
+                "title": "Двофакторна автентифікація",
+                "description": "Введіть 6-значний код з вашого додатку автентифікації.",
+                "data": {"totp_code": "Код TOTP"}
             }
         },
         "error": {

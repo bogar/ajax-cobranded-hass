@@ -28,6 +28,11 @@
                     "password": "Senha",
                     "app_label": "Rótulo do aplicativo"
                 }
+            },
+            "reconfigure_2fa": {
+                "title": "Autenticação de dois fatores",
+                "description": "Insira o código de 6 dígitos do seu aplicativo autenticador.",
+                "data": {"totp_code": "Código TOTP"}
             }
         },
         "error": {

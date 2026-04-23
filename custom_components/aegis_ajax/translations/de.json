@@ -24,6 +24,11 @@
                 "title": "Aegis for Ajax neu konfigurieren",
                 "description": "Aktualisieren Sie Ihre Zugangsdaten.",
                 "data": {"email": "E-Mail", "password": "Passwort", "app_label": "App-Label"}
+            },
+            "reconfigure_2fa": {
+                "title": "Zwei-Faktor-Authentifizierung",
+                "description": "Geben Sie den 6-stelligen Code aus Ihrer Authentifizierungs-App ein.",
+                "data": {"totp_code": "TOTP-Code"}
             }
         },
         "error": {

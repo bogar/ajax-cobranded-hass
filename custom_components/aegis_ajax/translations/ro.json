@@ -28,6 +28,11 @@
                     "password": "Parolă",
                     "app_label": "Etichetă aplicație"
                 }
+            },
+            "reconfigure_2fa": {
+                "title": "Autentificare în doi pași",
+                "description": "Introduceți codul de 6 cifre din aplicația de autentificare.",
+                "data": {"totp_code": "Cod TOTP"}
             }
         },
         "error": {

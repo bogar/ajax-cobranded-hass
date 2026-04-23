@@ -24,6 +24,11 @@
                 "title": "Aegis for Ajax — Yeniden yapılandır",
                 "description": "Hesap kimlik bilgilerinizi güncelleyin.",
                 "data": {"email": "E-posta", "password": "Şifre", "app_label": "Uygulama etiketi"}
+            },
+            "reconfigure_2fa": {
+                "title": "İki Faktörlü Doğrulama",
+                "description": "Doğrulama uygulamanızdaki 6 haneli kodu girin.",
+                "data": {"totp_code": "TOTP Kodu"}
             }
         },
         "error": {

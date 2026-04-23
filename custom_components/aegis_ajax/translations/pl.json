@@ -24,6 +24,11 @@
                 "title": "Rekonfiguracja Aegis for Ajax",
                 "description": "Zaktualizuj dane logowania.",
                 "data": {"email": "E-mail", "password": "Hasło", "app_label": "Etykieta aplikacji"}
+            },
+            "reconfigure_2fa": {
+                "title": "Uwierzytelnianie dwuskładnikowe",
+                "description": "Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej.",
+                "data": {"totp_code": "Kod TOTP"}
             }
         },
         "error": {
