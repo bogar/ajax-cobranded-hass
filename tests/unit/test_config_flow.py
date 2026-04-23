@@ -264,15 +264,13 @@ class TestOptionsFlow:
         config_entry = MagicMock()
         config_entry.options = options or {}
         config_entry.data = data or {}
-        flow = AjaxCobrandedOptionsFlow()
-        # HA sets config_entry automatically; simulate it for tests
-        flow._config_entry = config_entry
+        flow = AjaxCobrandedOptionsFlow(config_entry)
         flow.hass = MagicMock()
         return flow, config_entry
 
     def test_options_flow_init(self) -> None:
         flow, config_entry = self._make_flow()
-        assert flow.config_entry is config_entry
+        assert flow._entry is config_entry
 
     @pytest.mark.asyncio
     async def test_options_flow_no_input_shows_form(self) -> None:
