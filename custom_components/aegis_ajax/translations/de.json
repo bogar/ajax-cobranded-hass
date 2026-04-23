@@ -51,6 +51,7 @@
                 "title": "Aegis for Ajax Einstellungen",
                 "data": {
                     "poll_interval": "Ersatz-Abfrageintervall (Sekunden, 60-300)",
+                    "force_arm": "Scharfschalten erzwingen (offene Sensoren und Störungen ignorieren)",
                     "use_pin_code": "PIN-Code für Scharf-/Unscharfschalten erforderlich",
                     "pin_code": "PIN-Code",
                     "fcm_project_id": "FCM-Projekt-ID (für Push-Benachrichtigungen)",

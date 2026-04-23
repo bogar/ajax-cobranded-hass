@@ -51,6 +51,7 @@
                 "title": "Opzioni Aegis for Ajax",
                 "data": {
                     "poll_interval": "Intervallo di polling di riserva (secondi, 60-300)",
+                    "force_arm": "Inserimento forzato (ignora sensori aperti e malfunzionamenti)",
                     "use_pin_code": "Richiedi codice PIN per inserire/disinserire",
                     "pin_code": "Codice PIN",
                     "fcm_project_id": "ID progetto FCM (per notifiche push)",

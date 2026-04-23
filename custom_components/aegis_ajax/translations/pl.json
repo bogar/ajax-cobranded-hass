@@ -51,6 +51,7 @@
                 "title": "Opcje Aegis for Ajax",
                 "data": {
                     "poll_interval": "Zapasowy interwał odpytywania (sekundy, 60-300)",
+                    "force_arm": "Wymuszone uzbrojenie (ignoruj otwarte czujniki i awarie)",
                     "use_pin_code": "Wymagaj kodu PIN do uzbrojenia/rozbrojenia",
                     "pin_code": "Kod PIN",
                     "fcm_project_id": "ID projektu FCM (dla powiadomień push)",

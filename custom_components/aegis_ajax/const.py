@@ -157,6 +157,7 @@ class DeviceState(StrEnum):
     UNKNOWN = "unknown"
 
 
+CONF_FORCE_ARM = "force_arm"
 CONF_PHOTO_RETENTION_DAYS = "photo_retention_days"
 CONF_PHOTO_MAX_PER_DEVICE = "photo_max_per_device"
 DEFAULT_PHOTO_RETENTION_DAYS = 30

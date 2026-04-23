@@ -16,7 +16,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.aegis_ajax.const import DOMAIN, MANUFACTURER, SecurityState
+from custom_components.aegis_ajax.const import CONF_FORCE_ARM, DOMAIN, MANUFACTURER, SecurityState
 from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 
 if TYPE_CHECKING:
@@ -124,14 +124,47 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
             "connection_status": space.connection_status.name,
         }
 
+    @property
+    def _force_arm(self) -> bool:
+        """Return True when the user opted to always ignore malfunctions."""
+        return bool(self._get_options().get(CONF_FORCE_ARM, False))
+
+    def _describe_blocking_issues(self) -> str:
+        """Scan devices for issues that prevent arming and return a description."""
+        space = self._space
+        if space is None:
+            return ""
+        issues: list[str] = []
+        for device in self.coordinator.devices.values():
+            if device.hub_id != space.hub_id:
+                continue
+            if device.malfunctions > 0:
+                issues.append(f"{device.name}: malfunction")
+            if device.battery and device.battery.is_low:
+                issues.append(f"{device.name}: low battery")
+            if device.statuses.get("door_opened"):
+                issues.append(f"{device.name}: open")
+            if device.statuses.get("tamper"):
+                issues.append(f"{device.name}: tamper")
+        return "; ".join(issues[:5]) if issues else ""
+
+    def _arm_error(self, err: Exception) -> HomeAssistantError:
+        """Build a descriptive error, enriching malfunction errors with device details."""
+        msg = str(err)
+        if "malfunction" in msg.lower():
+            details = self._describe_blocking_issues()
+            if details:
+                msg = f"{msg} — {details}"
+        return HomeAssistantError(msg)
+
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         self._validate_code(code)
         from custom_components.aegis_ajax.api.security import SecurityError  # noqa: PLC0415
 
         try:
-            await self.coordinator.security_api.arm(self._space_id)
+            await self.coordinator.security_api.arm(self._space_id, ignore_alarms=self._force_arm)
         except SecurityError as err:
-            raise HomeAssistantError(str(err)) from err
+            raise self._arm_error(err) from err
         self._optimistic_state_update(SecurityState.ARMED)
         await self.coordinator.async_request_refresh()
 
@@ -140,9 +173,11 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         from custom_components.aegis_ajax.api.security import SecurityError  # noqa: PLC0415
 
         try:
-            await self.coordinator.security_api.arm_night_mode(self._space_id)
+            await self.coordinator.security_api.arm_night_mode(
+                self._space_id, ignore_alarms=self._force_arm
+            )
         except SecurityError as err:
-            raise HomeAssistantError(str(err)) from err
+            raise self._arm_error(err) from err
         self._optimistic_state_update(SecurityState.NIGHT_MODE)
         await self.coordinator.async_request_refresh()
 

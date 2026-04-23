@@ -221,7 +221,7 @@ class TestAlarmControlPanel:
         coordinator.config_entry.options = {"use_pin_code": False}
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_arm_away()
-        coordinator.security_api.arm.assert_called_once_with("s1")
+        coordinator.security_api.arm.assert_called_once_with("s1", ignore_alarms=False)
 
     @pytest.mark.asyncio
     async def test_alarm_arm_night(self) -> None:
@@ -231,7 +231,7 @@ class TestAlarmControlPanel:
         coordinator.config_entry.options = {"use_pin_code": False}
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_arm_night()
-        coordinator.security_api.arm_night_mode.assert_called_once_with("s1")
+        coordinator.security_api.arm_night_mode.assert_called_once_with("s1", ignore_alarms=False)
 
     @pytest.mark.asyncio
     async def test_alarm_disarm(self) -> None:
@@ -293,7 +293,7 @@ class TestAlarmControlPanel:
         coordinator.async_request_refresh = AsyncMock()
         panel = AjaxAlarmControlPanel(coordinator=coordinator, space_id="s1")
         await panel.async_alarm_arm_away(code="5678")
-        coordinator.security_api.arm.assert_called_once_with("s1")
+        coordinator.security_api.arm.assert_called_once_with("s1", ignore_alarms=False)
 
     @pytest.mark.asyncio
     async def test_alarm_arm_with_invalid_pin_raises(self) -> None:

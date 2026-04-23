@@ -28,6 +28,7 @@ from custom_components.aegis_ajax.api.session import (
 from custom_components.aegis_ajax.api.spaces import SpacesApi
 from custom_components.aegis_ajax.const import (
     APPLICATION_LABEL,
+    CONF_FORCE_ARM,
     CONF_PHOTO_MAX_PER_DEVICE,
     CONF_PHOTO_RETENTION_DAYS,
     DEFAULT_PHOTO_MAX_PER_DEVICE,
@@ -324,6 +325,10 @@ class AjaxCobrandedOptionsFlow(OptionsFlow):
                         "poll_interval",
                         default=self._entry.options.get("poll_interval", DEFAULT_POLL_INTERVAL),
                     ): vol.All(int, vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL)),
+                    vol.Optional(
+                        CONF_FORCE_ARM,
+                        default=self._entry.options.get(CONF_FORCE_ARM, False),
+                    ): bool,
                     vol.Optional(
                         "use_pin_code",
                         default=self._entry.options.get("use_pin_code", False),

@@ -51,6 +51,7 @@
                 "title": "Nastavení Aegis for Ajax",
                 "data": {
                     "poll_interval": "Záložní interval dotazování (sekundy, 60-300)",
+                    "force_arm": "Nucené zastřežení (ignorovat otevřené senzory a poruchy)",
                     "use_pin_code": "Vyžadovat PIN kód pro střežení/odstřežení",
                     "pin_code": "PIN kód",
                     "fcm_project_id": "ID projektu FCM (pro push notifikace)",
