@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import logging
-import sys
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -31,14 +29,7 @@ class SecurityApi:
     def __init__(self, client: AjaxGrpcClient) -> None:
         self._client = client
 
-    def _get_proto_path(self) -> str:
-        proto_path = str(Path(__file__).parent.parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-        return proto_path
-
     async def arm(self, space_id: str, ignore_alarms: bool = False) -> None:
-        self._get_proto_path()
         from systems.ajax.api.mobile.v2.common.space import space_locator_pb2  # noqa: PLC0415
         from systems.ajax.api.mobile.v2.space.security import (  # noqa: PLC0415
             arm_request_pb2,
@@ -63,7 +54,7 @@ class SecurityApi:
         _LOGGER.debug("Armed space %s", space_id)
 
     async def disarm(self, space_id: str) -> None:
-        self._get_proto_path()
+
         import asyncio  # noqa: PLC0415
 
         from systems.ajax.api.mobile.v2.common.space import space_locator_pb2  # noqa: PLC0415
@@ -97,7 +88,7 @@ class SecurityApi:
             raise SecurityError(f"Disarm command rejected: {error_type}")
 
     async def arm_night_mode(self, space_id: str, ignore_alarms: bool = False) -> None:
-        self._get_proto_path()
+
         from systems.ajax.api.mobile.v2.common.space import space_locator_pb2  # noqa: PLC0415
         from systems.ajax.api.mobile.v2.space.security import (  # noqa: PLC0415
             arm_to_night_mode_request_pb2,
@@ -122,7 +113,7 @@ class SecurityApi:
         _LOGGER.debug("Armed space %s in night mode", space_id)
 
     async def disarm_from_night_mode(self, space_id: str) -> None:
-        self._get_proto_path()
+
         from systems.ajax.api.mobile.v2.common.space import space_locator_pb2  # noqa: PLC0415
         from systems.ajax.api.mobile.v2.space.security import (  # noqa: PLC0415
             disarm_from_night_mode_request_pb2,
@@ -142,7 +133,7 @@ class SecurityApi:
         _LOGGER.debug("Disarmed space %s from night mode", space_id)
 
     async def arm_group(self, space_id: str, group_id: str, ignore_alarms: bool = False) -> None:
-        self._get_proto_path()
+
         from systems.ajax.api.mobile.v2.common.space import space_locator_pb2  # noqa: PLC0415
         from systems.ajax.api.mobile.v2.space.security import (  # noqa: PLC0415
             space_security_endpoints_pb2_grpc,
@@ -166,7 +157,7 @@ class SecurityApi:
         _LOGGER.debug("Armed group %s in space %s", group_id, space_id)
 
     async def disarm_group(self, space_id: str, group_id: str) -> None:
-        self._get_proto_path()
+
         from systems.ajax.api.mobile.v2.common.space import space_locator_pb2  # noqa: PLC0415
         from systems.ajax.api.mobile.v2.space.security import (  # noqa: PLC0415
             space_security_endpoints_pb2_grpc,

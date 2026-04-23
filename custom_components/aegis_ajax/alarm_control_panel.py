@@ -68,11 +68,13 @@ class AjaxAlarmControlPanel(CoordinatorEntity[AjaxCobrandedCoordinator], AlarmCo
         self._space_id = space_id
         self._attr_unique_id = f"aegis_ajax_alarm_{space_id}"
         space = coordinator.spaces.get(space_id)
+        hub_id = space.hub_id if space else space_id
+        hub_device = coordinator.devices.get(hub_id)
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, space.hub_id if space else space_id)},
+            identifiers={(DOMAIN, hub_id)},
             name=space.name if space else "Ajax Hub",
             manufacturer=MANUFACTURER,
-            model="Hub",
+            model=hub_device.device_type.replace("_", " ").title() if hub_device else "Hub",
         )
 
     def _get_options(self) -> dict[str, Any]:

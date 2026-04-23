@@ -6,9 +6,10 @@ import asyncio
 import io
 import logging
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from homeassistant.util import dt as dt_util
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -31,7 +32,7 @@ def _overlay_timestamp(image_bytes: bytes) -> bytes:
         img = Image.open(io.BytesIO(image_bytes)).convert("RGBA")
         overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now = dt_util.now().strftime("%Y-%m-%d %H:%M:%S")
         font = ImageFont.load_default(size=11)
 
         text_bbox = draw.textbbox((0, 0), now, font=font)
@@ -70,7 +71,7 @@ async def save_photo(
             device_dir.mkdir(parents=True, exist_ok=True)
 
             stamped = _overlay_timestamp(image_bytes)
-            filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".jpg"
+            filename = dt_util.now().strftime("%Y-%m-%d_%H-%M-%S") + ".jpg"
             filepath = device_dir / filename
             filepath.write_bytes(stamped)
             _LOGGER.debug("Photo saved: %s (%d bytes)", filepath, len(stamped))

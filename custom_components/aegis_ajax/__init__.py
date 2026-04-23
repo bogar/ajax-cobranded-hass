@@ -187,9 +187,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry
         if deleted:
             _LOGGER.debug("Cleaned up %d old photos", len(deleted))
 
-    # Run cleanup on startup and every 24h
-    await _photo_cleanup()
+    # Schedule cleanup every 24h (first run deferred to avoid blocking startup)
     unsub_cleanup = async_track_time_interval(hass, _photo_cleanup, timedelta(hours=24))
+    hass.async_create_task(_photo_cleanup())
     entry.async_on_unload(unsub_cleanup)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

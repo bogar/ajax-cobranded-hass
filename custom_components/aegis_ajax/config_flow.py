@@ -247,11 +247,12 @@ _FCM_KEYS = {"fcm_project_id", "fcm_app_id", "fcm_api_key", "fcm_sender_id"}
 
 class AjaxCobrandedOptionsFlow(OptionsFlow):
     def __init__(self, config_entry: ConfigEntry) -> None:
-        self._config_entry = config_entry
+        super().__init__()
+        self._entry = config_entry
 
     def _get_fcm(self, key: str) -> str:
         """Read FCM credential from data (preferred) or legacy options."""
-        return str(self._config_entry.data.get(key, self._config_entry.options.get(key, "")))
+        return str(self._entry.data.get(key, self._entry.options.get(key, "")))
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
@@ -269,8 +270,8 @@ class AjaxCobrandedOptionsFlow(OptionsFlow):
             fcm_data = {k: user_input.pop(k) for k in _FCM_KEYS if k in user_input}
             if any(fcm_data.values()):
                 self.hass.config_entries.async_update_entry(
-                    self._config_entry,
-                    data={**self._config_entry.data, **fcm_data},
+                    self._entry,
+                    data={**self._entry.data, **fcm_data},
                 )
             return self.async_create_entry(title="", data=user_input)
         return self.async_show_form(
@@ -279,13 +280,11 @@ class AjaxCobrandedOptionsFlow(OptionsFlow):
                 {
                     vol.Optional(
                         "poll_interval",
-                        default=self._config_entry.options.get(
-                            "poll_interval", DEFAULT_POLL_INTERVAL
-                        ),
+                        default=self._entry.options.get("poll_interval", DEFAULT_POLL_INTERVAL),
                     ): vol.All(int, vol.Range(min=MIN_POLL_INTERVAL, max=MAX_POLL_INTERVAL)),
                     vol.Optional(
                         "use_pin_code",
-                        default=self._config_entry.options.get("use_pin_code", False),
+                        default=self._entry.options.get("use_pin_code", False),
                     ): bool,
                     vol.Optional("pin_code"): TextSelector(
                         TextSelectorConfig(type=TextSelectorType.PASSWORD)
@@ -308,13 +307,13 @@ class AjaxCobrandedOptionsFlow(OptionsFlow):
                     ): str,
                     vol.Optional(
                         CONF_PHOTO_RETENTION_DAYS,
-                        default=self._config_entry.options.get(
+                        default=self._entry.options.get(
                             CONF_PHOTO_RETENTION_DAYS, DEFAULT_PHOTO_RETENTION_DAYS
                         ),
                     ): vol.All(vol.Coerce(int), vol.Range(min=1, max=365)),
                     vol.Optional(
                         CONF_PHOTO_MAX_PER_DEVICE,
-                        default=self._config_entry.options.get(
+                        default=self._entry.options.get(
                             CONF_PHOTO_MAX_PER_DEVICE, DEFAULT_PHOTO_MAX_PER_DEVICE
                         ),
                     ): vol.All(vol.Coerce(int), vol.Range(min=0, max=10000)),

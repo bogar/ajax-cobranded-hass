@@ -18,15 +18,15 @@ class TestSecurityApiInit:
         assert api._client is client
 
 
-class TestGetProtoPath:
-    def test_get_proto_path_adds_to_sys_path(self) -> None:
+class TestProtoPath:
+    def test_proto_path_in_sys_path(self) -> None:
+        """Proto path is added to sys.path by api._proto_path module."""
         import sys
+        from pathlib import Path
 
-        api = SecurityApi.__new__(SecurityApi)
-        api._client = MagicMock()
-        path = api._get_proto_path()
-        assert path in sys.path
-        assert path.endswith("proto")
+        base = Path(__file__).parent.parent.parent
+        expected = str(base / "custom_components" / "aegis_ajax" / "proto")
+        assert expected in sys.path
 
 
 def _make_security_api() -> tuple[SecurityApi, MagicMock, MagicMock]:

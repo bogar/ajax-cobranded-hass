@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import sys
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from custom_components.aegis_ajax.api.models import BatteryInfo, Device, DeviceCommand
@@ -46,7 +44,12 @@ def _encode_string_field(field_number: int, value: str) -> bytes:
 def _encode_varint_field(field_number: int, value: int) -> bytes:
     """Encode a protobuf varint field (wire type 0)."""
     tag = (field_number << 3) | 0
-    return bytes([tag, value])
+    varint = bytearray()
+    while value > 0x7F:
+        varint.append((value & 0x7F) | 0x80)
+        value >>= 7
+    varint.append(value & 0x7F)
+    return bytes([tag]) + bytes(varint)
 
 
 _GSM_TYPE_MAP: dict[int, str] = {0: "Unknown", 1: "2G", 2: "3G", 3: "4G"}
@@ -251,10 +254,6 @@ class DevicesApi:
 
     async def get_devices_snapshot(self, space_id: str) -> list[Device]:
         """Get initial snapshot of all devices in a space."""
-        proto_path = str(Path(__file__).parent.parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-
         from v3.mobilegwsvc.service.stream_light_devices import (  # noqa: PLC0415
             endpoint_pb2_grpc,
             request_pb2,
@@ -302,10 +301,6 @@ class DevicesApi:
         """
 
         async def _run_stream() -> None:
-            proto_path = str(Path(__file__).parent.parent / "proto")
-            if proto_path not in sys.path:
-                sys.path.append(proto_path)
-
             from v3.mobilegwsvc.service.stream_light_devices import (  # noqa: PLC0415
                 endpoint_pb2_grpc,
                 request_pb2,

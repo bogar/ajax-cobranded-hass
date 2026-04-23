@@ -6,8 +6,6 @@ import asyncio
 import base64
 import logging
 import re
-import sys
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
@@ -125,10 +123,6 @@ class AjaxNotificationListener:
 
     async def _register_push_token(self, fcm_token: str) -> None:
         """Register the FCM token with Ajax servers via gRPC."""
-        proto_path = str(Path(__file__).parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-
         try:
             from v3.mobilegwsvc.commonmodels.type import user_role_pb2  # noqa: PLC0415
             from v3.mobilegwsvc.service.upsert_push_token import (  # noqa: PLC0415
@@ -295,7 +289,7 @@ class AjaxNotificationListener:
                     for space_id in self._coordinator._space_ids:
                         self._coordinator.fire_push_event(space_id, event_type, event_data)
         except Exception:
-            _LOGGER.debug("Failed to parse event from push notification")
+            _LOGGER.debug("Failed to parse event from push notification", exc_info=True)
 
     def _find_space_for_event(self, raw: bytes) -> str | None:
         """Try to match the event to a space by finding a known hub_id in raw bytes."""
@@ -320,13 +314,6 @@ class AjaxNotificationListener:
 
     def _extract_event_with_compiled_protos(self, raw: bytes) -> tuple[str, dict[str, Any]] | None:
         """Parse event by finding HubEventQualifier embedded in raw protobuf."""
-        import sys  # noqa: PLC0415
-        from pathlib import Path  # noqa: PLC0415
-
-        proto_path = str(Path(__file__).parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-
         from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.hub import (  # noqa: PLC0415, E501
             qualifier_pb2,
         )
@@ -392,13 +379,6 @@ class AjaxNotificationListener:
         (type varint + id string + name string) and attempting proto parsing
         at each potential start position.
         """
-        import sys  # noqa: PLC0415
-        from pathlib import Path  # noqa: PLC0415
-
-        proto_path = str(Path(__file__).parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-
         try:
             from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.notification.hub import (  # noqa: PLC0415, E501
                 source_pb2,

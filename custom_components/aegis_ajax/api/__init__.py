@@ -1,5 +1,7 @@
 """Ajax Security API client."""
 
+import custom_components.aegis_ajax.api._proto_path  # noqa: F401, I001  # must run before proto imports
+
 from custom_components.aegis_ajax.api.client import AjaxGrpcClient
 from custom_components.aegis_ajax.api.devices import DevicesApi
 from custom_components.aegis_ajax.api.models import (

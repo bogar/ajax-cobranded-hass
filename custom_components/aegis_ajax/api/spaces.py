@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import logging
-import sys
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from custom_components.aegis_ajax.api.models import Space
@@ -39,10 +37,6 @@ class SpacesApi:
         )
 
     async def list_spaces(self) -> list[Space]:
-        proto_path = str(Path(__file__).parent.parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-
         from v3.mobilegwsvc.service.find_user_spaces_with_pagination import (  # noqa: PLC0415
             endpoint_pb2_grpc,
             request_pb2,

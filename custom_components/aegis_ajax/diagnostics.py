@@ -7,13 +7,10 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import CONF_PASSWORD
 
-from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
-
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
-type AjaxCobrandedConfigEntry = ConfigEntry[AjaxCobrandedCoordinator]
+    from custom_components.aegis_ajax import AjaxCobrandedConfigEntry
 
 TO_REDACT = {
     CONF_PASSWORD,

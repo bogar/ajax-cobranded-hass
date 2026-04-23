@@ -42,3 +42,6 @@ docs/design-specs/
 # Environment
 .env
 .env.*
+
+# Playwright MCP artifacts
+.playwright-mcp/

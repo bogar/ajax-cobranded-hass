@@ -5,9 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
-import sys
 import time
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import grpc
@@ -154,10 +152,6 @@ class AjaxGrpcClient:
 
     async def login(self) -> None:
         """Authenticate with Ajax servers via gRPC."""
-        proto_path = str(Path(__file__).parent.parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-
         from v3.mobilegwsvc.commonmodels.type import user_role_pb2  # noqa: PLC0415
         from v3.mobilegwsvc.service.login_by_password import (  # noqa: PLC0415
             endpoint_pb2_grpc,
@@ -198,10 +192,6 @@ class AjaxGrpcClient:
 
     async def login_totp(self, email: str, request_id: str, totp_code: str) -> None:
         """Complete 2FA authentication by submitting the TOTP code."""
-        proto_path = str(Path(__file__).parent.parent / "proto")
-        if proto_path not in sys.path:
-            sys.path.append(proto_path)
-
         from v3.mobilegwsvc.commonmodels.type import user_role_pb2  # noqa: PLC0415
         from v3.mobilegwsvc.service.login_by_totp import (  # noqa: PLC0415
             endpoint_pb2_grpc,

@@ -257,17 +257,24 @@ class TestAsyncStepSelectSpaces:
 
 
 class TestOptionsFlow:
-    def test_options_flow_init(self) -> None:
+    @staticmethod
+    def _make_flow(
+        options: dict | None = None, data: dict | None = None
+    ) -> tuple[AjaxCobrandedOptionsFlow, MagicMock]:
         config_entry = MagicMock()
-        config_entry.options = {}
+        config_entry.options = options or {}
+        config_entry.data = data or {}
         flow = AjaxCobrandedOptionsFlow(config_entry)
-        assert flow._config_entry is config_entry
+        flow.hass = MagicMock()
+        return flow, config_entry
+
+    def test_options_flow_init(self) -> None:
+        flow, config_entry = self._make_flow()
+        assert flow._entry is config_entry
 
     @pytest.mark.asyncio
     async def test_options_flow_no_input_shows_form(self) -> None:
-        config_entry = MagicMock()
-        config_entry.options = {"poll_interval": 60, "use_pin_code": False}
-        flow = AjaxCobrandedOptionsFlow(config_entry)
+        flow, _ = self._make_flow(options={"poll_interval": 60, "use_pin_code": False})
         flow.async_show_form = MagicMock(return_value={"type": "form"})
 
         await flow.async_step_init(None)
@@ -275,9 +282,7 @@ class TestOptionsFlow:
 
     @pytest.mark.asyncio
     async def test_options_flow_with_input_creates_entry(self) -> None:
-        config_entry = MagicMock()
-        config_entry.options = {}
-        flow = AjaxCobrandedOptionsFlow(config_entry)
+        flow, _ = self._make_flow()
         flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
 
         await flow.async_step_init({"poll_interval": 60, "use_pin_code": True})
@@ -287,9 +292,7 @@ class TestOptionsFlow:
 
     @pytest.mark.asyncio
     async def test_options_flow_clamps_poll_interval_to_minimum(self) -> None:
-        config_entry = MagicMock()
-        config_entry.options = {}
-        flow = AjaxCobrandedOptionsFlow(config_entry)
+        flow, _ = self._make_flow()
         flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
 
         await flow.async_step_init({"poll_interval": 5, "use_pin_code": False})
@@ -300,9 +303,7 @@ class TestOptionsFlow:
     @pytest.mark.asyncio
     async def test_options_flow_with_pin_code_stores_hash(self) -> None:
         """Ensure the pin code is stored as a hash, not plaintext."""
-        config_entry = MagicMock()
-        config_entry.options = {}
-        flow = AjaxCobrandedOptionsFlow(config_entry)
+        flow, _ = self._make_flow()
         flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
 
         await flow.async_step_init({"poll_interval": 60, "use_pin_code": True, "pin_code": "1234"})
@@ -315,9 +316,7 @@ class TestOptionsFlow:
     @pytest.mark.asyncio
     async def test_options_flow_without_pin_code_no_hash(self) -> None:
         """Ensure no pin_code_hash is stored when pin_code is empty."""
-        config_entry = MagicMock()
-        config_entry.options = {}
-        flow = AjaxCobrandedOptionsFlow(config_entry)
+        flow, _ = self._make_flow()
         flow.async_create_entry = MagicMock(return_value={"type": "create_entry"})
 
         await flow.async_step_init({"poll_interval": 60, "use_pin_code": False})

@@ -43,7 +43,6 @@ class AjaxCapturePhotoButton(CoordinatorEntity[AjaxCobrandedCoordinator], Button
 
     _attr_has_entity_name = True
     _attr_translation_key = "capture_photo"
-    _attr_icon = "mdi:camera"
 
     def __init__(
         self,

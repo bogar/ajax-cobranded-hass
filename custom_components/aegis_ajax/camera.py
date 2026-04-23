@@ -114,10 +114,21 @@ class AjaxCamera(CoordinatorEntity[AjaxCobrandedCoordinator], Camera):
             self._last_image = await load_last_photo(self.hass, device_name)
         return self._last_image
 
+    @staticmethod
+    def _is_valid_photo_url(url: str) -> bool:
+        """Validate that the URL belongs to a known Ajax domain."""
+        from urllib.parse import urlparse  # noqa: PLC0415
+
+        hostname = urlparse(url).hostname or ""
+        return hostname.endswith(".ajax.systems") or "hubs-uploaded-resources" in hostname
+
     async def _download_image(self, url: str) -> bytes | None:
         """Download image from URL and cache it."""
         import aiohttp  # noqa: PLC0415
 
+        if not self._is_valid_photo_url(url):
+            _LOGGER.warning("Rejected photo URL with unexpected domain: %s", url[:80])
+            return self._last_image
         self._last_image_url = url
         session = async_get_clientsession(self.hass)
         try:

@@ -252,8 +252,6 @@ class _HubNetworkSensor(CoordinatorEntity[AjaxCobrandedCoordinator], SensorEntit
         self._hub_id = hub_id
         hub_device = coordinator.devices.get(hub_id)
         if hub_device:
-            from custom_components.aegis_ajax.const import MANUFACTURER  # noqa: PLC0415
-
             self._attr_device_info = DeviceInfo(
                 identifiers={(DOMAIN, hub_id)},
                 name=hub_device.name,
