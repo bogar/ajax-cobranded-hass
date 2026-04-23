@@ -55,6 +55,7 @@
                 "title": "Aegis for Ajax — Options",
                 "data": {
                     "poll_interval": "Fallback poll interval (seconds, 60-300)",
+                    "force_arm": "Force arm (ignore open sensors and malfunctions)",
                     "use_pin_code": "Require PIN code for arm/disarm",
                     "pin_code": "PIN code",
                     "fcm_project_id": "FCM Project ID (for push notifications)",

@@ -55,6 +55,7 @@
                 "title": "Opcions d'Aegis for Ajax",
                 "data": {
                     "poll_interval": "Interval de sondeig de reserva (segons, 60-300)",
+                    "force_arm": "Armar forçat (ignorar sensors oberts i avaries)",
                     "use_pin_code": "Requerir codi PIN per armar/desarmar",
                     "pin_code": "Codi PIN",
                     "fcm_project_id": "ID de projecte FCM (per a notificacions push)",

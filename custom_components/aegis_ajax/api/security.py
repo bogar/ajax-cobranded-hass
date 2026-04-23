@@ -50,7 +50,7 @@ class SecurityApi:
             if error_type == "already_in_the_requested_security_state":
                 _LOGGER.debug("Space %s already armed", space_id)
                 return
-            raise SecurityError(f"Arm command rejected: {error_type}")
+            raise SecurityError(error_type)
         _LOGGER.debug("Armed space %s", space_id)
 
     async def disarm(self, space_id: str) -> None:
@@ -85,7 +85,7 @@ class SecurityApi:
                 _LOGGER.debug("Disarm: %s, retrying in 2s (attempt %d)", error_type, attempt + 1)
                 await asyncio.sleep(2)
                 continue
-            raise SecurityError(f"Disarm command rejected: {error_type}")
+            raise SecurityError(error_type)
 
     async def arm_night_mode(self, space_id: str, ignore_alarms: bool = False) -> None:
 
@@ -109,7 +109,7 @@ class SecurityApi:
             if error_type == "already_in_the_requested_security_state":
                 _LOGGER.debug("Space %s already in night mode", space_id)
                 return
-            raise SecurityError(f"Arm night mode rejected: {error_type}")
+            raise SecurityError(error_type)
         _LOGGER.debug("Armed space %s in night mode", space_id)
 
     async def disarm_from_night_mode(self, space_id: str) -> None:
@@ -129,7 +129,7 @@ class SecurityApi:
         )
         response = await stub.disarmFromNightMode(request, metadata=metadata, timeout=15)
         if response.HasField("failure"):
-            raise SecurityError("Disarm from night mode command rejected by server")
+            raise SecurityError(response.failure.WhichOneof("error") or "disarm_rejected")
         _LOGGER.debug("Disarmed space %s from night mode", space_id)
 
     async def arm_group(self, space_id: str, group_id: str, ignore_alarms: bool = False) -> None:
@@ -153,7 +153,7 @@ class SecurityApi:
         )
         response = await stub.armGroup(request, metadata=metadata, timeout=15)
         if response.HasField("failure"):
-            raise SecurityError("Arm group command rejected by server")
+            raise SecurityError(response.failure.WhichOneof("error") or "arm_group_rejected")
         _LOGGER.debug("Armed group %s in space %s", group_id, space_id)
 
     async def disarm_group(self, space_id: str, group_id: str) -> None:
@@ -176,5 +176,5 @@ class SecurityApi:
         )
         response = await stub.disarmGroup(request, metadata=metadata, timeout=15)
         if response.HasField("failure"):
-            raise SecurityError("Disarm group command rejected by server")
+            raise SecurityError(response.failure.WhichOneof("error") or "disarm_group_rejected")
         _LOGGER.debug("Disarmed group %s in space %s", group_id, space_id)

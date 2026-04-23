@@ -51,6 +51,7 @@
                 "title": "Aegis for Ajax Instellingen",
                 "data": {
                     "poll_interval": "Reserve-pollinginterval (seconden, 60-300)",
+                    "force_arm": "Geforceerd inschakelen (open sensoren en storingen negeren)",
                     "use_pin_code": "PIN-code vereisen voor in-/uitschakelen",
                     "pin_code": "PIN-code",
                     "fcm_project_id": "FCM-project-ID (voor pushmeldingen)",
