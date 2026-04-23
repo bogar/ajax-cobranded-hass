@@ -61,11 +61,23 @@
     "services": {
         "force_arm": {
             "name": "Inserimento forzato",
-            "description": "Inserire il sistema ignorando sensori aperti e allarmi attivi."
+            "description": "Inserire il sistema ignorando sensori aperti e allarmi attivi.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entità",
+                    "description": "Pannello allarme da armare forzatamente. Se omesso, arma tutti i pannelli."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Modo notte forzato",
-            "description": "Attivare il modo notte ignorando sensori aperti e allarmi attivi."
+            "description": "Attivare il modo notte ignorando sensori aperti e allarmi attivi.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entità",
+                    "description": "Pannello allarme da armare forzatamente. Se omesso, arma tutti i pannelli."
+                }
+            }
         }
     },
     "entity": {

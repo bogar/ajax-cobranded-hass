@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+_FCM_KEYS = {"fcm_project_id", "fcm_app_id", "fcm_api_key", "fcm_sender_id"}
+
 PLATFORMS = [
     Platform.ALARM_CONTROL_PANEL,
     Platform.BINARY_SENSOR,
@@ -31,24 +33,90 @@ PLATFORMS = [
 type AjaxCobrandedConfigEntry = ConfigEntry[AjaxCobrandedCoordinator]
 
 
+def _resolve_target_space_ids(
+    hass: HomeAssistant, call: ServiceCall
+) -> list[tuple[AjaxCobrandedCoordinator, str]]:
+    """Resolve target entity_ids to (coordinator, space_id) pairs.
+
+    If no target is specified, returns all spaces from all entries.
+    """
+    from homeassistant.helpers import entity_registry as er  # noqa: PLC0415
+
+    entity_ids: list[str] = call.data.get("entity_id", [])
+    if isinstance(entity_ids, str):
+        entity_ids = [entity_ids]
+
+    entries = hass.config_entries.async_entries(DOMAIN)
+    if not entity_ids:
+        # No target: operate on all spaces (backwards-compatible)
+        results: list[tuple[AjaxCobrandedCoordinator, str]] = []
+        for entry in entries:
+            coordinator: AjaxCobrandedCoordinator = entry.runtime_data
+            for space_id in coordinator._space_ids:
+                results.append((coordinator, space_id))
+        return results
+
+    # Map entity_id → space_id via unique_id pattern "aegis_ajax_alarm_{space_id}"
+    entity_reg = er.async_get(hass)
+    results = []
+    for eid in entity_ids:
+        entity_entry = entity_reg.async_get(eid)
+        if entity_entry is None or entity_entry.platform != DOMAIN:
+            continue
+        uid = entity_entry.unique_id or ""
+        # unique_id format: "aegis_ajax_alarm_{space_id}"
+        if not uid.startswith("aegis_ajax_alarm_"):
+            continue
+        space_id = uid.removeprefix("aegis_ajax_alarm_")
+        for entry in entries:
+            coordinator = entry.runtime_data
+            if space_id in coordinator._space_ids:
+                results.append((coordinator, space_id))
+                break
+    return results
+
+
 async def _async_handle_force_arm(hass: HomeAssistant, call: ServiceCall) -> None:
     """Handle force_arm service call (arm ignoring open sensors)."""
-    entries = hass.config_entries.async_entries(DOMAIN)
-    for entry in entries:
-        coordinator: AjaxCobrandedCoordinator = entry.runtime_data
-        for space_id in coordinator._space_ids:
-            await coordinator.security_api.arm(space_id, ignore_alarms=True)
-        await coordinator.async_request_refresh()
+    targets = _resolve_target_space_ids(hass, call)
+    refreshed: set[int] = set()
+    for coordinator, space_id in targets:
+        await coordinator.security_api.arm(space_id, ignore_alarms=True)
+        cid = id(coordinator)
+        if cid not in refreshed:
+            await coordinator.async_request_refresh()
+            refreshed.add(cid)
 
 
 async def _async_handle_force_arm_night(hass: HomeAssistant, call: ServiceCall) -> None:
     """Handle force_arm_night service call (night mode ignoring open sensors)."""
-    entries = hass.config_entries.async_entries(DOMAIN)
-    for entry in entries:
-        coordinator: AjaxCobrandedCoordinator = entry.runtime_data
-        for space_id in coordinator._space_ids:
-            await coordinator.security_api.arm_night_mode(space_id, ignore_alarms=True)
-        await coordinator.async_request_refresh()
+    targets = _resolve_target_space_ids(hass, call)
+    refreshed: set[int] = set()
+    for coordinator, space_id in targets:
+        await coordinator.security_api.arm_night_mode(space_id, ignore_alarms=True)
+        cid = id(coordinator)
+        if cid not in refreshed:
+            await coordinator.async_request_refresh()
+            refreshed.add(cid)
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate config entry to newer version."""
+    if entry.version == 1:
+        # v1 → v2: Move FCM credentials from options to data
+        new_data = dict(entry.data)
+        new_options = dict(entry.options)
+        migrated = False
+        for key in _FCM_KEYS:
+            if key in new_options and new_options[key]:
+                new_data[key] = new_options.pop(key)
+                migrated = True
+            elif key in new_options:
+                new_options.pop(key)
+        if migrated:
+            _LOGGER.info("Migrated FCM credentials from options to data")
+        hass.config_entries.async_update_entry(entry, data=new_data, options=new_options, version=2)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry) -> bool:
@@ -93,12 +161,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
 
-    # Start FCM push notifications if configured
+    # Start FCM push notifications if configured (credentials live in data since v2)
+    def _get_fcm(key: str) -> str:
+        return str(entry.data.get(key, entry.options.get(key, "")))
+
     await coordinator.async_start_push_notifications(
-        fcm_project_id=entry.options.get("fcm_project_id", ""),
-        fcm_app_id=entry.options.get("fcm_app_id", ""),
-        fcm_api_key=entry.options.get("fcm_api_key", ""),
-        fcm_sender_id=entry.options.get("fcm_sender_id", ""),
+        fcm_project_id=_get_fcm("fcm_project_id"),
+        fcm_app_id=_get_fcm("fcm_app_id"),
+        fcm_api_key=_get_fcm("fcm_api_key"),
+        fcm_sender_id=_get_fcm("fcm_sender_id"),
     )
 
     # Schedule photo cleanup

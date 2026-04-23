@@ -61,11 +61,23 @@
     "services": {
         "force_arm": {
             "name": "Nucene zastrezeni",
-            "description": "Zastrezit system a ignorovat otevrene senzory a aktivni alarmy."
+            "description": "Zastrezit system a ignorovat otevrene senzory a aktivni alarmy.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Alarmový panel k nucenému zastřežení. Pokud je vynecháno, zastřeží všechny panely."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Nuceny nocni rezim",
-            "description": "Aktivovat nocni rezim a ignorovat otevrene senzory a aktivni alarmy."
+            "description": "Aktivovat nocni rezim a ignorovat otevrene senzory a aktivni alarmy.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Alarmový panel k nucenému zastřežení. Pokud je vynecháno, zastřeží všechny panely."
+                }
+            }
         }
     },
     "entity": {

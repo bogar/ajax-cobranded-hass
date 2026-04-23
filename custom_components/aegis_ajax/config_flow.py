@@ -61,7 +61,7 @@ TOTP_SCHEMA = vol.Schema(
 class AjaxCobrandedConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Ajax Security."""
 
-    VERSION = 1
+    VERSION = 2
     DOMAIN = DOMAIN
 
     def __init__(self) -> None:
@@ -118,7 +118,8 @@ class AjaxCobrandedConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
-                assert self._client is not None
+                if self._client is None:
+                    raise RuntimeError("Client not initialized")
                 await asyncio.wait_for(
                     self._client.login_totp(
                         email=self._email,
@@ -141,7 +142,8 @@ class AjaxCobrandedConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
-            assert self._client is not None
+            if self._client is None:
+                raise RuntimeError("Client not initialized")
             return self.async_create_entry(
                 title=f"Ajax Security ({self._email})",
                 data={
@@ -240,9 +242,16 @@ class AjaxCobrandedConfigFlow(ConfigFlow, domain=DOMAIN):
         return AjaxCobrandedOptionsFlow(config_entry)
 
 
+_FCM_KEYS = {"fcm_project_id", "fcm_app_id", "fcm_api_key", "fcm_sender_id"}
+
+
 class AjaxCobrandedOptionsFlow(OptionsFlow):
     def __init__(self, config_entry: ConfigEntry) -> None:
         self._config_entry = config_entry
+
+    def _get_fcm(self, key: str) -> str:
+        """Read FCM credential from data (preferred) or legacy options."""
+        return str(self._config_entry.data.get(key, self._config_entry.options.get(key, "")))
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
@@ -256,6 +265,13 @@ class AjaxCobrandedOptionsFlow(OptionsFlow):
                 ).hexdigest()
             else:
                 user_input.pop("pin_code", None)
+            # Move FCM credentials into config_entry.data (encrypted storage)
+            fcm_data = {k: user_input.pop(k) for k in _FCM_KEYS if k in user_input}
+            if any(fcm_data.values()):
+                self.hass.config_entries.async_update_entry(
+                    self._config_entry,
+                    data={**self._config_entry.data, **fcm_data},
+                )
             return self.async_create_entry(title="", data=user_input)
         return self.async_show_form(
             step_id="init",
@@ -276,19 +292,19 @@ class AjaxCobrandedOptionsFlow(OptionsFlow):
                     ),
                     vol.Optional(
                         "fcm_project_id",
-                        default=self._config_entry.options.get("fcm_project_id", ""),
+                        default=self._get_fcm("fcm_project_id"),
                     ): str,
                     vol.Optional(
                         "fcm_app_id",
-                        default=self._config_entry.options.get("fcm_app_id", ""),
+                        default=self._get_fcm("fcm_app_id"),
                     ): str,
                     vol.Optional(
                         "fcm_api_key",
-                        default=self._config_entry.options.get("fcm_api_key", ""),
+                        default=self._get_fcm("fcm_api_key"),
                     ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
                     vol.Optional(
                         "fcm_sender_id",
-                        default=self._config_entry.options.get("fcm_sender_id", ""),
+                        default=self._get_fcm("fcm_sender_id"),
                     ): str,
                     vol.Optional(
                         CONF_PHOTO_RETENTION_DAYS,

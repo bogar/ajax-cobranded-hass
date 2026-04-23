@@ -65,11 +65,23 @@
     "services": {
         "force_arm": {
             "name": "Armar forcado",
-            "description": "Armar o sistema ignorando sensores abertos e alarmes ativos."
+            "description": "Armar o sistema ignorando sensores abertos e alarmes ativos.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entidade",
+                    "description": "Painel de alarme para armar forçado. Se omitido, arma todos os painéis."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Modo noturno forcado",
-            "description": "Ativar modo noturno ignorando sensores abertos e alarmes ativos."
+            "description": "Ativar modo noturno ignorando sensores abertos e alarmes ativos.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entidade",
+                    "description": "Painel de alarme para armar forçado. Se omitido, arma todos os painéis."
+                }
+            }
         }
     },
     "entity": {

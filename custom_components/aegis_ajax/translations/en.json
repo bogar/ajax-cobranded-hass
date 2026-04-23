@@ -65,11 +65,23 @@
     "services": {
         "force_arm": {
             "name": "Force arm",
-            "description": "Arm the system ignoring open sensors and active alarms."
+            "description": "Arm the system ignoring open sensors and active alarms.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Alarm panel entity to force arm. If omitted, arms all panels."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Force arm night mode",
-            "description": "Arm night mode ignoring open sensors and active alarms."
+            "description": "Arm night mode ignoring open sensors and active alarms.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Alarm panel entity to force arm night. If omitted, arms all panels."
+                }
+            }
         }
     },
     "entity": {

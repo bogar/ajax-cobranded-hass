@@ -385,12 +385,10 @@ class DevicesApi:
         return task
 
     async def send_command(self, command: DeviceCommand) -> None:
-        if command.action == "on":
-            _LOGGER.debug("Sending ON command to %s", command.device_id)
-        elif command.action == "off":
-            _LOGGER.debug("Sending OFF command to %s", command.device_id)
-        elif command.action == "brightness":
-            _LOGGER.debug("Sending BRIGHTNESS %s to %s", command.brightness, command.device_id)
+        raise NotImplementedError(
+            f"Device commands not yet implemented (action={command.action}, "
+            f"device={command.device_id})"
+        )
 
     async def capture_photo(self, hub_id: str, device_id: str, device_type: str) -> str | None:
         """Capture a photo using v2 PhotoOnDemandService.

@@ -65,11 +65,23 @@
     "services": {
         "force_arm": {
             "name": "Armement force",
-            "description": "Armer le systeme en ignorant les capteurs ouverts et les alarmes actives."
+            "description": "Armer le systeme en ignorant les capteurs ouverts et les alarmes actives.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entité",
+                    "description": "Panneau d'alarme à armer de force. Si omis, arme tous les panneaux."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Mode nuit force",
-            "description": "Activer le mode nuit en ignorant les capteurs ouverts et les alarmes actives."
+            "description": "Activer le mode nuit en ignorant les capteurs ouverts et les alarmes actives.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entité",
+                    "description": "Panneau d'alarme à armer de force. Si omis, arme tous les panneaux."
+                }
+            }
         }
     },
     "entity": {

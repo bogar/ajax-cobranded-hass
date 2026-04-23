@@ -167,8 +167,10 @@ Photos are automatically cleaned up based on your retention settings (configurab
 
 | Service | Description |
 |---|---|
-| `aegis_ajax.force_arm` | Arm the system ignoring open sensors and active alarms |
-| `aegis_ajax.force_arm_night` | Arm night mode ignoring open sensors and active alarms |
+| `aegis_ajax.force_arm` | Arm the system ignoring open sensors and active alarms. Supports entity target to arm a specific panel. |
+| `aegis_ajax.force_arm_night` | Arm night mode ignoring open sensors and active alarms. Supports entity target to arm a specific panel. |
+
+Both services accept an optional `entity_id` target (alarm control panel entity). If no target is specified, all panels across all configured accounts are armed.
 
 ## Example Dashboard
 
@@ -270,7 +272,7 @@ This integration uses three communication channels. Each entity type depends on 
 | **gRPC stream** | Door open/close, motion, tamper, connectivity, problem, battery, temperature, signal, alarm panel state, switches, lights | `mobile-gw.prod.ajax.systems:443` | Persistent stream, < 1s latency |
 | **gRPC request** | Arm/disarm, force arm, photo capture trigger | Same server | On-demand commands |
 | **HTS** | Ethernet (IP, gateway, DNS), Wi-Fi (SSID, signal, IP), cellular (signal, network), mains power, connection type | `hts.prod.ajax.systems:443` | Proprietary binary protocol over TCP+TLS |
-| **FCM push** | Security events (alarm, arm/disarm, tamper, panic, fire, flood, motion, door_open, etc.), photo URL retrieval | Firebase Cloud Messaging | Requires FCM credentials in options |
+| **FCM push** | Security events (alarm, arm/disarm, tamper, panic, fire, flood, motion, door_open, etc.), photo URL retrieval | Firebase Cloud Messaging | Requires FCM credentials (configured in Options) |
 
 If a specific group of sensors stops working:
 - **Door/motion/battery unavailable** → gRPC stream disconnected (check logs for "Device stream started")
@@ -292,7 +294,7 @@ If a specific group of sensors stops working:
 
 For real-time push notifications via Firebase Cloud Messaging (FCM), you need to provide FCM credentials. These are the standard Firebase configuration values used by the Ajax mobile app.
 
-The required fields (configured in the integration's Options):
+The required fields (configured in the integration's Options flow, stored securely in config entry data):
 - **FCM Project ID** — Firebase project identifier
 - **FCM App ID** — Firebase application ID
 - **FCM API Key** — Firebase Web API key

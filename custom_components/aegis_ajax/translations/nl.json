@@ -61,11 +61,23 @@
     "services": {
         "force_arm": {
             "name": "Geforceerd inschakelen",
-            "description": "Systeem inschakelen met negeren van open sensoren en actieve alarmen."
+            "description": "Systeem inschakelen met negeren van open sensoren en actieve alarmen.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entiteit",
+                    "description": "Alarmpaneel om geforceerd in te schakelen. Indien weggelaten, worden alle panelen ingeschakeld."
+                }
+            }
         },
         "force_arm_night": {
             "name": "Geforceerde nachtmodus",
-            "description": "Nachtmodus activeren met negeren van open sensoren en actieve alarmen."
+            "description": "Nachtmodus activeren met negeren van open sensoren en actieve alarmen.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entiteit",
+                    "description": "Alarmpaneel om geforceerd in te schakelen. Indien weggelaten, worden alle panelen ingeschakeld."
+                }
+            }
         }
     },
     "entity": {
