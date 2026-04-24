@@ -434,6 +434,62 @@ class TestWireInputAlertSensor:
         )
         assert sensor.extra_state_attributes == {}
 
+    def test_is_on_via_external_contact_broken(self) -> None:
+        # Some hub firmwares emit state changes through external_contact_broken
+        # rather than wire_input_status. The wire_input_alert entity on a
+        # wire_input_mt device must reflect it.
+        device = self._make_device({"external_contact_broken": True})
+        coordinator = MagicMock()
+        coordinator.devices = {"wi-1": device}
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="wi-1", status_key="wire_input_alert"
+        )
+        assert sensor.is_on is True
+
+    def test_is_on_via_external_contact_alert(self) -> None:
+        device = self._make_device({"external_contact_alert": True})
+        coordinator = MagicMock()
+        coordinator.devices = {"wi-1": device}
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="wi-1", status_key="wire_input_alert"
+        )
+        assert sensor.is_on is True
+
+    def test_is_on_false_when_all_sources_clear(self) -> None:
+        device = self._make_device({})
+        coordinator = MagicMock()
+        coordinator.devices = {"wi-1": device}
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="wi-1", status_key="wire_input_alert"
+        )
+        assert sensor.is_on is False
+
+    def test_door_protect_external_contact_broken_not_routed_as_alert(self) -> None:
+        # Sanity check: the composite OR must apply ONLY to wire_input devices,
+        # not to DoorProtect (where external_contact_broken is a distinct fault
+        # indicator and is exposed as its own entity with PROBLEM class).
+        device = Device(
+            id="dp-1",
+            hub_id="hub-1",
+            name="Front door",
+            device_type="door_protect",
+            room_id=None,
+            group_id=None,
+            state=DeviceState.ONLINE,
+            malfunctions=0,
+            bypassed=False,
+            statuses={"external_contact_broken": True},
+            battery=None,
+        )
+        coordinator = MagicMock()
+        coordinator.devices = {"dp-1": device}
+        # A wire_input_alert entity should not exist on door_protect, but if it
+        # somehow did, external_contact_broken must not be OR'd into it.
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="dp-1", status_key="wire_input_alert"
+        )
+        assert sensor.is_on is False
+
 
 class TestAjaxConnectivitySensor:
     def _make_device(self, state: DeviceState = DeviceState.ONLINE) -> Device:

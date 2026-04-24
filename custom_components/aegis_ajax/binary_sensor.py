@@ -54,6 +54,16 @@ BINARY_SENSOR_TYPES: dict[str, BinarySensorTypeInfo] = {
     "wire_input_alert": BinarySensorTypeInfo(BinarySensorDeviceClass.SAFETY, "wire_input_alert"),
 }
 
+# Devices whose single "alert" entity should OR-reduce several hub status
+# oneofs into one state, because Ajax hub firmwares disagree on which oneof
+# carries the open/closed transition for wired inputs.
+_WIRE_INPUT_DEVICE_TYPES: frozenset[str] = frozenset({"wire_input", "wire_input_mt"})
+_WIRE_INPUT_ALERT_SOURCES: tuple[str, ...] = (
+    "wire_input_alert",
+    "external_contact_broken",
+    "external_contact_alert",
+)
+
 _DEVICE_TYPE_SENSORS: dict[str, list[str]] = {
     "door_protect": ["door_opened", "tamper", "external_contact_broken", "external_contact_alert"],
     "door_protect_plus": [
@@ -201,6 +211,15 @@ class AjaxBinarySensor(CoordinatorEntity[AjaxCobrandedCoordinator], BinarySensor
         device = self._device
         if device is None:
             return False
+        if (
+            self._status_key == "wire_input_alert"
+            and device.device_type in _WIRE_INPUT_DEVICE_TYPES
+        ):
+            # Different hub firmwares signal the wired-input trigger through
+            # different oneofs. Treat any of them as "alert active".
+            return any(
+                bool(device.statuses.get(source, False)) for source in _WIRE_INPUT_ALERT_SOURCES
+            )
         return bool(device.statuses.get(self._status_key, False))
 
     @property
