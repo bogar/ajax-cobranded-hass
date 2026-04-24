@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
 from custom_components.aegis_ajax.api.models import Device
 from custom_components.aegis_ajax.binary_sensor import (
@@ -337,6 +339,21 @@ class TestDeviceTypeSensors:
 
     def test_door_protect_s_plus_has_vibration(self) -> None:
         assert "vibration" in _DEVICE_TYPE_SENSORS["door_protect_s_plus"]
+
+    @pytest.mark.parametrize(
+        "device_type",
+        [
+            "door_protect",
+            "door_protect_plus",
+            "door_protect_fibra",
+            "door_protect_s",
+            "door_protect_s_plus",
+            "door_protect_plus_fibra",
+            "door_protect_g3",
+        ],
+    )
+    def test_door_protect_family_has_external_contact_alert(self, device_type: str) -> None:
+        assert "external_contact_alert" in _DEVICE_TYPE_SENSORS[device_type]
 
 
 class TestAjaxConnectivitySensor:
