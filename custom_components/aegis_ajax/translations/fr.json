@@ -133,6 +133,7 @@
             "always_active": {"name": "Toujours actif"},
             "glass_break": {"name": "Bris de verre"},
             "vibration": {"name": "Vibration"},
+            "wire_input_alert": {"name": "Alerte d'entrée filaire"},
             "tamper": {"name": "Sabotage du boîtier"},
             "connectivity": {"name": "Connectivité"},
             "problem": {"name": "Problème appareil"},

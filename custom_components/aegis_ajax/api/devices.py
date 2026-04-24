@@ -72,6 +72,29 @@ _SIM_STATUS_MAP: dict[int, str] = {
     5: "Unknown",
 }
 
+_ALARM_TYPE_NAMES: dict[int, str] = {
+    0: "unspecified",
+    1: "intrusion",
+    2: "fire",
+    3: "medical",
+    4: "panic",
+    5: "gas",
+    6: "tamper",
+    7: "malfunction",
+    8: "leak",
+    9: "service",
+    10: "key_arm",
+    11: "glass_break",
+    12: "high_temperature",
+    13: "low_temperature",
+    14: "masking",
+    15: "duress_code",
+    16: "vibration",
+    17: "blocking_element",
+    18: "bolt_contact",
+}
+
+
 _STATE_MAP: dict[int, DeviceState] = {
     0: DeviceState.ONLINE,
     1: DeviceState.LOCKED,
@@ -205,6 +228,13 @@ class DevicesApi:
                 result["external_contact_broken"] = True
             elif which == "external_contact_alert":
                 result["external_contact_alert"] = True
+            elif which == "wire_input_status":
+                ws = status.wire_input_status
+                result["wire_input_alert"] = bool(ws.is_alert) if hasattr(ws, "is_alert") else True
+                if hasattr(ws, "type"):
+                    result["wire_input_alarm_type"] = _ALARM_TYPE_NAMES.get(
+                        int(ws.type), "unspecified"
+                    )
             elif which == "case_drilling_detected":
                 result["case_drilling"] = True
             elif which == "anti_masking_alert":

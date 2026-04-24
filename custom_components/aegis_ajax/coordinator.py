@@ -45,6 +45,7 @@ _STATUS_KEY_MAP: dict[str, str] = {
     "interference_detected": "interference",
     "glass_break_detected": "glass_break",
     "vibration_detected": "vibration",
+    "wire_input_status": "wire_input_alert",
 }
 
 

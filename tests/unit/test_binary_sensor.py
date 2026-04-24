@@ -77,6 +77,9 @@ class TestBinarySensorTypes:
     def test_vibration_sensor_type_exists(self) -> None:
         assert "vibration" in BINARY_SENSOR_TYPES
 
+    def test_wire_input_alert_type_exists(self) -> None:
+        assert "wire_input_alert" in BINARY_SENSOR_TYPES
+
 
 class TestAjaxBinarySensor:
     def _make_device(self, statuses: dict) -> Device:
@@ -354,6 +357,73 @@ class TestDeviceTypeSensors:
     )
     def test_door_protect_family_has_external_contact_alert(self, device_type: str) -> None:
         assert "external_contact_alert" in _DEVICE_TYPE_SENSORS[device_type]
+
+    def test_wire_input_mt_in_device_types(self) -> None:
+        assert "wire_input_mt" in _DEVICE_TYPE_SENSORS
+
+    def test_wire_input_in_device_types(self) -> None:
+        assert "wire_input" in _DEVICE_TYPE_SENSORS
+
+    def test_wire_input_mt_has_alert_sensor(self) -> None:
+        assert "wire_input_alert" in _DEVICE_TYPE_SENSORS["wire_input_mt"]
+
+    def test_wire_input_has_alert_sensor(self) -> None:
+        assert "wire_input_alert" in _DEVICE_TYPE_SENSORS["wire_input"]
+
+
+class TestWireInputAlertSensor:
+    """Binary sensor behaviour for wired-input alerts (MultiTransmitter children)."""
+
+    def _make_device(self, statuses: dict) -> Device:
+        return Device(
+            id="wi-1",
+            hub_id="hub-1",
+            name="Kitchen window",
+            device_type="wire_input_mt",
+            room_id=None,
+            group_id=None,
+            state=DeviceState.ONLINE,
+            malfunctions=0,
+            bypassed=False,
+            statuses=statuses,
+            battery=None,
+        )
+
+    def test_is_on_true(self) -> None:
+        device = self._make_device({"wire_input_alert": True})
+        coordinator = MagicMock()
+        coordinator.devices = {"wi-1": device}
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="wi-1", status_key="wire_input_alert"
+        )
+        assert sensor.is_on is True
+
+    def test_is_on_false(self) -> None:
+        device = self._make_device({"wire_input_alert": False})
+        coordinator = MagicMock()
+        coordinator.devices = {"wi-1": device}
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="wi-1", status_key="wire_input_alert"
+        )
+        assert sensor.is_on is False
+
+    def test_alarm_type_attribute(self) -> None:
+        device = self._make_device({"wire_input_alert": True, "wire_input_alarm_type": "intrusion"})
+        coordinator = MagicMock()
+        coordinator.devices = {"wi-1": device}
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="wi-1", status_key="wire_input_alert"
+        )
+        assert sensor.extra_state_attributes == {"alarm_type": "intrusion"}
+
+    def test_alarm_type_absent_no_attributes(self) -> None:
+        device = self._make_device({"wire_input_alert": True})
+        coordinator = MagicMock()
+        coordinator.devices = {"wi-1": device}
+        sensor = AjaxBinarySensor(
+            coordinator=coordinator, device_id="wi-1", status_key="wire_input_alert"
+        )
+        assert sensor.extra_state_attributes == {}
 
 
 class TestAjaxConnectivitySensor:

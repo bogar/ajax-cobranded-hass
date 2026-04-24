@@ -129,6 +129,7 @@
             "always_active": {"name": "Her zaman aktif"},
             "glass_break": {"name": "Cam kırılması"},
             "vibration": {"name": "Titreşim"},
+            "wire_input_alert": {"name": "Kablolu giriş uyarısı"},
             "tamper": {"name": "Kasa kurcalama"},
             "connectivity": {"name": "Bağlantı"},
             "problem": {"name": "Cihaz sorunu"},

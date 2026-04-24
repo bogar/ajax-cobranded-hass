@@ -51,6 +51,7 @@ BINARY_SENSOR_TYPES: dict[str, BinarySensorTypeInfo] = {
     "always_active": BinarySensorTypeInfo(BinarySensorDeviceClass.RUNNING, "always_active"),
     "glass_break": BinarySensorTypeInfo(BinarySensorDeviceClass.SAFETY, "glass_break"),
     "vibration": BinarySensorTypeInfo(BinarySensorDeviceClass.VIBRATION, "vibration"),
+    "wire_input_alert": BinarySensorTypeInfo(BinarySensorDeviceClass.SAFETY, "wire_input_alert"),
 }
 
 _DEVICE_TYPE_SENSORS: dict[str, list[str]] = {
@@ -125,6 +126,8 @@ _DEVICE_TYPE_SENSORS: dict[str, list[str]] = {
     "transmitter": ["tamper"],
     "multi_transmitter": ["tamper"],
     "multi_transmitter_fibra": ["tamper"],
+    "wire_input": ["wire_input_alert"],
+    "wire_input_mt": ["wire_input_alert"],
     "life_quality": [],
     "water_stop": [],
     "keypad_combi": ["tamper"],
@@ -203,11 +206,18 @@ class AjaxBinarySensor(CoordinatorEntity[AjaxCobrandedCoordinator], BinarySensor
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         device = self._device
-        if device is None or self._status_key != "motion_detected":
+        if device is None:
             return {}
-        detected_at = device.statuses.get("motion_detected_at")
-        if detected_at is not None:
-            return {"detected_at": detected_at}
+        if self._status_key == "motion_detected":
+            detected_at = device.statuses.get("motion_detected_at")
+            if detected_at is not None:
+                return {"detected_at": detected_at}
+            return {}
+        if self._status_key == "wire_input_alert":
+            alarm_type = device.statuses.get("wire_input_alarm_type")
+            if alarm_type is not None:
+                return {"alarm_type": alarm_type}
+            return {}
         return {}
 
 

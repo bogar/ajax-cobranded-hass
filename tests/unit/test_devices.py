@@ -294,6 +294,33 @@ class TestStatusParser:
         result = DevicesApi._parse_statuses([status])
         assert result.get("external_contact_alert") is True
 
+    def test_wire_input_status_alerting(self) -> None:
+        status = MagicMock()
+        status.WhichOneof.return_value = "wire_input_status"
+        status.wire_input_status.is_alert = True
+        status.wire_input_status.type = 1  # INTRUSION
+        result = DevicesApi._parse_statuses([status])
+        assert result.get("wire_input_alert") is True
+        assert result.get("wire_input_alarm_type") == "intrusion"
+
+    def test_wire_input_status_not_alerting(self) -> None:
+        status = MagicMock()
+        status.WhichOneof.return_value = "wire_input_status"
+        status.wire_input_status.is_alert = False
+        status.wire_input_status.type = 11  # GLASS_BREAK
+        result = DevicesApi._parse_statuses([status])
+        assert result.get("wire_input_alert") is False
+        assert result.get("wire_input_alarm_type") == "glass_break"
+
+    def test_wire_input_status_unspecified_type(self) -> None:
+        status = MagicMock()
+        status.WhichOneof.return_value = "wire_input_status"
+        status.wire_input_status.is_alert = True
+        status.wire_input_status.type = 0  # UNSPECIFIED
+        result = DevicesApi._parse_statuses([status])
+        assert result.get("wire_input_alert") is True
+        assert result.get("wire_input_alarm_type") == "unspecified"
+
     def test_case_drilling_detected(self) -> None:
         status = MagicMock()
         status.WhichOneof.return_value = "case_drilling_detected"

@@ -133,6 +133,7 @@
             "always_active": {"name": "Întotdeauna activ"},
             "glass_break": {"name": "Spargere geam"},
             "vibration": {"name": "Vibrație"},
+            "wire_input_alert": {"name": "Alertă intrare cablată"},
             "tamper": {"name": "Sabotaj carcasă"},
             "connectivity": {"name": "Conectivitate"},
             "problem": {"name": "Problemă dispozitiv"},

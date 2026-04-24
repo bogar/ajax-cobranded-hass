@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- MultiTransmitter wired inputs (`wire_input_mt`) and hub-wired inputs (`wire_input`) now expose an "alert" binary sensor that toggles when the wired third-party sensor is triggered. The alarm category reported by the hub (intrusion, glass_break, fire, vibration, …) is surfaced as an `alarm_type` attribute on the entity. Translations added for all 14 supported languages (#36)
+
 ## [1.1.1-beta.1] - 2026-04-24
 
 ### Fixed

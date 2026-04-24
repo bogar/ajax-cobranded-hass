@@ -133,6 +133,7 @@
             "always_active": {"name": "Always active"},
             "glass_break": {"name": "Glass break"},
             "vibration": {"name": "Vibration"},
+            "wire_input_alert": {"name": "Wire input alert"},
             "tamper": {"name": "Case tamper"},
             "connectivity": {"name": "Connectivity"},
             "problem": {"name": "Device problem"},

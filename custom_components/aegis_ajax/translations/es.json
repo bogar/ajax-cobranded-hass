@@ -133,6 +133,7 @@
             "always_active": {"name": "Siempre activo"},
             "glass_break": {"name": "Rotura de cristal"},
             "vibration": {"name": "Vibración"},
+            "wire_input_alert": {"name": "Alerta de entrada cableada"},
             "tamper": {"name": "Manipulación de carcasa"},
             "connectivity": {"name": "Conectividad"},
             "problem": {"name": "Problema del dispositivo"},

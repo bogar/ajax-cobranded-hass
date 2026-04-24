@@ -133,6 +133,7 @@
             "always_active": {"name": "Sempre ativo"},
             "glass_break": {"name": "Quebra de vidro"},
             "vibration": {"name": "Vibração"},
+            "wire_input_alert": {"name": "Alerta de entrada com fio"},
             "tamper": {"name": "Violação da caixa"},
             "connectivity": {"name": "Conectividade"},
             "problem": {"name": "Problema do dispositivo"},
