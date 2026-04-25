@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://github.com/bvis/aegis-ajax-hass/blob/main/README.md
+    url: https://github.com/bvis/aegis-hass/blob/main/README.md
     about: Check the README for setup instructions and troubleshooting
