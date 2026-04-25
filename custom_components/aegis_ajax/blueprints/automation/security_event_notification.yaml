@@ -3,7 +3,8 @@ blueprint:
   description: >-
     Send a detailed notification on any Ajax security event, using enriched
     event data (device_name, room_name, device_type). Optionally filter by
-    a specific event type.
+    a specific event type, override the per-event-type display labels (for
+    translations) and set a click-through URL.
   domain: automation
   input:
     event_entity:
@@ -28,26 +29,42 @@ blueprint:
       default: ""
       selector:
         text: {}
+    notification_url:
+      name: Notification URL (optional)
+      description: >-
+        Path opened by the mobile app when the notification is tapped
+        (e.g. /lovelace/seguridad). Leave empty to omit.
+      default: ""
+      selector:
+        text: {}
+    event_labels:
+      name: Event labels (optional)
+      description: >-
+        Mapping of event_type to display label. Edit values to translate or
+        customise the title prefix. Unknown event types fall back to a
+        prettified version of the event_type.
+      default:
+        alarm: "🚨 Alarm"
+        arm: "🔒 Armed"
+        arm_night: "🌙 Night mode"
+        disarm: "🔓 Disarmed"
+        disarm_night: "🔓 Night mode off"
+        tamper: "⚠️ Tamper"
+        panic: "🆘 Panic"
+        battery_low: "🪫 Low battery"
+        connection_lost: "📡 Connection lost"
+        malfunction: "⚙️ Malfunction"
+        fire: "🔥 Fire"
+        co_alarm: "☁️ CO alarm"
+        flood: "💧 Flood"
+        glass_break: "💔 Glass break"
+        motion: "🏃 Motion"
+        door_open: "🚪 Door open"
 
 variables:
   event_type_filter: !input event_type_filter
-  event_labels:
-    alarm: "🚨 Alarm"
-    arm: "🔒 Armed"
-    arm_night: "🌙 Night mode"
-    disarm: "🔓 Disarmed"
-    disarm_night: "🔓 Night mode off"
-    tamper: "⚠️ Tamper"
-    panic: "🆘 Panic"
-    battery_low: "🪫 Low battery"
-    connection_lost: "📡 Connection lost"
-    malfunction: "⚙️ Malfunction"
-    fire: "🔥 Fire"
-    co_alarm: "☁️ CO alarm"
-    flood: "💧 Flood"
-    glass_break: "💔 Glass break"
-    motion: "🏃 Motion"
-    door_open: "🚪 Door open"
+  event_labels: !input event_labels
+  notification_url: !input notification_url
 
 triggers:
   - trigger: state
@@ -77,3 +94,4 @@ actions:
         push:
           sound: default
         tag: "ajax-event-{{ trigger.to_state.attributes.event_type }}"
+        url: "{{ notification_url }}"
