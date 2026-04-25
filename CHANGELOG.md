@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-04-25
+
+### Changed
+- Security event notification blueprint exposes two new optional inputs: `notification_url` (path the mobile app opens when the notification is tapped) and `event_labels` (mapping of `event_type` to display label, editable for translations or icon customisation). Existing automations using the blueprint keep working without changes — both inputs default to the previous behaviour.
+
 ## [1.2.0] - 2026-04-25
 
 ### Added
