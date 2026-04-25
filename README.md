@@ -22,7 +22,7 @@ Ajax Systems provides co-branded versions of their mobile app to security compan
 
 - **Alarm Control Panel**: Arm away, disarm, night mode, group arming with PIN code support
 - **Force Arm Services**: `aegis_ajax.force_arm` and `aegis_ajax.force_arm_night` to arm ignoring open sensors
-- **Binary Sensors**: Door open/close, motion detection, smoke, leak, tamper, CO, heat, glass break, vibration, CRA monitoring, cellular connection, lid tamper, external contacts, anti-masking, interference detection, ethernet link, Wi-Fi link, mains power
+- **Binary Sensors**: Door open/close, motion detection, smoke, leak, tamper, CO, heat, glass break, vibration, CRA monitoring, cellular connection, lid tamper, external contact alert (wired reed switches on DoorProtect/Hub Hybrid inputs), external contact fault, MultiTransmitter wired-input alert with alarm category, anti-masking, interference detection, ethernet link, Wi-Fi link, mains power
 - **Hub Network**: Real-time hub network data — ethernet/wifi/gsm connection status, Wi-Fi SSID and signal strength, IP addressing, cellular signal strength and network type, power supply status
 - **Sensors**: Battery level, temperature, humidity, CO2, signal strength, GSM type (2G/3G/4G), Wi-Fi signal level, Wi-Fi SSID, Wi-Fi IP, IMEI, Ethernet IP/gateway/DNS, cellular signal/network, connection type
 - **Switches**: Relays, wall switches, sockets (multi-channel support)
@@ -139,7 +139,7 @@ You can type any custom label during setup if yours is not listed.
 | Type | Devices | Entities |
 |---|---|---|
 | Hub | Hub, Hub Plus, Hub 2, Hub 2 Plus, Hub 2 4G | Alarm panel, battery, GSM type/connected, CRA monitoring, lid tamper, IMEI, hub network sensors (Ethernet/Wi-Fi/GSM, IP data, cellular signal/network, mains power) |
-| Door Sensors | DoorProtect, DoorProtect Plus, DoorProtect Fibra, DoorProtect S/G3 | Door open/close, tamper, vibration (Plus), battery, temperature, signal, external contacts |
+| Door Sensors | DoorProtect, DoorProtect Plus, DoorProtect Fibra, DoorProtect S/G3 | Door open/close, tamper, vibration (Plus), battery, temperature, signal, external contact alert (wired contact triggered), external contact fault (wiring broken) |
 | Motion Sensors | MotionProtect, MotionProtect Plus/Outdoor/Curtain | Motion detected (real-time), tamper, battery, temperature, signal |
 | Cameras | MotionCam PhOD, MotionCam Outdoor PhOD | Photo on-demand capture + storage, motion detected, tamper, battery |
 | Glass Break | GlassProtect, GlassProtect S/Fibra | Glass break detection, tamper, battery |
@@ -150,6 +150,7 @@ You can type any custom label during setup if yours is not listed.
 | Lights | LightSwitch Dimmer | Brightness control |
 | Keypads | Keypad, KeypadPlus, KeypadCombi, KeypadTouchscreen | Battery, tamper, temperature, signal, NFC status |
 | Sirens | HomeSiren, StreetSiren | Battery, tamper, signal |
+| Wired-Input Modules | MultiTransmitter, MultiTransmitter Fibra, Hub Hybrid wired inputs | Tamper of the module itself; each registered wired sensor appears as its own device with an alert binary sensor and an `alarm_type` attribute (intrusion / fire / glass_break / vibration / …) |
 
 ## Photo on Demand
 
@@ -231,7 +232,9 @@ Use these in automation templates, e.g. `{{ trigger.event.data.device_name }}`.
 - **Interference** — RF jamming detection
 - **Glass break** — glass break detection (GlassProtect, CombiProtect)
 - **Vibration** — vibration/shock detection (DoorProtect Plus)
-- **External contact** — wired zone status (DoorProtect Plus)
+- **External contact alert** — triggered state of an externally wired contact (e.g. reed switch on a window) connected to a DoorProtect's input terminals; toggles open/closed
+- **External contact fault** — circuit-fault indicator for the same external wiring (cable disconnect or short)
+- **Wire input alert** — triggered state of a third-party sensor wired into a MultiTransmitter or a Hub Hybrid wire input. Exposes an `alarm_type` attribute reflecting the category Ajax assigned to that input (intrusion, fire, glass_break, vibration, etc.). Available on `wire_input_mt` and `wire_input` device types
 
 ## Automation Blueprints
 
@@ -239,7 +242,7 @@ Aegis includes 8 ready-to-use automation blueprints. Import them via URL in **Se
 
 | Blueprint | Description | Import URL |
 |-----------|-------------|------------|
-| **Security Event Notification** | Push notification with emoji-labeled event type, device name and room. Ignores stale events on reload. | [Import](https://github.com/bvis/aegis-hass/blob/main/custom_components/aegis_ajax/blueprints/automation/security_event_notification.yaml) |
+| **Security Event Notification** | Push notification with emoji-labeled event type, device name and room. Optional inputs for a tap-through dashboard URL and for translating/customising the per-event-type labels. Ignores stale events on reload. | [Import](https://github.com/bvis/aegis-hass/blob/main/custom_components/aegis_ajax/blueprints/automation/security_event_notification.yaml) |
 | **Intrusion Alarm + Capture** | Capture all cameras and send critical notification when intrusion alarm fires | [Import](https://github.com/bvis/aegis-hass/blob/main/custom_components/aegis_ajax/blueprints/automation/intrusion_alarm_capture.yaml) |
 | **Tamper Alert** | Critical notification when device tampering is detected | [Import](https://github.com/bvis/aegis-hass/blob/main/custom_components/aegis_ajax/blueprints/automation/tamper_alert.yaml) |
 | **Door Opened While Armed** | Preventive alert when a door opens with the alarm armed, with optional warning script | [Import](https://github.com/bvis/aegis-hass/blob/main/custom_components/aegis_ajax/blueprints/automation/door_opened_while_armed.yaml) |
