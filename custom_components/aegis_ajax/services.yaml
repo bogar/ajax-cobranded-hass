@@ -77,7 +77,7 @@ press_panic_button:
         number:
           min: -90
           max: 90
-          step: 0.0001
+          step: any
           mode: box
     longitude:
       name: Longitude
@@ -89,5 +89,5 @@ press_panic_button:
         number:
           min: -180
           max: 180
-          step: 0.0001
+          step: any
           mode: box
