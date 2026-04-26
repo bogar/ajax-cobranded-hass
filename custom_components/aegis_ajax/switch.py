@@ -24,10 +24,23 @@ _LOGGER = logging.getLogger(__name__)
 
 SWITCH_DEVICE_TYPES: dict[str, int] = {
     "relay": 1,
+    "relay_fibra_base": 1,
     "wall_switch": 1,
     "socket": 1,
+    "socket_b": 1,
+    "socket_g": 1,
+    "socket_outlet_type_e": 1,
+    "socket_outlet_type_f": 1,
+    "socket_type_g_plus": 1,
     "light_switch": 1,
+    "light_switch_one_gang": 1,
+    "light_switch_one_gang_na": 1,
+    "light_switch_2_way": 1,
+    "light_switch_crossover": 1,
+    "light_switch_three_way_na": 1,
     "light_switch_two_gang": 2,
+    "light_switch_two_channel_two_way": 2,
+    "light_switch_four_way_na": 4,
 }
 
 

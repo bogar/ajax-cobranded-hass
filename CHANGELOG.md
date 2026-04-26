@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- FireProtect 2 detectors no longer fall back to a tamper-only entity set: Ajax's hub catalog uses the `fire_protect_two*` naming for the current generation while we only knew the legacy `fire_protect_2`, so smoke / heat / CO binary sensors were never created. All FireProtect 2 variants known to the v3 ObjectType (`fire_protect_two`, `_plus`, `_sb`, `_hcrb`, `_hcsb`, `_hrb`, `_hsb`, `_crb`, `_csb`, `_h_ac`, `_c_ac`, `_hc_ac`, `_hs_ac`, `_hsc_ac`, plus the UL-listed sub-models) now map to the appropriate sensor set, with single-sensor variants exposing only the relevant entity. (#51)
+
+### Changed
+- Audited `_DEVICE_TYPE_SENSORS` and `SWITCH_DEVICE_TYPES` against the current Ajax v3 ObjectType catalog and added missing aliases that were silently falling back to a tamper-only entity set:
+  - **Hub family** — `hub_two`, `hub_two_plus`, `hub_two_lte_rtk`, `hub_three`, `hub_4g`, `hub_lite`, `hub_fibra`, `hub_hybrid_2`, `hub_hybrid_4g`, `hub_mega`, `hub_void_4g`, `hub_yavir`, `hub_yavir_plus`, `hub_fire`, `hub_superior`. The existing `hub`, `hub_plus`, `hub_two_4g` entries are kept for backwards compatibility.
+  - **Range extender** — `range_extender`, `range_extender_2`, `range_extender_2_fire` (the `rex` / `rex_2` legacy keys are kept).
+  - **DoorProtect** — `door_protect_plus_g3_fibra`.
+  - **MotionProtect / MotionCam** — added `motion_protect_g3`, `motion_protect_g3_fibra`, `motion_protect_g3_fibra_new`, `motion_protect_plus_g3`, `motion_protect_plus_fibra`, `motion_protect_s`, `motion_protect_s_plus`, `motion_protect_curtain_base`, `motion_protect_curtain_outdoor_base`, `motion_protect_curtain_outdoor_mini`, `motion_protect_curtain_outdoor_plus`, `motion_cam_g3`, `motion_cam_hd`, `motion_cam_fibra_base`, `motion_cam_phod_fibra`, `motion_cam_outdoor_phod`, `motion_cam_outdoor_two_four_phod`, `motion_cam_s_phod`, `motion_cam_s_phod_am`, `motion_cam_superior_phod`.
+  - **Sirens** — `home_siren_g3`, `street_siren_plus_fibra`, `street_siren_plus_g3`, `street_siren_s`, `street_siren_s_double_deck`, `street_siren_double_deck_fibra`.
+  - **Wire input** — `wire_input_rs`.
+  - **Keypads** — `keypad_plus`, `keypad_plus_g3`, `keypad_s_plus`, `keypad_outdoor`, `keypad_outdoor_fibra`, `keypad_touchscreen`, `keypad_touchscreen_fibra`, `keypad_touchscreen_g3`.
+  - **Life quality / water stop** — `life_quality_plus`, `water_stop_base`.
+  - **Switches** (`switch.py`) — `relay_fibra_base`, additional socket variants (`socket_b`, `socket_g`, `socket_outlet_type_e`, `socket_outlet_type_f`, `socket_type_g_plus`) and light-switch wiring variants (`light_switch_one_gang`, `_one_gang_na`, `_2_way`, `_crossover`, `_three_way_na`, `_two_channel_two_way`, `_four_way_na`).
+
 ## [1.2.1-beta.2] - 2026-04-26
 
 ### Added

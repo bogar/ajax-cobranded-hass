@@ -139,18 +139,19 @@ You can type any custom label during setup if yours is not listed.
 
 | Type | Devices | Entities |
 |---|---|---|
-| Hub | Hub, Hub Plus, Hub 2, Hub 2 Plus, Hub 2 4G | Alarm panel, battery, GSM type/connected, CRA monitoring, lid tamper, IMEI, hub network sensors (Ethernet/Wi-Fi/GSM, IP data, cellular signal/network, mains power) |
-| Door Sensors | DoorProtect, DoorProtect Plus, DoorProtect Fibra, DoorProtect S/G3 | Door open/close, tamper, vibration (Plus), battery, temperature, signal, external contact alert (wired contact triggered), external contact fault (wiring broken) |
-| Motion Sensors | MotionProtect, MotionProtect Plus/Outdoor/Curtain | Motion detected (real-time), tamper, battery, temperature, signal |
-| Cameras | MotionCam PhOD, MotionCam Outdoor PhOD | Photo on-demand capture + storage, motion detected, tamper, battery |
-| Glass Break | GlassProtect, GlassProtect S/Fibra | Glass break detection, tamper, battery |
-| Combi | CombiProtect, CombiProtect S/Fibra | Motion, glass break, tamper, battery |
-| Fire/Smoke | FireProtect, FireProtect 2, FireProtect Plus | Smoke, CO, high temperature, tamper, battery |
+| Hub | Hub, Hub Plus, Hub 4G, Hub Lite, Hub 2, Hub 2 Plus, Hub 2 4G, Hub 3, Hub Hybrid (2 / 4G), Hub Mega, Hub Fibra, Hub Yavir / Yavir Plus, Hub Fire, Hub Superior | Alarm panel, battery, GSM type/connected, CRA monitoring, lid tamper, IMEI, hub network sensors (Ethernet/Wi-Fi/GSM, IP data, cellular signal/network, mains power) |
+| Door Sensors | DoorProtect, DoorProtect Plus, DoorProtect Fibra, DoorProtect S, DoorProtect S Plus, DoorProtect Plus Fibra, DoorProtect Plus G3 Fibra, DoorProtect G3 | Door open/close, tamper, vibration (Plus), battery, temperature, signal, external contact alert (wired contact triggered), external contact fault (wiring broken) |
+| Motion Sensors | MotionProtect, MotionProtect Plus, MotionProtect Outdoor, MotionProtect Curtain (and outdoor / mini / plus base variants), MotionProtect S / S Plus, MotionProtect G3 family (incl. Fibra), MotionProtect Plus Fibra / G3 | Motion detected (real-time), tamper, battery, temperature, signal |
+| Cameras | MotionCam, MotionCam Outdoor, MotionCam Fibra (& base), MotionCam G3, MotionCam HD, MotionCam PhOD, MotionCam PhOD Fibra, MotionCam Outdoor PhOD, MotionCam Outdoor 2/4 PhOD, MotionCam S PhOD (& AM), MotionCam Superior PhOD | Photo on-demand capture + storage (PhOD models), motion detected, tamper, battery |
+| Glass Break | GlassProtect, GlassProtect S, GlassProtect Fibra | Glass break detection, tamper, battery |
+| Combi | CombiProtect, CombiProtect S, CombiProtect Fibra | Motion, glass break, tamper, battery |
+| Fire/Smoke | FireProtect, FireProtect Plus, FireProtect 2 (all sub-models — heat-only `*hrb`/`*hsb`, CO-only `*crb`/`*csb`, multi-sensor `*hcrb`/`*hcsb`, AC-powered `*_ac`, UL-listed `*_ul`) | Smoke, CO, high temperature, tamper, battery — sub-models without a given sensor expose only the relevant entity |
 | Water Leak | LeaksProtect | Leak detected, tamper, battery |
 | Relays/Switches | Relay, WallSwitch, Socket, LightSwitch | On/off per channel |
 | Lights | LightSwitch Dimmer | Brightness control |
 | Keypads | Keypad, KeypadPlus, KeypadCombi, KeypadTouchscreen | Battery, tamper, temperature, signal, NFC status |
-| Sirens | HomeSiren, StreetSiren | Battery, tamper, signal |
+| Sirens | HomeSiren, HomeSiren S, HomeSiren Fibra, HomeSiren G3, StreetSiren, StreetSiren S, StreetSiren Plus, StreetSiren Plus Fibra/G3, StreetSiren Fibra, StreetSiren Double Deck (& S / Fibra) | Battery, tamper, signal |
+| Range extenders | ReX, ReX 2, ReX 2 Fire | Battery, signal |
 | Wired-Input Modules | MultiTransmitter, MultiTransmitter Fibra, Hub Hybrid wired inputs | Tamper of the module itself; each registered wired sensor appears as its own device with an alert binary sensor and an `alarm_type` attribute (intrusion / fire / glass_break / vibration / …) |
 
 ## Photo on Demand
