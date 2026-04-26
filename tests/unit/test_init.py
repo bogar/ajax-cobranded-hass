@@ -324,6 +324,66 @@ class TestAutoLabeling:
         assert "aegis_hub" in call_kwargs["labels"]
 
 
+class TestAutoCreateLabelsOption:
+    """Verify the `auto_create_labels` OptionsFlow toggle gates label creation."""
+
+    def _make_entry(self, options: dict) -> MagicMock:
+        entry = MagicMock()
+        entry.entry_id = "entry-1"
+        entry.data = {
+            "email": "test@example.com",
+            "password_hash": "abc123hash",
+            "spaces": ["s1"],
+        }
+        entry.options = options
+        return entry
+
+    async def _run_setup(self, entry: MagicMock) -> MagicMock:
+        from custom_components.aegis_ajax import async_setup_entry
+
+        hass = MagicMock()
+        hass.data = {}
+        hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
+
+        mock_client = MagicMock()
+        mock_client.connect = AsyncMock()
+        mock_client.session = MagicMock()
+
+        mock_coordinator = MagicMock()
+        mock_coordinator.async_config_entry_first_refresh = AsyncMock()
+        mock_coordinator.async_start_push_notifications = AsyncMock()
+
+        apply_labels_mock = AsyncMock()
+        with (
+            patch("custom_components.aegis_ajax.AjaxGrpcClient", return_value=mock_client),
+            patch(
+                "custom_components.aegis_ajax.AjaxCobrandedCoordinator",
+                return_value=mock_coordinator,
+            ),
+            patch("custom_components.aegis_ajax._async_apply_labels", apply_labels_mock),
+        ):
+            await async_setup_entry(hass, entry)
+        return apply_labels_mock
+
+    @pytest.mark.asyncio
+    async def test_auto_create_labels_default_calls_apply(self) -> None:
+        entry = self._make_entry(options={})
+        apply_mock = await self._run_setup(entry)
+        apply_mock.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_auto_create_labels_explicit_true_calls_apply(self) -> None:
+        entry = self._make_entry(options={"auto_create_labels": True})
+        apply_mock = await self._run_setup(entry)
+        apply_mock.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_auto_create_labels_false_skips_apply(self) -> None:
+        entry = self._make_entry(options={"auto_create_labels": False})
+        apply_mock = await self._run_setup(entry)
+        apply_mock.assert_not_awaited()
+
+
 class TestAsyncUnloadEntry:
     @pytest.mark.asyncio
     async def test_unload_entry_success(self) -> None:

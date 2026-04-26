@@ -28,9 +28,11 @@ from custom_components.aegis_ajax.api.session import (
 from custom_components.aegis_ajax.api.spaces import SpacesApi
 from custom_components.aegis_ajax.const import (
     APPLICATION_LABEL,
+    CONF_AUTO_CREATE_LABELS,
     CONF_FORCE_ARM,
     CONF_PHOTO_MAX_PER_DEVICE,
     CONF_PHOTO_RETENTION_DAYS,
+    DEFAULT_AUTO_CREATE_LABELS,
     DEFAULT_PHOTO_MAX_PER_DEVICE,
     DEFAULT_PHOTO_RETENTION_DAYS,
     DEFAULT_POLL_INTERVAL,
@@ -364,6 +366,12 @@ class AjaxCobrandedOptionsFlow(OptionsFlow):
                             CONF_PHOTO_MAX_PER_DEVICE, DEFAULT_PHOTO_MAX_PER_DEVICE
                         ),
                     ): vol.All(vol.Coerce(int), vol.Range(min=0, max=10000)),
+                    vol.Optional(
+                        CONF_AUTO_CREATE_LABELS,
+                        default=self._entry.options.get(
+                            CONF_AUTO_CREATE_LABELS, DEFAULT_AUTO_CREATE_LABELS
+                        ),
+                    ): bool,
                 }
             ),
         )

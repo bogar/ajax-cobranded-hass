@@ -63,7 +63,8 @@
                     "fcm_api_key": "Clé API FCM",
                     "fcm_sender_id": "ID d'expéditeur FCM",
                     "photo_retention_days": "Rétention des photos (jours)",
-                    "photo_max_per_device": "Max photos par appareil (0 = illimité)"
+                    "photo_max_per_device": "Max photos par appareil (0 = illimité)",
+                    "auto_create_labels": "Créer et attribuer automatiquement des étiquettes Aegis aux entités"
                 }
             }
         }

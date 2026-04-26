@@ -160,8 +160,10 @@ class DeviceState(StrEnum):
 CONF_FORCE_ARM = "force_arm"
 CONF_PHOTO_RETENTION_DAYS = "photo_retention_days"
 CONF_PHOTO_MAX_PER_DEVICE = "photo_max_per_device"
+CONF_AUTO_CREATE_LABELS = "auto_create_labels"
 DEFAULT_PHOTO_RETENTION_DAYS = 30
 DEFAULT_PHOTO_MAX_PER_DEVICE = 100
+DEFAULT_AUTO_CREATE_LABELS = True
 
 EVENT_DOMAIN = f"{DOMAIN}_event"
 

@@ -59,7 +59,8 @@
                     "fcm_api_key": "FCM-API-sleutel",
                     "fcm_sender_id": "FCM-afzender-ID",
                     "photo_retention_days": "Foto bewaarperiode (dagen)",
-                    "photo_max_per_device": "Max foto's per apparaat (0 = onbeperkt)"
+                    "photo_max_per_device": "Max foto's per apparaat (0 = onbeperkt)",
+                    "auto_create_labels": "Aegis-labels automatisch aanmaken en aan entiteiten toewijzen"
                 }
             }
         }

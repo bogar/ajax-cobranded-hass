@@ -9,7 +9,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 
 from custom_components.aegis_ajax.api.client import AjaxGrpcClient
-from custom_components.aegis_ajax.const import DEFAULT_POLL_INTERVAL, DOMAIN, LABELS
+from custom_components.aegis_ajax.const import (
+    CONF_AUTO_CREATE_LABELS,
+    DEFAULT_AUTO_CREATE_LABELS,
+    DEFAULT_POLL_INTERVAL,
+    DOMAIN,
+    LABELS,
+)
 from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 
 if TYPE_CHECKING:
@@ -197,11 +203,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Auto-label entities for easy grouping in automations
-    try:
-        await _async_apply_labels(hass, entry)
-    except Exception:
-        _LOGGER.debug("Auto-labeling skipped (labels API not available)")
+    # Auto-label entities for easy grouping in automations.
+    # Users can disable this from the OptionsFlow when they prefer to manage
+    # labels manually (the label registry is otherwise authoritative and
+    # re-creates removed labels on every restart).
+    if entry.options.get(CONF_AUTO_CREATE_LABELS, DEFAULT_AUTO_CREATE_LABELS):
+        try:
+            await _async_apply_labels(hass, entry)
+        except Exception:
+            _LOGGER.debug("Auto-labeling skipped (labels API not available)")
 
     async def _force_arm_handler(call: ServiceCall) -> None:
         await _async_handle_force_arm(hass, call)

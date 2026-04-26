@@ -63,7 +63,8 @@
                     "fcm_api_key": "Cheie API FCM",
                     "fcm_sender_id": "ID expeditor FCM",
                     "photo_retention_days": "Reținere fotografii (zile)",
-                    "photo_max_per_device": "Max fotografii per dispozitiv (0 = nelimitat)"
+                    "photo_max_per_device": "Max fotografii per dispozitiv (0 = nelimitat)",
+                    "auto_create_labels": "Creează și atribuie automat etichete Aegis entităților"
                 }
             }
         }
