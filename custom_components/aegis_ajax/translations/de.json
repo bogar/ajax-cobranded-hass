@@ -85,6 +85,28 @@
                     "description": "Alarmzentrale zum Scharfschalten. Ohne Angabe werden alle Zentralen scharf geschaltet."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Notfalltaste drücken (SOS)",
+            "description": "Löst die Ajax-SOS-/Panik-Taste in einem Bereich aus. Ruft denselben Endpunkt auf wie die rote SOS-Taste in der offiziellen App und sendet einen Panik-Alarm an die Notrufzentrale (NSL), was in den meisten Verträgen einen sofortigen Polizeieinsatz auslöst und Verifikationsfenster umgeht. Nur für echte Notfälle verwenden. Das Feld confirm muss true sein, sonst wird der Aufruf abgelehnt.",
+            "fields": {
+                "confirm": {
+                    "name": "Panik bestätigen",
+                    "description": "Muss auf true gesetzt sein. Dient als Sicherheitssperre, damit Automatisierungen diesen Dienst nicht versehentlich auslösen."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Alarm-Panel-Entität des Bereichs, dessen Notfalltaste gedrückt werden soll. Wird sie ausgelassen, wird der Panik-Alarm an jeden konfigurierten Bereich gesendet."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Optionaler Breitengrad des Anrufers, der an Ajax weitergegeben wird. Mit Längengrad verwenden."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Optionaler Längengrad des Anrufers, der an Ajax weitergegeben wird. Mit Breitengrad verwenden."
+                }
+            }
         }
     },
     "entity": {

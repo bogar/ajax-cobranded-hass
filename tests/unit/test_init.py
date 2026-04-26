@@ -384,6 +384,70 @@ class TestAutoCreateLabelsOption:
         apply_mock.assert_not_awaited()
 
 
+class TestPressPanicButtonHandler:
+    """Verify the safety guards on _async_handle_press_panic_button."""
+
+    def _make_call(self, data: dict) -> MagicMock:
+        call = MagicMock()
+        call.data = data
+        return call
+
+    @pytest.mark.asyncio
+    async def test_missing_confirm_raises(self) -> None:
+        from homeassistant.exceptions import ServiceValidationError
+
+        from custom_components.aegis_ajax import _async_handle_press_panic_button
+
+        hass = MagicMock()
+        with pytest.raises(ServiceValidationError, match="confirm"):
+            await _async_handle_press_panic_button(hass, self._make_call({}))
+
+    @pytest.mark.asyncio
+    async def test_confirm_false_raises(self) -> None:
+        from homeassistant.exceptions import ServiceValidationError
+
+        from custom_components.aegis_ajax import _async_handle_press_panic_button
+
+        hass = MagicMock()
+        with pytest.raises(ServiceValidationError, match="confirm"):
+            await _async_handle_press_panic_button(hass, self._make_call({"confirm": False}))
+
+    @pytest.mark.asyncio
+    async def test_confirm_true_no_target_raises(self) -> None:
+        from homeassistant.exceptions import ServiceValidationError
+
+        from custom_components.aegis_ajax import _async_handle_press_panic_button
+
+        with patch(
+            "custom_components.aegis_ajax._resolve_target_space_ids",
+            return_value=[],
+        ):
+            hass = MagicMock()
+            with pytest.raises(ServiceValidationError, match="no Aegis alarm panel"):
+                await _async_handle_press_panic_button(hass, self._make_call({"confirm": True}))
+
+    @pytest.mark.asyncio
+    async def test_confirm_true_invokes_api(self) -> None:
+        from custom_components.aegis_ajax import _async_handle_press_panic_button
+
+        coordinator = MagicMock()
+        coordinator.spaces_api.press_panic_button = AsyncMock()
+
+        with patch(
+            "custom_components.aegis_ajax._resolve_target_space_ids",
+            return_value=[(coordinator, "space-1")],
+        ):
+            hass = MagicMock()
+            await _async_handle_press_panic_button(
+                hass,
+                self._make_call({"confirm": True, "latitude": 1.0, "longitude": 2.0}),
+            )
+
+        coordinator.spaces_api.press_panic_button.assert_awaited_once_with(
+            "space-1", latitude=1.0, longitude=2.0
+        )
+
+
 class TestAsyncUnloadEntry:
     @pytest.mark.asyncio
     async def test_unload_entry_success(self) -> None:

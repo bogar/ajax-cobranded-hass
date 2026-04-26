@@ -89,6 +89,28 @@
                     "description": "Painel de alarme para armar forçado. Se omitido, arma todos os painéis."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Premir botão de pânico (SOS)",
+            "description": "Aciona o botão SOS / pânico da Ajax num espaço. Chama o mesmo endpoint do botão SOS vermelho da aplicação oficial e encaminha um alarme de pânico para a central de monitorização (CRA), o que na maioria dos contratos aciona o envio imediato da polícia ignorando janelas de verificação. Usa apenas em emergências reais. O campo confirm tem de ser true ou a chamada é rejeitada.",
+            "fields": {
+                "confirm": {
+                    "name": "Confirmar pânico",
+                    "description": "Tem de estar a true. Funciona como bloqueio de segurança para impedir que automatizações acionem o serviço por engano."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Entidade do painel de alarme do espaço cujo botão de pânico vai ser premido. Se for omitida, o pânico é enviado a todos os espaços configurados."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Latitude opcional do utilizador encaminhada para a Ajax. Usa em conjunto com a longitude."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Longitude opcional do utilizador encaminhada para a Ajax. Usa em conjunto com a latitude."
+                }
+            }
         }
     },
     "entity": {

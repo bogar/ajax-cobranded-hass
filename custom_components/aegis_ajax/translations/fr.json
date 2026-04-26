@@ -89,6 +89,28 @@
                     "description": "Panneau d'alarme à armer de force. Si omis, arme tous les panneaux."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Appuyer sur le bouton panique (SOS)",
+            "description": "Déclenche le bouton SOS / panique Ajax sur un espace. Appelle le même endpoint que le bouton SOS rouge de l'application officielle et envoie une alarme panique au centre de télésurveillance (CRA), ce qui, dans la plupart des contrats, déclenche une intervention policière immédiate sans fenêtre de vérification. À n'utiliser qu'en cas d'urgence réelle. Le champ confirm doit être à true sinon l'appel est rejeté.",
+            "fields": {
+                "confirm": {
+                    "name": "Confirmer la panique",
+                    "description": "Doit être réglé sur true. Verrou de sécurité pour empêcher les automatisations de déclencher ce service par erreur."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Entité du panneau d'alarme de l'espace dont le bouton panique doit être pressé. Si omis, la panique est envoyée à tous les espaces configurés."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Latitude facultative de l'appelant transmise à Ajax. À utiliser avec la longitude."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Longitude facultative de l'appelant transmise à Ajax. À utiliser avec la latitude."
+                }
+            }
         }
     },
     "entity": {
