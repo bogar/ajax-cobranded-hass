@@ -353,10 +353,118 @@ class TestDeviceTypeSensors:
             "door_protect_s_plus",
             "door_protect_plus_fibra",
             "door_protect_g3",
+            "door_protect_plus_g3_fibra",
         ],
     )
     def test_door_protect_family_has_external_contact_alert(self, device_type: str) -> None:
         assert "external_contact_alert" in _DEVICE_TYPE_SENSORS[device_type]
+
+    # FireProtect 2 family — Ajax's catalog uses both `_2` (legacy) and
+    # `_two*` (current) for the same generation. Every variant must surface
+    # at least the tamper sensor; the multi-sensor models also expose smoke,
+    # CO and heat. (Bug #51 — the cloud sends `fire_protect_two`, the older
+    # mapping only knew `fire_protect_2`.)
+    @pytest.mark.parametrize(
+        "device_type",
+        [
+            "fire_protect_2",
+            "fire_protect_two",
+            "fire_protect_two_base",
+            "fire_protect_two_plus",
+            "fire_protect_two_plus_sb",
+            "fire_protect_two_sb",
+            "fire_protect_two_hcrb",
+            "fire_protect_two_hcsb",
+            "fire_protect_two_hrb",
+            "fire_protect_two_hsb",
+            "fire_protect_two_crb",
+            "fire_protect_two_csb",
+            "fire_protect_two_h_ac",
+            "fire_protect_two_c_ac",
+            "fire_protect_two_hc_ac",
+            "fire_protect_two_hs_ac",
+            "fire_protect_two_hsc_ac",
+            "fire_protect_two_c_rb_ul",
+            "fire_protect_two_h_rb_ul",
+            "fire_protect_two_hs_ac_ul",
+            "fire_protect_two_hs_rb_ul",
+            "fire_protect_two_hs_sb_ul",
+            "fire_protect_two_hsc_ac_ul",
+            "fire_protect_two_hsc_rb_ul",
+            "fire_protect_two_hsc_sb_ul",
+        ],
+    )
+    def test_fire_protect_two_family_has_tamper(self, device_type: str) -> None:
+        assert device_type in _DEVICE_TYPE_SENSORS
+        assert "tamper" in _DEVICE_TYPE_SENSORS[device_type]
+
+    @pytest.mark.parametrize(
+        "device_type",
+        [
+            "fire_protect_2",
+            "fire_protect_two",
+            "fire_protect_two_base",
+            "fire_protect_two_plus",
+            "fire_protect_two_plus_sb",
+            "fire_protect_two_sb",
+            "fire_protect_two_hs_ac",
+            "fire_protect_two_hsc_ac",
+            "fire_protect_two_hcrb",
+            "fire_protect_two_hcsb",
+        ],
+    )
+    def test_fire_protect_two_smoke_variants_have_smoke(self, device_type: str) -> None:
+        assert "smoke_detected" in _DEVICE_TYPE_SENSORS[device_type]
+
+    # Hub family — `hub`, `hub_plus`, `hub_two_4g` were already mapped, but
+    # the v3 catalog also names `hub_two`, `hub_two_plus`, `hub_hybrid_*`,
+    # `hub_mega`, `hub_lite`, `hub_4g`, `hub_three`, etc. Anyone running a
+    # Hub 2 / Hub 2 Plus was missing the monitoring/gsm/lid entities
+    # because of the same legacy-vs-current naming mismatch.
+    @pytest.mark.parametrize(
+        "device_type",
+        [
+            "hub",
+            "hub_plus",
+            "hub_4g",
+            "hub_lite",
+            "hub_two",
+            "hub_two_plus",
+            "hub_two_4g",
+            "hub_two_lte_rtk",
+            "hub_three",
+            "hub_fibra",
+            "hub_hybrid_2",
+            "hub_hybrid_4g",
+            "hub_mega",
+            "hub_void_4g",
+            "hub_yavir",
+            "hub_yavir_plus",
+            "hub_fire",
+            "hub_superior",
+        ],
+    )
+    def test_hub_family_has_monitoring_sensors(self, device_type: str) -> None:
+        sensors = _DEVICE_TYPE_SENSORS[device_type]
+        assert "monitoring_active" in sensors
+        assert "gsm_connected" in sensors
+        assert "lid_opened" in sensors
+
+    # Range Extender naming — `rex` / `rex_2` were the legacy keys; current
+    # cloud naming is `range_extender` / `range_extender_2`. Both must be
+    # accepted as known device types so we don't fall back to tamper-only.
+    @pytest.mark.parametrize(
+        "device_type",
+        [
+            "rex",
+            "rex_2",
+            "range_extender",
+            "range_extender_2",
+            "range_extender_2_fire",
+        ],
+    )
+    def test_range_extender_aliases_known(self, device_type: str) -> None:
+        assert device_type in _DEVICE_TYPE_SENSORS
 
     def test_wire_input_mt_in_device_types(self) -> None:
         assert "wire_input_mt" in _DEVICE_TYPE_SENSORS

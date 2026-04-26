@@ -22,6 +22,27 @@ class TestSwitchDeviceTypes:
     def test_light_switch_two_gang_has_two_channels(self) -> None:
         assert SWITCH_DEVICE_TYPES["light_switch_two_gang"] == 2
 
+    @pytest.mark.parametrize(
+        "device_type",
+        [
+            "socket_b",
+            "socket_g",
+            "socket_outlet_type_e",
+            "socket_outlet_type_f",
+            "socket_type_g_plus",
+            "relay_fibra_base",
+            "light_switch_one_gang",
+            "light_switch_one_gang_na",
+            "light_switch_2_way",
+            "light_switch_crossover",
+            "light_switch_three_way_na",
+            "light_switch_two_channel_two_way",
+            "light_switch_four_way_na",
+        ],
+    )
+    def test_extra_switch_variants_known(self, device_type: str) -> None:
+        assert device_type in SWITCH_DEVICE_TYPES
+
 
 class TestAjaxSwitch:
     def test_unique_id(self) -> None:
