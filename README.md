@@ -172,8 +172,45 @@ Photos are automatically cleaned up based on your retention settings (configurab
 |---|---|
 | `aegis_ajax.force_arm` | Arm the system ignoring open sensors and active alarms. Supports entity target to arm a specific panel. |
 | `aegis_ajax.force_arm_night` | Arm night mode ignoring open sensors and active alarms. Supports entity target to arm a specific panel. |
+| `aegis_ajax.press_panic_button` | **⚠️ SOS / panic button.** See dedicated section below before using. |
 
-Both services accept an optional `entity_id` target (alarm control panel entity). If no target is specified, all panels across all configured accounts are armed.
+Both `force_arm` services accept an optional `entity_id` target (alarm control panel entity). If no target is specified, all panels across all configured accounts are armed.
+
+### Panic button (SOS)
+
+The integration exposes the same panic button that the official Ajax mobile app does. It calls the underlying `SpaceService/pressPanicButton` endpoint.
+
+> **⚠️ READ THIS BEFORE USING IT — FALSE PANIC ALARMS HAVE LEGAL AND FINANCIAL CONSEQUENCES.**
+>
+> Pressing the panic button forwards a **Panic / Hold-up alarm** to your monitoring station (CRA). On most professional monitoring contracts this means **immediate police dispatch** with **no verification window** — the operator is not allowed to call you back to confirm. False activations may result in fines, breach of your monitoring contract, and in some jurisdictions criminal liability.
+>
+> Use this service only for **genuine emergencies**. Do **not** wire it to noisy automations such as "trigger when my NVR detects motion" — for that case, route the trigger through a hardware path (e.g. an Ajax Transmitter Fibra connected to a relay controlled from HA), so the hub's normal alarm engine and verification rules apply.
+
+What it does (controlled by hub configuration):
+
+- Always fires regardless of whether the system is armed or disarmed.
+- Triggers a `panic_button_pressed` event on the hub (mapped to event type `panic` on the integration's security event entity).
+- Forwards the panic to the monitoring station.
+- Optionally activates sirens depending on the hub setting `panic_siren_on_panic_button`.
+
+### Service: `aegis_ajax.press_panic_button`
+
+| Field | Required | Description |
+|---|---|---|
+| `confirm` | **Yes** (must be `true`) | Safety lock. The service refuses to run unless explicitly set to `true` to prevent accidental triggers from automations. |
+| `entity_id` | No | Alarm panel entity for the space whose panic button to press. If omitted, the panic is sent to **every** configured space. |
+| `latitude` | No | Optional caller latitude forwarded to Ajax. Use together with `longitude`. |
+| `longitude` | No | Optional caller longitude forwarded to Ajax. Use together with `latitude`. |
+
+Example:
+
+```yaml
+service: aegis_ajax.press_panic_button
+target:
+  entity_id: alarm_control_panel.aegis_home
+data:
+  confirm: true
+```
 
 ## Example Dashboard
 

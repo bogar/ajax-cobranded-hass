@@ -85,6 +85,28 @@
                     "description": "Pannello allarme da armare forzatamente. Se omesso, arma tutti i pannelli."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Premi il pulsante antipanico (SOS)",
+            "description": "Attiva il pulsante SOS / antipanico Ajax su uno spazio. Chiama lo stesso endpoint del pulsante SOS rosso dell'app ufficiale e inoltra un allarme antipanico alla centrale di vigilanza (CRA), che nella maggior parte dei contratti attiva l'invio immediato della polizia bypassando le finestre di verifica. Usalo solo in emergenze reali. Il campo confirm deve essere true o la chiamata viene rifiutata.",
+            "fields": {
+                "confirm": {
+                    "name": "Conferma antipanico",
+                    "description": "Deve essere true. Funge da blocco di sicurezza per evitare che le automazioni attivino il servizio per errore."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Entità del pannello di allarme dello spazio di cui premere il pulsante antipanico. Se omessa, l'antipanico viene inviato a tutti gli spazi configurati."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Latitudine opzionale del chiamante inoltrata ad Ajax. Da usare con la longitudine."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Longitudine opzionale del chiamante inoltrata ad Ajax. Da usare con la latitudine."
+                }
+            }
         }
     },
     "entity": {

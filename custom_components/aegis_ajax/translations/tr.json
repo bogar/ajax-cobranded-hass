@@ -85,6 +85,28 @@
                     "description": "Zorla kurulacak alarm paneli. Belirtilmezse tüm paneller kurulur."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Panik butonuna bas (SOS)",
+            "description": "Ajax SOS / panik butonunu bir alanda tetikler. Resmi mobil uygulamadaki kırmızı SOS butonuyla aynı uç noktayı çağırır ve bir Panik alarmını izleme istasyonuna (CRA) iletir; bu da çoğu sözleşmede doğrulama pencerelerini atlayarak anında polis sevkini tetikler. Yalnızca gerçek acil durumlarda kullanın. confirm alanı true olarak ayarlanmalı, aksi takdirde çağrı reddedilir.",
+            "fields": {
+                "confirm": {
+                    "name": "Paniği onayla",
+                    "description": "true olarak ayarlanmalıdır. Otomasyonların bu hizmeti yanlışlıkla tetiklemesini önleyen güvenlik kilidi olarak çalışır."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Panik butonu basılacak alanın alarm paneli varlığı. Atlanırsa panik tüm yapılandırılmış alanlara gönderilir."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Çağrı yapanın isteğe bağlı enlemi Ajax'a iletilir. Boylamla birlikte kullanın."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Çağrı yapanın isteğe bağlı boylamı Ajax'a iletilir. Enlemle birlikte kullanın."
+                }
+            }
         }
     },
     "entity": {

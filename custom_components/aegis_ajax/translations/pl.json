@@ -85,6 +85,28 @@
                     "description": "Panel alarmowy do wymuszonego uzbrojenia. Jeśli pominięto, uzbraja wszystkie panele."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Naciśnij przycisk paniki (SOS)",
+            "description": "Wyzwala przycisk SOS / paniki Ajax w przestrzeni. Wywołuje ten sam endpoint co czerwony przycisk SOS w oficjalnej aplikacji i przekazuje alarm paniki do stacji monitorowania (CRA), co w większości umów oznacza natychmiastowe wezwanie policji bez okienek weryfikacyjnych. Używaj wyłącznie w prawdziwych sytuacjach awaryjnych. Pole confirm musi być ustawione na true, w przeciwnym razie wywołanie zostanie odrzucone.",
+            "fields": {
+                "confirm": {
+                    "name": "Potwierdź panikę",
+                    "description": "Musi być ustawione na true. Działa jako blokada bezpieczeństwa, aby automatyzacje nie wywołały tej usługi przypadkowo."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Encja panelu alarmowego przestrzeni, w której ma zostać naciśnięty przycisk paniki. Jeśli zostanie pominięta, alarm zostanie wysłany do wszystkich skonfigurowanych przestrzeni."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Opcjonalna szerokość geograficzna osoby dzwoniącej przekazywana do Ajax. Używaj razem z długością."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Opcjonalna długość geograficzna osoby dzwoniącej przekazywana do Ajax. Używaj razem z szerokością."
+                }
+            }
         }
     },
     "entity": {

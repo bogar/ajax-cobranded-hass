@@ -106,6 +106,44 @@ async def _async_handle_force_arm_night(hass: HomeAssistant, call: ServiceCall) 
             refreshed.add(cid)
 
 
+async def _async_handle_press_panic_button(hass: HomeAssistant, call: ServiceCall) -> None:
+    """Handle press_panic_button service call.
+
+    Hits the SpaceService/pressPanicButton endpoint — the same one the
+    official Ajax app's red SOS button uses. This forwards a Panic / Hold-up
+    alarm to the monitoring station (CRA), which on most contracts triggers
+    police dispatch immediately and bypasses verification windows.
+
+    A `confirm: true` field is required at the service level to prevent
+    automations from triggering it accidentally. Without it the call is
+    rejected via ServiceValidationError.
+    """
+    from homeassistant.exceptions import ServiceValidationError  # noqa: PLC0415
+
+    if not call.data.get("confirm"):
+        raise ServiceValidationError(
+            "press_panic_button requires `confirm: true` to acknowledge that this "
+            "forwards a panic alarm to the Ajax monitoring station (CRA), which on "
+            "most contracts triggers police dispatch immediately."
+        )
+
+    latitude = call.data.get("latitude")
+    longitude = call.data.get("longitude")
+
+    targets = _resolve_target_space_ids(hass, call)
+    if not targets:
+        raise ServiceValidationError(
+            "press_panic_button: no Aegis alarm panel found for the given target."
+        )
+
+    for coordinator, space_id in targets:
+        await coordinator.spaces_api.press_panic_button(
+            space_id,
+            latitude=latitude,
+            longitude=longitude,
+        )
+
+
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Migrate config entry to newer version."""
     if entry.version == 1:
@@ -219,9 +257,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntry
     async def _force_arm_night_handler(call: ServiceCall) -> None:
         await _async_handle_force_arm_night(hass, call)
 
+    async def _press_panic_button_handler(call: ServiceCall) -> None:
+        await _async_handle_press_panic_button(hass, call)
+
     if not hass.services.has_service(DOMAIN, "force_arm"):
         hass.services.async_register(DOMAIN, "force_arm", _force_arm_handler)
         hass.services.async_register(DOMAIN, "force_arm_night", _force_arm_night_handler)
+        hass.services.async_register(DOMAIN, "press_panic_button", _press_panic_button_handler)
 
     # Reload integration when options change (e.g. FCM credentials)
     entry.async_on_unload(entry.add_update_listener(_async_options_update_listener))
@@ -331,6 +373,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: AjaxCobrandedConfigEntr
     if not any(e.entry_id != entry.entry_id for e in remaining):
         hass.services.async_remove(DOMAIN, "force_arm")
         hass.services.async_remove(DOMAIN, "force_arm_night")
+        hass.services.async_remove(DOMAIN, "press_panic_button")
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:

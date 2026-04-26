@@ -89,6 +89,28 @@
                     "description": "Panoul de alarmă de armat forțat. Dacă este omis, armează toate panourile."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Apasă butonul de panică (SOS)",
+            "description": "Declanșează butonul SOS / de panică Ajax într-un spațiu. Apelează același endpoint ca butonul SOS roșu din aplicația oficială și transmite o alarmă de panică către dispeceratul de monitorizare (CRA), ceea ce, în majoritatea contractelor, înseamnă intervenție imediată a poliției, ocolind ferestrele de verificare. Folosește doar în urgențe reale. Câmpul confirm trebuie să fie true sau apelul este respins.",
+            "fields": {
+                "confirm": {
+                    "name": "Confirmă panica",
+                    "description": "Trebuie să fie true. Acționează ca un blocaj de siguranță pentru a împiedica automatizările să declanșeze accidental acest serviciu."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Entitatea panoului de alarmă a spațiului pentru care se apasă butonul de panică. Dacă este omisă, panica este trimisă către toate spațiile configurate."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Latitudine opțională a apelantului transmisă către Ajax. Folosiți împreună cu longitudinea."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Longitudine opțională a apelantului transmisă către Ajax. Folosiți împreună cu latitudinea."
+                }
+            }
         }
     },
     "entity": {

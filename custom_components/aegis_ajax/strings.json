@@ -89,6 +89,28 @@
                     "description": "Alarm panel entity to force arm night. If omitted, arms all panels."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Press panic button (SOS)",
+            "description": "Trigger the Ajax SOS / panic button on a space. Calls the same endpoint as the red SOS button in the official mobile app and forwards a Panic alarm to the monitoring station (CRA), which on most contracts triggers immediate police dispatch and bypasses verification windows. Use only for genuine emergencies. The confirm field must be set to true or the call is rejected.",
+            "fields": {
+                "confirm": {
+                    "name": "Confirm panic",
+                    "description": "Must be set to true. Acts as a safety lock to prevent automations from triggering this service accidentally."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Alarm panel entity for the space whose panic button to press. If omitted, the panic is sent to every configured space."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Optional caller latitude forwarded to Ajax. Use with longitude."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Optional caller longitude forwarded to Ajax. Use with latitude."
+                }
+            }
         }
     },
     "entity": {

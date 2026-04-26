@@ -91,6 +91,10 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return self._security_api
 
     @property
+    def spaces_api(self) -> SpacesApi:
+        return self._spaces_api
+
+    @property
     def devices_api(self) -> DevicesApi:
         return self._devices_api
 

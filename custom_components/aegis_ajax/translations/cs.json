@@ -85,6 +85,28 @@
                     "description": "Alarmový panel k nucenému zastřežení. Pokud je vynecháno, zastřeží všechny panely."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Stisknout panikové tlačítko (SOS)",
+            "description": "Spustí tlačítko SOS / paniky Ajaxu v prostoru. Volá stejný endpoint jako červené SOS tlačítko v oficiální mobilní aplikaci a předává poplach do pultu centralizované ochrany (CRA), což u většiny smluv znamená okamžitý zásah policie bez ověřovací doby. Používejte pouze v reálných nouzích. Pole confirm musí být true, jinak je volání odmítnuto.",
+            "fields": {
+                "confirm": {
+                    "name": "Potvrdit paniku",
+                    "description": "Musí být nastaveno na true. Funguje jako bezpečnostní zámek bránící náhodnému spuštění automatizací."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Entita alarmového panelu prostoru, jehož panikové tlačítko se má stisknout. Pokud je vynecháno, panika se odešle do všech nakonfigurovaných prostorů."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Volitelná zeměpisná šířka volajícího předávaná Ajaxu. Použijte společně s délkou."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Volitelná zeměpisná délka volajícího předávaná Ajaxu. Použijte společně se šířkou."
+                }
+            }
         }
     },
     "entity": {

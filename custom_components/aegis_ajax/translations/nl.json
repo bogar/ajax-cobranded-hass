@@ -85,6 +85,28 @@
                     "description": "Alarmpaneel om geforceerd in te schakelen. Indien weggelaten, worden alle panelen ingeschakeld."
                 }
             }
+        },
+        "press_panic_button": {
+            "name": "Paniekknop indrukken (SOS)",
+            "description": "Activeert de Ajax SOS-/paniekknop in een ruimte. Roept hetzelfde endpoint aan als de rode SOS-knop in de officiële app en stuurt een paniekalarm naar de meldkamer (CRA), wat in de meeste contracten direct politie-inzet oproept en verificatievensters overslaat. Alleen gebruiken bij echte noodgevallen. Het veld confirm moet op true staan, anders wordt de oproep geweigerd.",
+            "fields": {
+                "confirm": {
+                    "name": "Paniek bevestigen",
+                    "description": "Moet op true staan. Werkt als veiligheidsslot zodat automatiseringen deze service niet per ongeluk activeren."
+                },
+                "entity_id": {
+                    "name": "Entity",
+                    "description": "Alarmpaneelentiteit van de ruimte waarvan de paniekknop wordt ingedrukt. Bij weglaten wordt de paniek naar alle geconfigureerde ruimtes gestuurd."
+                },
+                "latitude": {
+                    "name": "Latitude",
+                    "description": "Optionele breedtegraad van de melder, doorgegeven aan Ajax. Gebruik samen met lengtegraad."
+                },
+                "longitude": {
+                    "name": "Longitude",
+                    "description": "Optionele lengtegraad van de melder, doorgegeven aan Ajax. Gebruik samen met breedtegraad."
+                }
+            }
         }
     },
     "entity": {

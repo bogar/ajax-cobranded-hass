@@ -136,3 +136,129 @@ class TestListSpaces:
             spaces = await api.list_spaces()
 
         assert spaces == []
+
+
+_PANIC_REQUEST = "systems.ajax.api.mobile.v2.space.press_panic_button_request_pb2"
+_PANIC_GRPC = "systems.ajax.api.mobile.v2.space.space_endpoints_pb2_grpc"
+_LOCATOR = "systems.ajax.api.mobile.v2.common.space.space_locator_pb2"
+
+
+def _patched_panic_modules(stub_class: MagicMock) -> dict[str, MagicMock]:
+    """Build a sys.modules patch for the panic button proto imports."""
+    request_pb2 = MagicMock()
+    grpc_module = MagicMock(SpaceServiceStub=stub_class)
+    locator_pb2 = MagicMock()
+    locator_pb2.SpaceLocator = MagicMock(side_effect=lambda **kwargs: kwargs)
+    return {
+        _PANIC_REQUEST: request_pb2,
+        _PANIC_GRPC: grpc_module,
+        _LOCATOR: locator_pb2,
+    }
+
+
+class TestPressPanicButton:
+    @pytest.mark.asyncio
+    async def test_press_panic_button_success(self) -> None:
+        mock_client = MagicMock()
+        mock_client._get_channel.return_value = MagicMock()
+        mock_client._session.get_call_metadata.return_value = [("token", "abc")]
+
+        api = SpacesApi(mock_client)
+
+        # The proto request object: keep an attribute bag we can inspect.
+        request_obj = MagicMock()
+        request_pb2 = MagicMock()
+        request_pb2.PressPanicButtonRequest = MagicMock(return_value=request_obj)
+
+        response = MagicMock()
+        response.HasField.return_value = False  # success branch
+
+        stub_instance = MagicMock()
+        stub_instance.pressPanicButton = AsyncMock(return_value=response)
+        stub_class = MagicMock(return_value=stub_instance)
+
+        grpc_module = MagicMock(SpaceServiceStub=stub_class)
+        locator_pb2 = MagicMock()
+        locator_pb2.SpaceLocator = MagicMock(return_value="locator-marker")
+
+        with patch.dict(
+            "sys.modules",
+            {
+                _PANIC_REQUEST: request_pb2,
+                _PANIC_GRPC: grpc_module,
+                _LOCATOR: locator_pb2,
+            },
+        ):
+            await api.press_panic_button("space-1")
+
+        # SpaceLocator built with the right space_id
+        locator_pb2.SpaceLocator.assert_called_once_with(space_id="space-1")
+        # Request created with that locator and no location override
+        request_pb2.PressPanicButtonRequest.assert_called_once_with(space_locator="locator-marker")
+        # Stub method was awaited
+        stub_instance.pressPanicButton.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_press_panic_button_with_coordinates(self) -> None:
+        mock_client = MagicMock()
+        mock_client._get_channel.return_value = MagicMock()
+        mock_client._session.get_call_metadata.return_value = []
+
+        api = SpacesApi(mock_client)
+
+        request_obj = MagicMock()
+        request_pb2 = MagicMock()
+        request_pb2.PressPanicButtonRequest = MagicMock(return_value=request_obj)
+
+        response = MagicMock()
+        response.HasField.return_value = False
+        stub_instance = MagicMock()
+        stub_instance.pressPanicButton = AsyncMock(return_value=response)
+        stub_class = MagicMock(return_value=stub_instance)
+        grpc_module = MagicMock(SpaceServiceStub=stub_class)
+        locator_pb2 = MagicMock()
+
+        with patch.dict(
+            "sys.modules",
+            {
+                _PANIC_REQUEST: request_pb2,
+                _PANIC_GRPC: grpc_module,
+                _LOCATOR: locator_pb2,
+            },
+        ):
+            await api.press_panic_button("space-1", latitude=40.4168, longitude=-3.7038)
+
+        # latitude / longitude assigned on the request's location field
+        assert request_obj.location.latitude == 40.4168
+        assert request_obj.location.longitude == -3.7038
+
+    @pytest.mark.asyncio
+    async def test_press_panic_button_failure_raises(self) -> None:
+        mock_client = MagicMock()
+        mock_client._get_channel.return_value = MagicMock()
+        mock_client._session.get_call_metadata.return_value = []
+
+        api = SpacesApi(mock_client)
+
+        response = MagicMock()
+        response.HasField.return_value = True
+        response.failure.WhichOneof.return_value = "permissions_denied"
+        stub_instance = MagicMock()
+        stub_instance.pressPanicButton = AsyncMock(return_value=response)
+
+        request_pb2 = MagicMock()
+        grpc_module = MagicMock(SpaceServiceStub=MagicMock(return_value=stub_instance))
+        locator_pb2 = MagicMock()
+
+        with (
+            patch.dict(
+                "sys.modules",
+                {
+                    _PANIC_REQUEST: request_pb2,
+                    _PANIC_GRPC: grpc_module,
+                    _LOCATOR: locator_pb2,
+                },
+            ),
+            pytest.raises(RuntimeError, match="permissions_denied"),
+        ):
+            await api.press_panic_button("space-1")
