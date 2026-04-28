@@ -6,6 +6,7 @@ import asyncio
 import base64
 import logging
 import re
+import time
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
@@ -15,6 +16,7 @@ from custom_components.aegis_ajax.const import (
     DOMAIN,
     HUB_EVENT_TAG_MAP,
     RAW_TAG_TO_SECURITY_STATE,
+    SPACE_EVENT_TAG_MAP,
 )
 
 if TYPE_CHECKING:
@@ -26,6 +28,12 @@ _LOGGER = logging.getLogger(__name__)
 
 STORAGE_KEY = f"{DOMAIN}_fcm_credentials"
 STORAGE_VERSION = 1
+
+# Ajax dispatches two FCM messages per security transition (one user-facing
+# Notification + one silent DispatchEvent), separated by ~20-30 ms server-side.
+# Both share the same Ajax notification_id, so we suppress duplicate event-fire
+# and refresh paths within this window. See #80.
+NOTIFICATION_DEDUPE_WINDOW_SECONDS = 5.0
 
 
 class AjaxNotificationListener:
@@ -53,6 +61,9 @@ class AjaxNotificationListener:
         self._photo_callbacks: dict[str, asyncio.Future[str | None]] = {}
         self._notification_id_callbacks: dict[str, asyncio.Future[str | None]] = {}
         self._last_notification_id: str | None = None
+        # notification_id → time.monotonic() of first sighting; used to suppress
+        # the second of the two FCM messages Ajax sends per event (#80).
+        self._recent_notification_ids: dict[str, float] = {}
 
     async def async_start(self) -> None:
         """Register with FCM and start listening for push notifications."""
@@ -203,6 +214,7 @@ class AjaxNotificationListener:
                 _LOGGER.debug("Failed to parse ENCODED_DATA from push")
 
         # Extract notification_id for photo URL retrieval
+        notif_id: str | None = None
         if encoded_data:
             notif_id = self.extract_notification_id(encoded_data)
             if notif_id:
@@ -217,6 +229,17 @@ class AjaxNotificationListener:
                         _LOGGER.debug("Resolved notification_id for device %s", device_id)
                         break
 
+        # Dedupe Ajax's two-FCM-per-event dispatch (#80). Pushes without an
+        # extractable notification_id fall through unchanged so a parser miss
+        # never silences an unrelated event.
+        if notif_id and self._is_duplicate_notification(notif_id):
+            _LOGGER.debug(
+                "Duplicate notification_id %s within %.0fs window; skipping fire/refresh",
+                notif_id[:20],
+                NOTIFICATION_DEDUPE_WINDOW_SECONDS,
+            )
+            return
+
         # Parse event from ENCODED_DATA using compiled protos
         if encoded_data:
             self._parse_and_fire_event(encoded_data)
@@ -227,6 +250,24 @@ class AjaxNotificationListener:
                 self._hass.async_create_task,
                 self._coordinator.async_request_refresh(),
             )
+
+    def _is_duplicate_notification(self, notif_id: str) -> bool:
+        """Return True if *notif_id* was seen within the dedupe window.
+
+        Records the sighting on first call so the second push within the
+        window is suppressed. Stale entries are pruned on every call to
+        keep the dict bounded.
+        """
+        now = time.monotonic()
+        cutoff = now - NOTIFICATION_DEDUPE_WINDOW_SECONDS
+        # Prune expired entries.
+        self._recent_notification_ids = {
+            k: v for k, v in self._recent_notification_ids.items() if v > cutoff
+        }
+        if notif_id in self._recent_notification_ids:
+            return True
+        self._recent_notification_ids[notif_id] = now
+        return False
 
     async def wait_for_photo_url(self, device_id: str, timeout: float = 15.0) -> str | None:
         """Wait for a photo URL to arrive via push notification."""
@@ -335,21 +376,54 @@ class AjaxNotificationListener:
             return self._extract_event_raw(raw)
 
     def _extract_event_with_compiled_protos(self, raw: bytes) -> tuple[str, dict[str, Any]] | None:
-        """Parse event by finding HubEventQualifier embedded in raw protobuf."""
+        """Parse event by finding a Hub or Space event qualifier in raw protobuf.
+
+        Arm/disarm pushes embed a `SpaceEventQualifier` (`SpaceNotificationContent.
+        qualifier`) — try those first (#68). The same payload often also carries
+        unrelated `HubEventQualifier` candidates describing zone-level
+        sub-incidents (`ext_contact_opened`, `roller_shutter_alarm`); they are
+        the legitimate primary tag for hub-level pushes (alarm, tamper, …) so
+        they remain the fallback.
+        """
         from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.hub import (  # noqa: PLC0415, E501
-            qualifier_pb2,
+            qualifier_pb2 as hub_qualifier_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.space import (  # noqa: PLC0415, E501
+            qualifier_pb2 as space_qualifier_pb2,
         )
 
-        for candidate in self._find_embedded_messages(raw):
+        candidates = self._find_embedded_messages(raw)
+
+        # Pass 1 — SpaceEventQualifier (arm/disarm/night/panic at space level).
+        for candidate in candidates:
             try:
-                qualifier = qualifier_pb2.HubEventQualifier()
+                space_q = space_qualifier_pb2.SpaceEventQualifier()
+                space_q.ParseFromString(candidate)
+            except Exception:
+                continue
+            if not space_q.HasField("tag"):
+                continue
+            tag_field = space_q.tag.WhichOneof("event_tag_case")
+            if tag_field and tag_field in SPACE_EVENT_TAG_MAP:
+                event_type = SPACE_EVENT_TAG_MAP[tag_field]
+                data: dict[str, Any] = {"raw_tag": tag_field}
+                if space_q.HasField("transition"):
+                    trans_field = space_q.transition.WhichOneof("transition")
+                    if trans_field:
+                        data["transition"] = trans_field
+                return event_type, data
+
+        # Pass 2 — HubEventQualifier (zone-level events: alarm, tamper, …).
+        for candidate in candidates:
+            try:
+                qualifier = hub_qualifier_pb2.HubEventQualifier()
                 qualifier.ParseFromString(candidate)
                 if qualifier.HasField("tag"):
                     tag = qualifier.tag
                     tag_field = tag.WhichOneof("event_tag_case")
                     if tag_field and tag_field in HUB_EVENT_TAG_MAP:
                         event_type = HUB_EVENT_TAG_MAP[tag_field]
-                        data: dict[str, Any] = {"raw_tag": tag_field}
+                        data = {"raw_tag": tag_field}
                         if qualifier.HasField("transition"):
                             trans_field = qualifier.transition.WhichOneof("transition")
                             if trans_field:

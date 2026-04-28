@@ -174,6 +174,7 @@ EVENT_DOMAIN = f"{DOMAIN}_event"
 # the resulting space-level state (PARTIALLY_ARMED, ARMED, …) depends on the
 # other groups; let the next poll resolve it.
 RAW_TAG_TO_SECURITY_STATE: dict[str, SecurityState] = {
+    # HubEventTag tags (sub-incidents that imply a space-level transition)
     "arm": SecurityState.ARMED,
     "arm_attempt": SecurityState.ARMED,
     "arm_with_malfunctions": SecurityState.ARMED,
@@ -182,6 +183,20 @@ RAW_TAG_TO_SECURITY_STATE: dict[str, SecurityState] = {
     "night_mode_on": SecurityState.NIGHT_MODE,
     "night_mode_off": SecurityState.DISARMED,
     "duress_night_mode_off": SecurityState.DISARMED,
+    # SpaceEventTag tags (the actual primary arm/disarm push from co-brand
+    # FCM payloads — see #68; HubEventQualifier candidates in the same payload
+    # only carry secondary zone-incident info such as `ext_contact_opened`).
+    "space_armed": SecurityState.ARMED,
+    "space_armed_with_malfunctions": SecurityState.ARMED,
+    "space_auto_armed": SecurityState.ARMED,
+    "space_auto_armed_with_malfunctions": SecurityState.ARMED,
+    "space_disarmed": SecurityState.DISARMED,
+    "space_auto_disarmed": SecurityState.DISARMED,
+    "space_duress_disarmed": SecurityState.DISARMED,
+    "space_night_mode_on": SecurityState.NIGHT_MODE,
+    "space_night_mode_on_with_malfunctions": SecurityState.NIGHT_MODE,
+    "space_night_mode_off": SecurityState.DISARMED,
+    "space_duress_night_mode_off": SecurityState.DISARMED,
 }
 
 
@@ -233,4 +248,29 @@ HUB_EVENT_TAG_MAP: dict[str, str] = {
     "door_opened": "door_open",
 }
 
-ALL_EVENT_TYPES: list[str] = sorted(set(HUB_EVENT_TAG_MAP.values()))
+# Map SpaceEventTag oneof field names to simplified HA event types. Used in
+# parallel to HUB_EVENT_TAG_MAP because arm/disarm pushes carry a
+# SpaceEventQualifier (in SpaceNotificationContent.qualifier), not a
+# HubEventQualifier — the former is what we need for #68 to fire.
+# `space_group_*` tags are intentionally omitted: they describe a single
+# group's transition and the resulting space-level state can only be resolved
+# from the next poll.
+SPACE_EVENT_TAG_MAP: dict[str, str] = {
+    "space_armed": "arm",
+    "space_armed_with_malfunctions": "arm",
+    "space_auto_armed": "arm",
+    "space_auto_armed_with_malfunctions": "arm",
+    "space_disarmed": "disarm",
+    "space_auto_disarmed": "disarm",
+    "space_duress_disarmed": "disarm",
+    "space_night_mode_on": "arm_night",
+    "space_night_mode_on_with_malfunctions": "arm_night",
+    "space_night_mode_off": "disarm_night",
+    "space_duress_night_mode_off": "disarm_night",
+    "space_panic_button_pressed": "panic",
+}
+
+
+ALL_EVENT_TYPES: list[str] = sorted(
+    set(HUB_EVENT_TAG_MAP.values()) | set(SPACE_EVENT_TAG_MAP.values())
+)

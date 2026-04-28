@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2-beta.3] - 2026-04-28
+
+### Fixed
+- Automations bound to `event.aegis_security_event` no longer trigger twice for every arm / disarm / night-mode transition. The Ajax FCM backend dispatches **two separate FCM messages** per security event (a user-facing `Notification` and a silent `DispatchEvent`) ~20–30 ms apart, both carrying the same `SpaceEventQualifier`. With the new in-memory shortcut from #68 they were both reaching the event-fire / refresh path. The notification listener now dedupes by Ajax `notification_id` over a 5 s window: the second push short-circuits before `_parse_and_fire_event` and `async_request_refresh()`. Photo-URL extraction and notification-id-future resolution stay above the dedupe gate, and pushes without an extractable `notification_id` skip dedupe (defensive). The alarm panel state path was already idempotent so panel state and HTS data are unchanged. (#80)
+
+## [1.2.2-beta.2] - 2026-04-28
+
+### Fixed
+- HTS-backed hub-network sensors (`connection_type`, Wi-Fi SSID / IP / signal, ethernet IP / gateway / DNS, cellular network) no longer flap to `unavailable` on healthy idle connections. The HTS listen loop used to treat the very first `READ_TIMEOUT=40s` of inbound silence as a hard disconnect — but a healthy server can legitimately stay quiet beyond that window. The loop now tolerates up to `MAX_CONSECUTIVE_READ_TIMEOUTS=3` consecutive idle timeouts (~120s of full silence) before closing, resetting the counter on any real inbound message. A failed PING still closes the connection immediately, so genuine disconnects are detected without delay. (#76, thanks @bogar 🙏)
+
+## [1.2.2-beta.1] - 2026-04-28
+
+### Fixed
+- The FCM-driven instant `security_state` shortcut now fires for arm / disarm / night-mode pushes in co-brand setups where it had been silently falling through to the legacy poll-refresh path. The push payload encodes the primary transition in a `SpaceEventQualifier` (inside `SpaceNotificationContent.qualifier`), but the parser only inspected `HubEventQualifier` candidates, which in those payloads carry secondary zone-incident tags such as `ext_contact_opened` / `roller_shutter_alarm`. The parser now tries `SpaceEventQualifier` first and maps the `space_armed` / `space_disarmed` / `space_night_mode_*` family to a new `SPACE_EVENT_TAG_MAP`, falling back to `HubEventQualifier` for genuine hub-level events (alarm, tamper, …). The `event.aegis_security_event` entity also benefits because it shares the same parser. (#68)
+- The HTS authentication handshake is now bounded by an overall 20s timeout. Previously `_authenticate()` only relied on the per-chunk `READ_TIMEOUT`, so a server that kept the TCP connection alive while feeding bytes slowly could keep the handshake await alive forever — blocking `_async_update_data()` for hours and freezing the alarm panel state. On timeout the connection is closed and `HtsConnectionError` is raised, so the coordinator surfaces `UpdateFailed` and reschedules the next poll on the normal cadence. (#74)
+
 ## [1.2.1] - 2026-04-28
 
 Stable release rolling up the `1.2.1-beta.1` … `1.2.1-beta.10` line. Highlights:

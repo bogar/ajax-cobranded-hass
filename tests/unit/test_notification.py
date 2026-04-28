@@ -309,3 +309,282 @@ class TestApplySecurityStateFromEvent:
         listener._apply_security_state_from_event("space-1", {"raw_tag": "arm"})
 
         hass.loop.call_soon_threadsafe.assert_not_called()
+
+    def test_space_armed_tag_dispatches_armed_state(self) -> None:
+        from custom_components.aegis_ajax.const import SecurityState
+
+        listener, hass, coordinator = self._make_listener()
+
+        listener._apply_security_state_from_event("space-1", {"raw_tag": "space_armed"})
+
+        hass.loop.call_soon_threadsafe.assert_called_once_with(
+            coordinator.apply_push_security_state, "space-1", SecurityState.ARMED
+        )
+
+    def test_space_disarmed_tag_dispatches_disarmed_state(self) -> None:
+        from custom_components.aegis_ajax.const import SecurityState
+
+        listener, hass, coordinator = self._make_listener()
+
+        listener._apply_security_state_from_event("space-1", {"raw_tag": "space_disarmed"})
+
+        hass.loop.call_soon_threadsafe.assert_called_once_with(
+            coordinator.apply_push_security_state, "space-1", SecurityState.DISARMED
+        )
+
+    def test_space_night_mode_on_dispatches_night_mode_state(self) -> None:
+        from custom_components.aegis_ajax.const import SecurityState
+
+        listener, hass, coordinator = self._make_listener()
+
+        listener._apply_security_state_from_event("space-1", {"raw_tag": "space_night_mode_on"})
+
+        hass.loop.call_soon_threadsafe.assert_called_once_with(
+            coordinator.apply_push_security_state, "space-1", SecurityState.NIGHT_MODE
+        )
+
+    def test_space_group_armed_does_not_dispatch(self) -> None:
+        # Group-level transitions don't determine the space-level state alone.
+        listener, hass, _ = self._make_listener()
+
+        listener._apply_security_state_from_event("space-1", {"raw_tag": "space_group_armed"})
+
+        hass.loop.call_soon_threadsafe.assert_not_called()
+
+
+class TestExtractEventCompiledProtos:
+    """Issue #68: arm/disarm pushes carry a SpaceEventQualifier, not Hub one."""
+
+    def _make_listener(self) -> AjaxNotificationListener:
+        hass = MagicMock()
+        coordinator = MagicMock()
+        return AjaxNotificationListener(hass=hass, coordinator=coordinator, **_FCM_KWARGS)
+
+    @staticmethod
+    def _wrap(payload: bytes) -> bytes:
+        # Embed `payload` as a length-delimited submessage of an outer parent
+        # (field 1, wire type 2) so `_find_embedded_messages` surfaces it.
+        # `_find_embedded_messages` filters candidates with `4 < length < 500`,
+        # so callers must pass payloads of >=5 bytes (qualifier + transition
+        # always satisfies that in real FCM data).
+        assert len(payload) > 4
+        return b"\x0a" + bytes([len(payload)]) + payload
+
+    def test_space_armed_qualifier_resolved_first(self) -> None:
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event import (  # noqa: E501
+            transition_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.space import (  # noqa: E501
+            qualifier_pb2 as space_qualifier_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.space import (
+            tag_pb2 as space_tag_pb2,
+        )
+
+        qualifier = space_qualifier_pb2.SpaceEventQualifier(
+            tag=space_tag_pb2.SpaceEventTag(space_armed=space_tag_pb2.SpaceArmed()),
+            transition=transition_pb2.EventTransition(
+                impulse=transition_pb2.EventTransition.Impulse()
+            ),
+        )
+        wrapped = self._wrap(qualifier.SerializeToString())
+
+        listener = self._make_listener()
+        result = listener._extract_event_with_compiled_protos(wrapped)
+
+        assert result is not None
+        event_type, data = result
+        assert event_type == "arm"
+        assert data["raw_tag"] == "space_armed"
+
+    def test_space_disarmed_qualifier(self) -> None:
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event import (  # noqa: E501
+            transition_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.space import (  # noqa: E501
+            qualifier_pb2 as space_qualifier_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.space import (
+            tag_pb2 as space_tag_pb2,
+        )
+
+        qualifier = space_qualifier_pb2.SpaceEventQualifier(
+            tag=space_tag_pb2.SpaceEventTag(space_disarmed=space_tag_pb2.SpaceDisarmed()),
+            transition=transition_pb2.EventTransition(
+                impulse=transition_pb2.EventTransition.Impulse()
+            ),
+        )
+        wrapped = self._wrap(qualifier.SerializeToString())
+
+        listener = self._make_listener()
+        result = listener._extract_event_with_compiled_protos(wrapped)
+
+        assert result is not None
+        event_type, data = result
+        assert event_type == "disarm"
+        assert data["raw_tag"] == "space_disarmed"
+
+    def test_space_qualifier_preferred_over_hub_subincident(self) -> None:
+        # When both a SpaceEventQualifier (primary) and a HubEventQualifier
+        # (sub-incident, e.g. ext_contact_opened) are present in the same
+        # payload, the space-level transition wins.
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event import (  # noqa: E501
+            transition_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.hub import (  # noqa: E501
+            qualifier_pb2 as hub_qualifier_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.hub import (
+            tag_pb2 as hub_tag_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.space import (  # noqa: E501
+            qualifier_pb2 as space_qualifier_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.space import (
+            tag_pb2 as space_tag_pb2,
+        )
+
+        space_q = space_qualifier_pb2.SpaceEventQualifier(
+            tag=space_tag_pb2.SpaceEventTag(space_night_mode_on=space_tag_pb2.SpaceNightModeOn()),
+            transition=transition_pb2.EventTransition(
+                impulse=transition_pb2.EventTransition.Impulse()
+            ),
+        )
+        hub_q = hub_qualifier_pb2.HubEventQualifier(
+            tag=hub_tag_pb2.HubEventTag(intrusion_alarm=hub_tag_pb2.IntrusionAlarm()),
+            transition=transition_pb2.EventTransition(
+                triggered=transition_pb2.EventTransition.Triggered()
+            ),
+        )
+        # Place the hub qualifier BEFORE the space one so the test would fail
+        # if we were still picking the first parseable HubEventQualifier.
+        wrapped = self._wrap(hub_q.SerializeToString()) + self._wrap(space_q.SerializeToString())
+
+        listener = self._make_listener()
+        result = listener._extract_event_with_compiled_protos(wrapped)
+
+        assert result is not None
+        event_type, data = result
+        assert event_type == "arm_night"
+        assert data["raw_tag"] == "space_night_mode_on"
+
+    def test_hub_qualifier_used_when_no_space_qualifier(self) -> None:
+        # Hub-level events (alarm, tamper, …) still resolve through the
+        # existing HubEventQualifier path.
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event import (  # noqa: E501
+            transition_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.hub import (  # noqa: E501
+            qualifier_pb2 as hub_qualifier_pb2,
+        )
+        from systems.ajax.api.ecosystem.v2.communicationsvc.mobile.commonmodels.event.hub import (
+            tag_pb2 as hub_tag_pb2,
+        )
+
+        qualifier = hub_qualifier_pb2.HubEventQualifier(
+            tag=hub_tag_pb2.HubEventTag(intrusion_alarm=hub_tag_pb2.IntrusionAlarm()),
+            transition=transition_pb2.EventTransition(
+                triggered=transition_pb2.EventTransition.Triggered()
+            ),
+        )
+        wrapped = self._wrap(qualifier.SerializeToString())
+
+        listener = self._make_listener()
+        result = listener._extract_event_with_compiled_protos(wrapped)
+
+        assert result is not None
+        event_type, data = result
+        assert event_type == "alarm"
+        assert data["raw_tag"] == "intrusion_alarm"
+
+
+class TestNotificationDedupe:
+    """Issue #80: Ajax dispatches two FCM messages per security transition with
+    identical notification_id; the second must not double-fire automations."""
+
+    def _make_listener(self) -> tuple[AjaxNotificationListener, MagicMock, MagicMock]:
+        hass = MagicMock()
+        hass.loop = MagicMock()
+        hass.loop.is_running.return_value = True
+        coordinator = MagicMock()
+        coordinator.async_request_refresh = AsyncMock()
+        coordinator._space_ids = []
+        listener = AjaxNotificationListener(hass=hass, coordinator=coordinator, **_FCM_KWARGS)
+        return listener, hass, coordinator
+
+    def test_duplicate_notification_id_skips_second_fire(self) -> None:
+        listener, hass, _ = self._make_listener()
+
+        # Two pushes with the same encoded data → same notification_id.
+        listener._on_notification({"ENCODED_DATA": _REAL_PUSH_ENCODED_DATA}, "pid-1")
+        listener._on_notification({"ENCODED_DATA": _REAL_PUSH_ENCODED_DATA}, "pid-2")
+
+        # First push triggered the refresh; second one short-circuited.
+        assert hass.loop.call_soon_threadsafe.call_count == 1
+
+    def test_distinct_notification_ids_both_fire(self) -> None:
+        listener, hass, _ = self._make_listener()
+
+        # First push uses the canonical real payload (notif_id = …D89E).
+        listener._on_notification({"ENCODED_DATA": _REAL_PUSH_ENCODED_DATA}, "pid-1")
+
+        # Second push has a different 64-char hex notification_id embedded in the
+        # raw bytes — extract_notification_id picks the first 64-hex match.
+        other_notif_id = "AAAA" + "B" * 60
+        encoded = base64.b64encode(other_notif_id.encode()).decode()
+        listener._on_notification({"ENCODED_DATA": encoded}, "pid-2")
+
+        assert hass.loop.call_soon_threadsafe.call_count == 2
+
+    def test_duplicate_outside_window_fires_again(self) -> None:
+        from custom_components.aegis_ajax.notification import (  # noqa: PLC0415
+            NOTIFICATION_DEDUPE_WINDOW_SECONDS,
+        )
+
+        listener, hass, _ = self._make_listener()
+
+        with patch("custom_components.aegis_ajax.notification.time.monotonic") as monotonic:
+            monotonic.return_value = 1000.0
+            listener._on_notification({"ENCODED_DATA": _REAL_PUSH_ENCODED_DATA}, "pid-1")
+
+            # Second push beyond the dedupe window — should fire again.
+            monotonic.return_value = 1000.0 + NOTIFICATION_DEDUPE_WINDOW_SECONDS + 0.1
+            listener._on_notification({"ENCODED_DATA": _REAL_PUSH_ENCODED_DATA}, "pid-2")
+
+        assert hass.loop.call_soon_threadsafe.call_count == 2
+
+    def test_push_without_notification_id_does_not_dedupe(self) -> None:
+        # Defensive: if extract_notification_id returns None (parser miss), we
+        # never want to silence the second push by accident.
+        listener, hass, _ = self._make_listener()
+
+        # Encoded data without a 64-char hex string → notif_id is None.
+        encoded = base64.b64encode(b"no hex id present here, just text").decode()
+
+        listener._on_notification({"ENCODED_DATA": encoded}, "pid-1")
+        listener._on_notification({"ENCODED_DATA": encoded}, "pid-2")
+
+        assert hass.loop.call_soon_threadsafe.call_count == 2
+
+    def test_dedupe_dict_pruned_to_recent_entries(self) -> None:
+        from custom_components.aegis_ajax.notification import (  # noqa: PLC0415
+            NOTIFICATION_DEDUPE_WINDOW_SECONDS,
+        )
+
+        listener, _, _ = self._make_listener()
+
+        with patch("custom_components.aegis_ajax.notification.time.monotonic") as monotonic:
+            monotonic.return_value = 1000.0
+            listener._on_notification({"ENCODED_DATA": _REAL_PUSH_ENCODED_DATA}, "pid-1")
+            assert _EXPECTED_NOTIFICATION_ID in listener._recent_notification_ids
+
+            # A later, distinct push prunes the expired entry.
+            monotonic.return_value = 1000.0 + NOTIFICATION_DEDUPE_WINDOW_SECONDS + 1.0
+            other = "FFFF" + "E" * 60
+            listener._on_notification(
+                {"ENCODED_DATA": base64.b64encode(other.encode()).decode()},
+                "pid-2",
+            )
+
+        assert _EXPECTED_NOTIFICATION_ID not in listener._recent_notification_ids
+        assert other in listener._recent_notification_ids

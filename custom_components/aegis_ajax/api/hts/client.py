@@ -52,6 +52,13 @@ HTS_HOST = "hts.prod.ajax.systems"
 HTS_PORT = 443
 PING_INTERVAL = 30
 READ_TIMEOUT = 40
+# Bound the full 4-step auth handshake. Without this, a server that keeps the
+# TCP connection alive but feeds bytes slowly can keep `_receive_message()`'s
+# per-chunk reads under READ_TIMEOUT forever, so the coroutine never resolves.
+AUTH_TIMEOUT = 20
+# Tolerance for idle HTS connections in `listen()`: a healthy server can stay
+# quiet beyond READ_TIMEOUT, so we only close the connection after this many
+# back-to-back read timeouts with no inbound data (#76).
 MAX_CONSECUTIVE_READ_TIMEOUTS = 3
 
 
@@ -154,7 +161,10 @@ class HtsClient:
             raise HtsConnectionError(f"Cannot connect to {self._host}:{self._port}: {exc}") from exc
 
         try:
-            return await self._authenticate()
+            return await asyncio.wait_for(self._authenticate(), timeout=AUTH_TIMEOUT)
+        except TimeoutError as exc:
+            await self.close()
+            raise HtsConnectionError(f"HTS auth handshake timed out after {AUTH_TIMEOUT}s") from exc
         except Exception:
             await self.close()
             raise
