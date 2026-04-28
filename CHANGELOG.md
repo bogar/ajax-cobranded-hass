@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2-beta.2] - 2026-04-28
+
+### Fixed
+- HTS-backed hub-network sensors (`connection_type`, Wi-Fi SSID / IP / signal, ethernet IP / gateway / DNS, cellular network) no longer flap to `unavailable` on healthy idle connections. The HTS listen loop used to treat the very first `READ_TIMEOUT=40s` of inbound silence as a hard disconnect — but a healthy server can legitimately stay quiet beyond that window. The loop now tolerates up to `MAX_CONSECUTIVE_READ_TIMEOUTS=3` consecutive idle timeouts (~120s of full silence) before closing, resetting the counter on any real inbound message. A failed PING still closes the connection immediately, so genuine disconnects are detected without delay. (#76, thanks @bogar 🙏)
+
 ## [1.2.2-beta.1] - 2026-04-28
 
 ### Fixed
