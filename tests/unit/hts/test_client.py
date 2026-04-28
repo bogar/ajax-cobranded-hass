@@ -11,6 +11,7 @@ from custom_components.aegis_ajax.api.hts.client import (
     AUTH_TIMEOUT,
     HTS_HOST,
     HTS_PORT,
+    MAX_CONSECUTIVE_READ_TIMEOUTS,
     HtsClient,
     HtsConnectionError,
 )
@@ -352,3 +353,55 @@ class TestHandleUpdate:
         await asyncio.sleep(0)
 
         client.request_hub_data.assert_awaited_once_with("12345678")
+
+    @pytest.mark.asyncio
+    async def test_listen_keeps_connection_open_on_idle_read_timeout(self) -> None:
+        client = _make_client()
+        client._connected = True
+        ack = HtsMessage(
+            sender=0x12345678,
+            receiver=client._sender_id,
+            seq_num=1,
+            link=10,
+            flags=0,
+            msg_type=MsgType.ACK,
+            payload=b"",
+        )
+        client._receive_message = AsyncMock(  # type: ignore[method-assign]
+            side_effect=[TimeoutError, ack, ConnectionError("closed")]
+        )
+
+        await client.listen()
+
+        assert client._receive_message.await_count == 3
+        assert client._consecutive_read_timeouts == 0
+
+    @pytest.mark.asyncio
+    async def test_listen_closes_after_max_consecutive_idle_timeouts(self) -> None:
+        client = _make_client()
+        client._connected = True
+        client._receive_message = AsyncMock(  # type: ignore[method-assign]
+            side_effect=[TimeoutError] * MAX_CONSECUTIVE_READ_TIMEOUTS
+        )
+
+        await client.listen()
+
+        assert client._receive_message.await_count == MAX_CONSECUTIVE_READ_TIMEOUTS
+        assert client._consecutive_read_timeouts == MAX_CONSECUTIVE_READ_TIMEOUTS
+
+    @pytest.mark.asyncio
+    async def test_ping_loop_marks_disconnected_on_send_failure(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(
+            "custom_components.aegis_ajax.api.hts.client.PING_INTERVAL",
+            0,
+        )
+        client = _make_client()
+        client._connected = True
+        client._send_message = AsyncMock(side_effect=OSError("socket closed"))  # type: ignore[method-assign]
+
+        await client._ping_loop()
+
+        assert client._connected is False
+        client._send_message.assert_awaited_once_with(MsgType.PING, b"")

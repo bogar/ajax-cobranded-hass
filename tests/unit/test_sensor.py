@@ -10,6 +10,11 @@ from custom_components.aegis_ajax.api.models import BatteryInfo, Device
 from custom_components.aegis_ajax.const import DeviceState
 from custom_components.aegis_ajax.sensor import (
     SENSOR_TYPES,
+    AjaxHubCellularNetworkSensor,
+    AjaxHubConnectionTypeSensor,
+    AjaxHubEthernetDnsSensor,
+    AjaxHubEthernetGatewaySensor,
+    AjaxHubEthernetIpSensor,
     AjaxHubWifiIpSensor,
     AjaxHubWifiSignalSensor,
     AjaxHubWifiSsidSensor,
@@ -371,3 +376,44 @@ class TestHubWifiSensors:
         assert AjaxHubWifiSsidSensor(coordinator, "hub-1").native_value is None
         assert AjaxHubWifiIpSensor(coordinator, "hub-1").native_value is None
         assert AjaxHubWifiSignalSensor(coordinator, "hub-1").native_value == "unknown"
+
+
+class TestHubNetworkSensors:
+    def _make_coordinator(self, hub_id: str = "hub-1") -> MagicMock:
+        coordinator = MagicMock()
+        coordinator.devices = {hub_id: _make_hub_device(hub_id)}
+        coordinator.hub_network = {
+            hub_id: HubNetworkState(
+                ethernet_connected=True,
+                ethernet_ip="192.0.2.10",
+                ethernet_gateway="192.0.2.1",
+                ethernet_dns="192.0.2.53",
+                gsm_network_type="4g",
+            )
+        }
+        return coordinator
+
+    def test_connection_type_sensor_returns_primary_connection(self) -> None:
+        coordinator = self._make_coordinator()
+        sensor = AjaxHubConnectionTypeSensor(coordinator, "hub-1")
+        assert sensor.native_value == "ethernet"
+
+    def test_hub_network_sensors_unavailable_when_hts_state_missing(self) -> None:
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": _make_hub_device("hub-1")}
+        coordinator.hub_network = {}
+
+        assert AjaxHubConnectionTypeSensor(coordinator, "hub-1").available is False
+        assert AjaxHubWifiSsidSensor(coordinator, "hub-1").available is False
+        assert AjaxHubEthernetIpSensor(coordinator, "hub-1").available is False
+        assert AjaxHubCellularNetworkSensor(coordinator, "hub-1").available is False
+
+    def test_hub_network_sensors_share_availability_with_hts_state(self) -> None:
+        coordinator = self._make_coordinator()
+
+        assert AjaxHubConnectionTypeSensor(coordinator, "hub-1").available is True
+        assert AjaxHubWifiSsidSensor(coordinator, "hub-1").available is True
+        assert AjaxHubEthernetIpSensor(coordinator, "hub-1").available is True
+        assert AjaxHubEthernetGatewaySensor(coordinator, "hub-1").available is True
+        assert AjaxHubEthernetDnsSensor(coordinator, "hub-1").available is True
+        assert AjaxHubCellularNetworkSensor(coordinator, "hub-1").available is True

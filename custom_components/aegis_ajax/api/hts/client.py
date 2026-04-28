@@ -56,6 +56,10 @@ READ_TIMEOUT = 40
 # TCP connection alive but feeds bytes slowly can keep `_receive_message()`'s
 # per-chunk reads under READ_TIMEOUT forever, so the coroutine never resolves.
 AUTH_TIMEOUT = 20
+# Tolerance for idle HTS connections in `listen()`: a healthy server can stay
+# quiet beyond READ_TIMEOUT, so we only close the connection after this many
+# back-to-back read timeouts with no inbound data (#76).
+MAX_CONSECUTIVE_READ_TIMEOUTS = 3
 
 
 class HtsConnectionError(Exception):
@@ -102,6 +106,7 @@ class HtsClient:
         self._ping_task: asyncio.Task[None] | None = None
         self._data_request_task: asyncio.Task[None] | None = None
         self._read_buf = bytearray()
+        self._consecutive_read_timeouts = 0
         self._hub_states: dict[str, HubNetworkState] = {}
         self._on_state_update: Callable[[str, HubNetworkState], None] | None = None
         self._refresh_tasks: dict[str, asyncio.Task[None]] = {}
@@ -485,11 +490,23 @@ class HtsClient:
                 try:
                     msg = await self._receive_message()
                 except TimeoutError:
-                    _LOGGER.warning("HTS read timeout; closing connection")
-                    break
+                    self._consecutive_read_timeouts += 1
+                    if self._consecutive_read_timeouts >= MAX_CONSECUTIVE_READ_TIMEOUTS:
+                        _LOGGER.warning(
+                            "HTS read timeout %d times in a row; closing connection",
+                            self._consecutive_read_timeouts,
+                        )
+                        break
+                    _LOGGER.debug(
+                        "HTS read timeout %d/%d with no inbound data; keeping connection open",
+                        self._consecutive_read_timeouts,
+                        MAX_CONSECUTIVE_READ_TIMEOUTS,
+                    )
+                    continue
                 except ConnectionError as exc:
                     _LOGGER.warning("HTS connection error in listen: %s", exc)
                     break
+                self._consecutive_read_timeouts = 0
 
                 if not msg.is_no_ack and msg.msg_type != MsgType.ACK:
                     try:
@@ -668,8 +685,12 @@ class HtsClient:
         while self._connected:
             await asyncio.sleep(PING_INTERVAL)
             if self._connected:
-                with contextlib.suppress(Exception):
+                try:
                     await self._send_message(MsgType.PING, b"")
+                except Exception as exc:  # noqa: BLE001
+                    _LOGGER.warning("HTS ping failed; closing connection: %s", exc)
+                    self._connected = False
+                    break
 
     # ------------------------------------------------------------------
     # Close
