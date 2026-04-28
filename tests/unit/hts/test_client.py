@@ -8,9 +8,11 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.aegis_ajax.api.hts.client import (
+    AUTH_TIMEOUT,
     HTS_HOST,
     HTS_PORT,
     HtsClient,
+    HtsConnectionError,
 )
 from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
 from custom_components.aegis_ajax.api.hts.messages import HtsMessage, MsgType, tlv_encode
@@ -214,6 +216,48 @@ class TestSendMessage:
 
         assert len(captured) == 1
         assert isinstance(captured[0], bytes)
+
+
+class TestConnectAuthTimeout:
+    """Issue #74: connect() must bound the auth handshake."""
+
+    @pytest.mark.asyncio
+    async def test_authenticate_hang_raises_connection_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        client = _make_client()
+
+        # Pretend the TCP+TLS dial succeeded so we go straight into auth.
+        async def _fake_open_connection(*_args: object, **_kwargs: object) -> tuple:
+            return MagicMock(), MagicMock()
+
+        monkeypatch.setattr(
+            "custom_components.aegis_ajax.api.hts.client.asyncio.open_connection",
+            _fake_open_connection,
+        )
+
+        # Make the handshake hang forever — exactly the symptom in #74.
+        async def _hang() -> None:
+            await asyncio.Event().wait()
+
+        async def _fake_authenticate() -> object:
+            await _hang()
+            raise AssertionError("unreachable")
+
+        monkeypatch.setattr(client, "_authenticate", _fake_authenticate)
+        monkeypatch.setattr(client, "close", AsyncMock())
+
+        # Override the timeout so the test doesn't actually wait 20s.
+        monkeypatch.setattr("custom_components.aegis_ajax.api.hts.client.AUTH_TIMEOUT", 0.05)
+
+        with pytest.raises(HtsConnectionError, match="auth handshake timed out"):
+            await client.connect()
+
+        client.close.assert_awaited()
+
+    def test_auth_timeout_default(self) -> None:
+        # Sanity check: default budget is bounded and reasonable.
+        assert 1 <= AUTH_TIMEOUT <= 60
 
 
 class TestHandleUpdate:
