@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from unittest.mock import MagicMock
 
@@ -497,6 +498,28 @@ class TestHubMonitoringCompanySensor:
             "pending_approval_companies": ["Central Two"],
             "pending_removal_companies": ["Central Three"],
         }
+
+    def test_state_payload_is_json_serializable(self) -> None:
+        coordinator = self._make_coordinator(
+            (
+                MonitoringCompany(
+                    name="Central One",
+                    status=MonitoringCompanyStatus.APPROVED,
+                ),
+                MonitoringCompany(
+                    name="Central Two",
+                    status=MonitoringCompanyStatus.PENDING_APPROVAL,
+                ),
+            )
+        )
+        sensor = AjaxHubMonitoringCompanySensor(coordinator, "space-1", "hub-1")
+
+        payload = {
+            "state": sensor.native_value,
+            "attributes": sensor.extra_state_attributes,
+        }
+
+        assert json.dumps(payload)
 
     def test_is_unavailable_until_monitoring_snapshot_loaded(self) -> None:
         coordinator = self._make_coordinator(())

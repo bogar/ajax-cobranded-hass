@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from google.protobuf.wrappers_pb2 import StringValue
 
 from custom_components.aegis_ajax.api.models import (
     MonitoringCompanyStatus,
@@ -71,6 +72,17 @@ class TestParseSpace:
 
         result = SpacesApi.parse_monitoring_company(proto_company)
 
+        assert result.name == "Secure Co"
+        assert result.status == MonitoringCompanyStatus.APPROVED
+
+    def test_parse_monitoring_company_unwraps_string_value_name(self) -> None:
+        proto_company = MagicMock()
+        proto_company.company_info.name = StringValue(value="Secure Co")
+        proto_company.status = 2
+
+        result = SpacesApi.parse_monitoring_company(proto_company)
+
+        assert isinstance(result.name, str)
         assert result.name == "Secure Co"
         assert result.status == MonitoringCompanyStatus.APPROVED
 

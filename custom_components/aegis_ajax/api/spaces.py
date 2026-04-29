@@ -44,11 +44,13 @@ class SpacesApi:
 
     @staticmethod
     def parse_monitoring_company(proto_company: Any) -> MonitoringCompany:  # noqa: ANN401
-        has_name = hasattr(proto_company, "company_info") and hasattr(
-            proto_company.company_info,
-            "name",
-        )
-        name = proto_company.company_info.name if has_name else ""
+        name = ""
+        if hasattr(proto_company, "company_info") and hasattr(proto_company.company_info, "name"):
+            raw_name = proto_company.company_info.name
+            if isinstance(raw_name, str):
+                name = raw_name
+            elif hasattr(raw_name, "value") and isinstance(raw_name.value, str):
+                name = raw_name.value
         try:
             status = MonitoringCompanyStatus(proto_company.status)
         except ValueError:
