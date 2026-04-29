@@ -10,6 +10,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, Sen
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTemperature
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from custom_components.aegis_ajax.api.models import MonitoringCompanyStatus
 from custom_components.aegis_ajax.coordinator import AjaxCobrandedCoordinator
 from custom_components.aegis_ajax.entity import build_device_info
 
@@ -122,6 +123,14 @@ async def async_setup_entry(
     for space in coordinator.spaces.values():
         if space.hub_id in coordinator.sim_info:
             entities.append(AjaxSimImeiSensor(coordinator=coordinator, hub_id=space.hub_id))
+        if space.hub_id and coordinator.devices.get(space.hub_id):
+            entities.append(
+                AjaxHubMonitoringCompanySensor(
+                    coordinator=coordinator,
+                    space_id=space.id,
+                    hub_id=space.hub_id,
+                )
+            )
 
     # Hub-level network sensors from HTS
     for space in coordinator.spaces.values():
@@ -221,6 +230,62 @@ class AjaxSimImeiSensor(AjaxSimBaseSensor):
     def native_value(self) -> str | None:
         sim = self._sim_info
         return sim.imei if sim else None
+
+
+class AjaxHubMonitoringCompanySensor(CoordinatorEntity[AjaxCobrandedCoordinator], SensorEntity):
+    """Diagnostic sensor exposing approved CRA company names for a hub."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "monitoring_company"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: AjaxCobrandedCoordinator, space_id: str, hub_id: str) -> None:
+        super().__init__(coordinator)
+        self._space_id = space_id
+        self._hub_id = hub_id
+        self._attr_unique_id = f"aegis_ajax_{hub_id}_monitoring_company"
+        hub_device = coordinator.devices.get(hub_id)
+        if hub_device:
+            self._attr_device_info = build_device_info(hub_device, coordinator.rooms)
+
+    @property
+    def available(self) -> bool:
+        space = self.coordinator.spaces.get(self._space_id)
+        return space is not None and space.monitoring_companies_loaded
+
+    @property
+    def native_value(self) -> str | None:
+        space = self.coordinator.spaces.get(self._space_id)
+        if space is None:
+            return None
+        approved = [company.name for company in space.approved_monitoring_companies if company.name]
+        if not approved:
+            return None
+        if len(approved) == 1:
+            return approved[0]
+        return "multiple"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, list[str]]:
+        space = self.coordinator.spaces.get(self._space_id)
+        if space is None:
+            return {}
+        attrs: dict[str, list[str]] = {
+            "approved_companies": [],
+            "pending_approval_companies": [],
+            "pending_removal_companies": [],
+        }
+        for company in space.monitoring_companies:
+            if not company.name:
+                continue
+            if company.status == MonitoringCompanyStatus.APPROVED:
+                attrs["approved_companies"].append(company.name)
+            elif company.status == MonitoringCompanyStatus.PENDING_APPROVAL:
+                attrs["pending_approval_companies"].append(company.name)
+            elif company.status == MonitoringCompanyStatus.PENDING_DELETION:
+                attrs["pending_removal_companies"].append(company.name)
+        return attrs
 
 
 # ---------------------------------------------------------------------------

@@ -165,6 +165,7 @@
             "mains_power": {"name": "Alimentation secteur"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Société de télésurveillance"},
             "signal_strength": {"name": "Intensité du signal"},
             "mobile_network_type": {"name": "Type de réseau mobile"},
             "wifi_signal_level": {"name": "Niveau de signal Wi-Fi"},

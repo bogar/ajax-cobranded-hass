@@ -165,6 +165,7 @@
             "mains_power": {"name": "Alimentación externa"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Compañía CRA"},
             "signal_strength": {"name": "Intensidad de señal"},
             "mobile_network_type": {"name": "Tipo de red móvil"},
             "wifi_signal_level": {"name": "Nivel de señal Wi-Fi"},

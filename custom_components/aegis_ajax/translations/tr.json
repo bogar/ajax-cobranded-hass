@@ -161,6 +161,7 @@
             "mains_power": {"name": "Şebeke gücü"}
         },
         "sensor": {
+            "monitoring_company": {"name": "İzleme merkezi şirketi"},
             "signal_strength": {"name": "Sinyal gücü"},
             "mobile_network_type": {"name": "Mobil ağ türü"},
             "wifi_signal_level": {"name": "Wi-Fi sinyal seviyesi"},

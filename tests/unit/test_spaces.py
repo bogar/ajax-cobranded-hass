@@ -6,7 +6,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.aegis_ajax.api.models import Space
+from custom_components.aegis_ajax.api.models import (
+    MonitoringCompanyStatus,
+    Space,
+    SpaceSnapshot,
+)
 from custom_components.aegis_ajax.api.spaces import SpacesApi
 from custom_components.aegis_ajax.const import ConnectionStatus, SecurityState
 
@@ -33,6 +37,7 @@ class TestParseSpace:
         assert result.name == "My Home"
         assert result.security_state == SecurityState.DISARMED
         assert result.connection_status == ConnectionStatus.ONLINE
+        assert result.monitoring_companies_loaded is False
 
     def test_parse_space_armed(self) -> None:
         proto_space = MagicMock()
@@ -58,6 +63,16 @@ class TestParseSpace:
 
         result = SpacesApi.parse_space(proto_space)
         assert result.hub_id == ""
+
+    def test_parse_monitoring_company(self) -> None:
+        proto_company = MagicMock()
+        proto_company.company_info.name = "Secure Co"
+        proto_company.status = 2
+
+        result = SpacesApi.parse_monitoring_company(proto_company)
+
+        assert result.name == "Secure Co"
+        assert result.status == MonitoringCompanyStatus.APPROVED
 
 
 class TestListSpaces:
@@ -183,6 +198,7 @@ class TestListRooms:
         snapshot_msg.HasField.side_effect = lambda f: f == "success"
         snapshot_msg.success.WhichOneof.return_value = "snapshot"
         snapshot_msg.success.snapshot.rooms = [room1, room2]
+        snapshot_msg.success.snapshot.monitoring_companies = []
 
         update_msg = MagicMock()
         update_msg.HasField.side_effect = lambda f: f == "success"
@@ -247,6 +263,62 @@ class TestListRooms:
             rooms = await api.list_rooms("space-1")
 
         assert rooms == []
+
+
+class TestGetSpaceSnapshot:
+    @pytest.mark.asyncio
+    async def test_returns_rooms_and_monitoring_companies(self) -> None:
+        mock_client = MagicMock()
+        mock_client._get_channel.return_value = MagicMock()
+        mock_client._session.get_call_metadata.return_value = []
+
+        api = SpacesApi(mock_client)
+
+        room = MagicMock()
+        room.id = "r1"
+        room.name = "Kitchen"
+
+        approved = MagicMock()
+        approved.company_info.name = "Central One"
+        approved.status = 2
+
+        pending = MagicMock()
+        pending.company_info.name = "Central Two"
+        pending.status = 1
+
+        snapshot_msg = MagicMock()
+        snapshot_msg.HasField.side_effect = lambda f: f == "success"
+        snapshot_msg.success.WhichOneof.return_value = "snapshot"
+        snapshot_msg.success.snapshot.rooms = [room]
+        snapshot_msg.success.snapshot.monitoring_companies = [approved, pending]
+
+        stream = _async_iter([snapshot_msg])
+        stub_instance = MagicMock()
+        stub_instance.stream = MagicMock(return_value=stream)
+
+        request_pb2 = MagicMock()
+        grpc_module = MagicMock(SpaceServiceStub=MagicMock(return_value=stub_instance))
+        locator_pb2 = MagicMock()
+
+        with patch.dict(
+            "sys.modules",
+            {
+                _STREAM_SPACE_REQUEST: request_pb2,
+                _SPACE_GRPC: grpc_module,
+                _SPACE_LOCATOR: locator_pb2,
+            },
+        ):
+            snapshot = await api.get_space_snapshot("space-1")
+
+        assert isinstance(snapshot, SpaceSnapshot)
+        assert len(snapshot.rooms) == 1
+        assert snapshot.rooms[0].id == "r1"
+        assert snapshot.rooms[0].name == "Kitchen"
+        assert snapshot.monitoring_companies[0].name == "Central One"
+        assert snapshot.monitoring_companies[0].status == MonitoringCompanyStatus.APPROVED
+        assert snapshot.monitoring_companies[1].name == "Central Two"
+        assert snapshot.monitoring_companies[1].status == MonitoringCompanyStatus.PENDING_APPROVAL
+        assert snapshot.monitoring_companies_loaded is True
 
 
 _PANIC_REQUEST = "systems.ajax.api.mobile.v2.space.press_panic_button_request_pb2"

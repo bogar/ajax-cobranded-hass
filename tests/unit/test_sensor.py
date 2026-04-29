@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from unittest.mock import MagicMock
 
 from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
 from custom_components.aegis_ajax.api.hub_object import SimCardInfo
-from custom_components.aegis_ajax.api.models import BatteryInfo, Device
-from custom_components.aegis_ajax.const import DeviceState
+from custom_components.aegis_ajax.api.models import (
+    BatteryInfo,
+    Device,
+    MonitoringCompany,
+    MonitoringCompanyStatus,
+    Space,
+)
+from custom_components.aegis_ajax.const import ConnectionStatus, DeviceState, SecurityState
 from custom_components.aegis_ajax.sensor import (
     SENSOR_TYPES,
     AjaxHubCellularNetworkSensor,
@@ -15,6 +22,7 @@ from custom_components.aegis_ajax.sensor import (
     AjaxHubEthernetDnsSensor,
     AjaxHubEthernetGatewaySensor,
     AjaxHubEthernetIpSensor,
+    AjaxHubMonitoringCompanySensor,
     AjaxHubWifiIpSensor,
     AjaxHubWifiSignalSensor,
     AjaxHubWifiSsidSensor,
@@ -417,3 +425,85 @@ class TestHubNetworkSensors:
         assert AjaxHubEthernetGatewaySensor(coordinator, "hub-1").available is True
         assert AjaxHubEthernetDnsSensor(coordinator, "hub-1").available is True
         assert AjaxHubCellularNetworkSensor(coordinator, "hub-1").available is True
+
+
+class TestHubMonitoringCompanySensor:
+    def _make_space(self, companies: tuple[MonitoringCompany, ...]) -> Space:
+        return Space(
+            id="space-1",
+            hub_id="hub-1",
+            name="Home",
+            security_state=SecurityState.DISARMED,
+            connection_status=ConnectionStatus.ONLINE,
+            malfunctions_count=0,
+            monitoring_companies=companies,
+            monitoring_companies_loaded=True,
+        )
+
+    def _make_coordinator(self, companies: tuple[MonitoringCompany, ...]) -> MagicMock:
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": _make_hub_device("hub-1")}
+        coordinator.spaces = {"space-1": self._make_space(companies)}
+        return coordinator
+
+    def test_native_value_returns_company_name_for_single_approved_company(self) -> None:
+        coordinator = self._make_coordinator(
+            (
+                MonitoringCompany(
+                    name="Central One",
+                    status=MonitoringCompanyStatus.APPROVED,
+                ),
+            )
+        )
+        sensor = AjaxHubMonitoringCompanySensor(coordinator, "space-1", "hub-1")
+        assert sensor.native_value == "Central One"
+
+    def test_native_value_returns_multiple_for_multiple_approved_companies(self) -> None:
+        coordinator = self._make_coordinator(
+            (
+                MonitoringCompany(
+                    name="Central One",
+                    status=MonitoringCompanyStatus.APPROVED,
+                ),
+                MonitoringCompany(
+                    name="Central Two",
+                    status=MonitoringCompanyStatus.APPROVED,
+                ),
+            )
+        )
+        sensor = AjaxHubMonitoringCompanySensor(coordinator, "space-1", "hub-1")
+        assert sensor.native_value == "multiple"
+
+    def test_extra_state_attributes_group_companies_by_status(self) -> None:
+        coordinator = self._make_coordinator(
+            (
+                MonitoringCompany(
+                    name="Central One",
+                    status=MonitoringCompanyStatus.APPROVED,
+                ),
+                MonitoringCompany(
+                    name="Central Two",
+                    status=MonitoringCompanyStatus.PENDING_APPROVAL,
+                ),
+                MonitoringCompany(
+                    name="Central Three",
+                    status=MonitoringCompanyStatus.PENDING_DELETION,
+                ),
+            )
+        )
+        sensor = AjaxHubMonitoringCompanySensor(coordinator, "space-1", "hub-1")
+        assert sensor.extra_state_attributes == {
+            "approved_companies": ["Central One"],
+            "pending_approval_companies": ["Central Two"],
+            "pending_removal_companies": ["Central Three"],
+        }
+
+    def test_is_unavailable_until_monitoring_snapshot_loaded(self) -> None:
+        coordinator = self._make_coordinator(())
+        coordinator.spaces["space-1"] = replace(
+            coordinator.spaces["space-1"], monitoring_companies_loaded=False
+        )
+
+        sensor = AjaxHubMonitoringCompanySensor(coordinator, "space-1", "hub-1")
+
+        assert sensor.available is False

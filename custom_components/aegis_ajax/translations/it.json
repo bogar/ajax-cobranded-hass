@@ -161,6 +161,7 @@
             "mains_power": {"name": "Alimentazione di rete"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Società di vigilanza"},
             "signal_strength": {"name": "Intensità del segnale"},
             "mobile_network_type": {"name": "Tipo di rete mobile"},
             "wifi_signal_level": {"name": "Livello segnale Wi-Fi"},

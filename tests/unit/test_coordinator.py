@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
-from custom_components.aegis_ajax.api.models import Device, Space
+from custom_components.aegis_ajax.api.models import (
+    Device,
+    MonitoringCompany,
+    MonitoringCompanyStatus,
+    Room,
+    Space,
+    SpaceSnapshot,
+)
 from custom_components.aegis_ajax.const import ConnectionStatus, DeviceState, SecurityState
 
 
@@ -102,16 +110,16 @@ class TestCoordinatorInit:
 class TestRoomsRefresh:
     @pytest.mark.asyncio
     async def test_rooms_populated_from_spaces_api(self) -> None:
-        from custom_components.aegis_ajax.api.models import Room
-
         coordinator = _make_coordinator()
         coordinator._client.session.is_authenticated = True
         coordinator._streams_started = True
 
         coordinator._spaces_api = MagicMock()
         coordinator._spaces_api.list_spaces = AsyncMock(return_value=[_make_space("s1")])
-        coordinator._spaces_api.list_rooms = AsyncMock(
-            return_value=[Room(id="r1", name="Kitchen", space_id="s1")]
+        coordinator._spaces_api.get_space_snapshot = AsyncMock(
+            return_value=SpaceSnapshot(
+                rooms=(Room(id="r1", name="Kitchen", space_id="s1"),),
+            )
         )
         coordinator._devices_api = MagicMock()
         coordinator._devices_api.get_devices_snapshot = AsyncMock(return_value=[])
@@ -128,13 +136,46 @@ class TestRoomsRefresh:
 
         coordinator._spaces_api = MagicMock()
         coordinator._spaces_api.list_spaces = AsyncMock(return_value=[_make_space("s1")])
-        coordinator._spaces_api.list_rooms = AsyncMock(side_effect=RuntimeError("oops"))
+        coordinator._spaces_api.get_space_snapshot = AsyncMock(side_effect=RuntimeError("oops"))
         coordinator._devices_api = MagicMock()
         coordinator._devices_api.get_devices_snapshot = AsyncMock(return_value=[])
 
         # Should not raise — failure is downgraded to debug log
         await coordinator._async_update_data()
         assert coordinator.rooms == {}
+
+    @pytest.mark.asyncio
+    async def test_monitoring_companies_populated_from_space_snapshot(self) -> None:
+        coordinator = _make_coordinator()
+        coordinator._client.session.is_authenticated = True
+        coordinator._streams_started = True
+
+        coordinator._spaces_api = MagicMock()
+        coordinator._spaces_api.list_spaces = AsyncMock(return_value=[_make_space("s1")])
+        coordinator._spaces_api.get_space_snapshot = AsyncMock(
+            return_value=SpaceSnapshot(
+                monitoring_companies=(
+                    MonitoringCompany(
+                        name="Central One",
+                        status=MonitoringCompanyStatus.APPROVED,
+                    ),
+                ),
+                monitoring_companies_loaded=True,
+            )
+        )
+        coordinator._devices_api = MagicMock()
+        coordinator._devices_api.get_devices_snapshot = AsyncMock(return_value=[])
+
+        await coordinator._async_update_data()
+
+        assert coordinator.spaces["s1"].has_monitoring is True
+        assert coordinator.spaces["s1"].approved_monitoring_companies == (
+            MonitoringCompany(
+                name="Central One",
+                status=MonitoringCompanyStatus.APPROVED,
+            ),
+        )
+        assert coordinator.spaces["s1"].monitoring_companies_loaded is True
 
 
 class TestAsyncUpdateData:
@@ -189,6 +230,40 @@ class TestAsyncUpdateData:
         result = await coordinator._async_update_data()
         assert "s1" in result["spaces"]
         assert "s2" not in result["spaces"]
+
+    @pytest.mark.asyncio
+    async def test_update_data_preserves_cached_monitoring_companies_between_snapshot_refreshes(
+        self,
+    ) -> None:
+        coordinator = _make_coordinator()
+        coordinator._client.session.is_authenticated = True
+        coordinator._streams_started = True
+        coordinator._rooms_last_fetch = asyncio.get_running_loop().time()
+        coordinator.spaces["s1"] = replace(
+            _make_space("s1"),
+            monitoring_companies=(
+                MonitoringCompany(
+                    name="Central One",
+                    status=MonitoringCompanyStatus.APPROVED,
+                ),
+            ),
+            monitoring_companies_loaded=True,
+        )
+
+        coordinator._spaces_api = MagicMock()
+        coordinator._spaces_api.list_spaces = AsyncMock(return_value=[_make_space("s1")])
+        coordinator._devices_api = MagicMock()
+        coordinator._devices_api.get_devices_snapshot = AsyncMock(return_value=[])
+
+        await coordinator._async_update_data()
+
+        assert coordinator.spaces["s1"].approved_monitoring_companies == (
+            MonitoringCompany(
+                name="Central One",
+                status=MonitoringCompanyStatus.APPROVED,
+            ),
+        )
+        assert coordinator.spaces["s1"].monitoring_companies_loaded is True
 
     @pytest.mark.asyncio
     async def test_update_data_raises_update_failed_on_error(self) -> None:

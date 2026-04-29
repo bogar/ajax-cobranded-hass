@@ -161,6 +161,7 @@
             "mains_power": {"name": "Netzstrom"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Leitstellenanbieter"},
             "signal_strength": {"name": "Signalstärke"},
             "mobile_network_type": {"name": "Mobilfunknetztyp"},
             "wifi_signal_level": {"name": "WLAN-Signalstärke"},

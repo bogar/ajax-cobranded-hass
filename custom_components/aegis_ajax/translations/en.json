@@ -165,6 +165,7 @@
             "mains_power": {"name": "Mains power"}
         },
         "sensor": {
+            "monitoring_company": {"name": "CRA company"},
             "signal_strength": {"name": "Signal strength"},
             "mobile_network_type": {"name": "Mobile network type"},
             "wifi_signal_level": {"name": "Wi-Fi signal level"},

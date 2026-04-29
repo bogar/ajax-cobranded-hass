@@ -161,6 +161,7 @@
             "mains_power": {"name": "Зовнішнє живлення"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Компанія ЦМО"},
             "signal_strength": {"name": "Рівень сигналу"},
             "mobile_network_type": {"name": "Тип мобільної мережі"},
             "wifi_signal_level": {"name": "Рівень сигналу Wi-Fi"},

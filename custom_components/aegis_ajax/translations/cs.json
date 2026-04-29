@@ -161,6 +161,7 @@
             "mains_power": {"name": "Napájení ze sítě"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Společnost PCO"},
             "signal_strength": {"name": "Síla signálu"},
             "mobile_network_type": {"name": "Typ mobilní sítě"},
             "wifi_signal_level": {"name": "Úroveň Wi-Fi signálu"},

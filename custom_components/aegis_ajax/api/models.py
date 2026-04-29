@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import IntEnum
 from typing import Any
 
 from custom_components.aegis_ajax.const import (
@@ -10,6 +11,23 @@ from custom_components.aegis_ajax.const import (
     DeviceState,
     SecurityState,
 )
+
+
+class MonitoringCompanyStatus(IntEnum):
+    """Ajax monitoring-company lifecycle states."""
+
+    UNSPECIFIED = 0
+    PENDING_APPROVAL = 1
+    APPROVED = 2
+    PENDING_DELETION = 3
+
+
+@dataclass(frozen=True)
+class MonitoringCompany:
+    """Represents a monitoring company attached to a space."""
+
+    name: str
+    status: MonitoringCompanyStatus
 
 
 @dataclass(frozen=True)
@@ -22,6 +40,8 @@ class Space:
     security_state: SecurityState
     connection_status: ConnectionStatus
     malfunctions_count: int
+    monitoring_companies: tuple[MonitoringCompany, ...] = field(default_factory=tuple)
+    monitoring_companies_loaded: bool = False
 
     @property
     def is_online(self) -> bool:
@@ -35,6 +55,18 @@ class Space:
             SecurityState.PARTIALLY_ARMED,
         )
 
+    @property
+    def approved_monitoring_companies(self) -> tuple[MonitoringCompany, ...]:
+        return tuple(
+            company
+            for company in self.monitoring_companies
+            if company.status == MonitoringCompanyStatus.APPROVED
+        )
+
+    @property
+    def has_monitoring(self) -> bool:
+        return bool(self.approved_monitoring_companies)
+
 
 @dataclass(frozen=True)
 class Room:
@@ -43,6 +75,15 @@ class Room:
     id: str
     name: str
     space_id: str
+
+
+@dataclass(frozen=True)
+class SpaceSnapshot:
+    """Subset of full space snapshot data used by the integration."""
+
+    rooms: tuple[Room, ...] = field(default_factory=tuple)
+    monitoring_companies: tuple[MonitoringCompany, ...] = field(default_factory=tuple)
+    monitoring_companies_loaded: bool = False
 
 
 @dataclass(frozen=True)

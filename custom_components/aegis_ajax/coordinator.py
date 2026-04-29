@@ -213,6 +213,17 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     s = dc_replace(s, security_state=opt[1])
                 elif opt and opt[0] <= now:
                     self._optimistic_space_states.pop(s.id, None)
+                previous = self.spaces.get(s.id)
+                if previous and (
+                    previous.monitoring_companies or previous.monitoring_companies_loaded
+                ):
+                    from dataclasses import replace as dc_replace  # noqa: PLC0415
+
+                    s = dc_replace(
+                        s,
+                        monitoring_companies=previous.monitoring_companies,
+                        monitoring_companies_loaded=previous.monitoring_companies_loaded,
+                    )
                 new_spaces[s.id] = s
             self.spaces = new_spaces
 
@@ -234,15 +245,24 @@ class AjaxCobrandedCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._rooms_last_fetch is None
                 or now - self._rooms_last_fetch > rooms_refresh_interval
             ):
+                from dataclasses import replace as dc_replace  # noqa: PLC0415
+
                 refreshed_rooms: dict[str, Room] = {}
                 for space_id in self.spaces:
                     try:
-                        space_rooms = await self._spaces_api.list_rooms(space_id)
+                        snapshot = await self._spaces_api.get_space_snapshot(space_id)
                     except Exception:  # noqa: BLE001
                         _LOGGER.debug("Failed to fetch rooms for space %s", space_id, exc_info=True)
                         continue
-                    for room in space_rooms:
+                    for room in snapshot.rooms:
                         refreshed_rooms[room.id] = room
+                    current_space = self.spaces.get(space_id)
+                    if current_space is not None:
+                        self.spaces[space_id] = dc_replace(
+                            current_space,
+                            monitoring_companies=snapshot.monitoring_companies,
+                            monitoring_companies_loaded=snapshot.monitoring_companies_loaded,
+                        )
                 self.rooms = refreshed_rooms
                 self._rooms_last_fetch = now
 

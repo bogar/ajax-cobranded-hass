@@ -37,7 +37,6 @@ BINARY_SENSOR_TYPES: dict[str, BinarySensorTypeInfo] = {
     "tamper": BinarySensorTypeInfo(BinarySensorDeviceClass.TAMPER, "tamper"),
     "co_detected": BinarySensorTypeInfo(BinarySensorDeviceClass.CO),
     "high_temperature": BinarySensorTypeInfo(BinarySensorDeviceClass.HEAT),
-    "monitoring_active": BinarySensorTypeInfo(BinarySensorDeviceClass.CONNECTIVITY, "monitoring"),
     "gsm_connected": BinarySensorTypeInfo(BinarySensorDeviceClass.CONNECTIVITY, "gsm"),
     "lid_opened": BinarySensorTypeInfo(BinarySensorDeviceClass.TAMPER, "lid"),
     "external_contact_broken": BinarySensorTypeInfo(BinarySensorDeviceClass.PROBLEM, "ext_contact"),
@@ -236,24 +235,24 @@ _DEVICE_TYPE_SENSORS: dict[str, list[str]] = {
     "keypad_touchscreen_g3": ["tamper"],
     # Hub family. Modern firmwares use `_two`, `_two_plus`, etc.; legacy data
     # may still expose `hub_two_4g`. Keep them all mapped to the same set.
-    "hub": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_plus": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_4g": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_lite": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_two": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_two_plus": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_two_4g": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_two_lte_rtk": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_three": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_fibra": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_hybrid_2": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_hybrid_4g": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_mega": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_void_4g": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_yavir": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_yavir_plus": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_fire": ["monitoring_active", "gsm_connected", "lid_opened"],
-    "hub_superior": ["monitoring_active", "gsm_connected", "lid_opened"],
+    "hub": ["gsm_connected", "lid_opened"],
+    "hub_plus": ["gsm_connected", "lid_opened"],
+    "hub_4g": ["gsm_connected", "lid_opened"],
+    "hub_lite": ["gsm_connected", "lid_opened"],
+    "hub_two": ["gsm_connected", "lid_opened"],
+    "hub_two_plus": ["gsm_connected", "lid_opened"],
+    "hub_two_4g": ["gsm_connected", "lid_opened"],
+    "hub_two_lte_rtk": ["gsm_connected", "lid_opened"],
+    "hub_three": ["gsm_connected", "lid_opened"],
+    "hub_fibra": ["gsm_connected", "lid_opened"],
+    "hub_hybrid_2": ["gsm_connected", "lid_opened"],
+    "hub_hybrid_4g": ["gsm_connected", "lid_opened"],
+    "hub_mega": ["gsm_connected", "lid_opened"],
+    "hub_void_4g": ["gsm_connected", "lid_opened"],
+    "hub_yavir": ["gsm_connected", "lid_opened"],
+    "hub_yavir_plus": ["gsm_connected", "lid_opened"],
+    "hub_fire": ["gsm_connected", "lid_opened"],
+    "hub_superior": ["gsm_connected", "lid_opened"],
 }
 
 
@@ -277,6 +276,7 @@ async def async_setup_entry(
         if space.hub_id:
             hub_device = coordinator.devices.get(space.hub_id)
             if hub_device:
+                entities.append(AjaxCraConnectionSensor(coordinator, space.id, space.hub_id))
                 entities.append(AjaxHubEthernetSensor(coordinator, space.hub_id))
                 entities.append(AjaxHubWifiSensor(coordinator, space.hub_id))
                 entities.append(AjaxHubPowerSensor(coordinator, space.hub_id))
@@ -398,6 +398,33 @@ class AjaxProblemSensor(CoordinatorEntity[AjaxCobrandedCoordinator], BinarySenso
         if device:
             return {"malfunctions_count": device.malfunctions}
         return {}
+
+
+class AjaxCraConnectionSensor(CoordinatorEntity[AjaxCobrandedCoordinator], BinarySensorEntity):
+    """Binary sensor reporting whether the space has approved monitoring."""
+
+    _attr_has_entity_name = True
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_translation_key = "monitoring"
+
+    def __init__(self, coordinator: AjaxCobrandedCoordinator, space_id: str, hub_id: str) -> None:
+        super().__init__(coordinator)
+        self._space_id = space_id
+        self._hub_id = hub_id
+        self._attr_unique_id = f"aegis_ajax_{hub_id}_monitoring_active"
+        hub_device = coordinator.devices.get(hub_id)
+        if hub_device:
+            self._attr_device_info = build_device_info(hub_device, coordinator.rooms)
+
+    @property
+    def available(self) -> bool:
+        space = self.coordinator.spaces.get(self._space_id)
+        return space is not None and space.monitoring_companies_loaded
+
+    @property
+    def is_on(self) -> bool:
+        space = self.coordinator.spaces.get(self._space_id)
+        return space.has_monitoring if space is not None else False
 
 
 class _HubNetworkBinarySensor(CoordinatorEntity[AjaxCobrandedCoordinator], BinarySensorEntity):

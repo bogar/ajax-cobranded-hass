@@ -161,6 +161,7 @@
             "mains_power": {"name": "Netstroom"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Meldkamerbedrijf"},
             "signal_strength": {"name": "Signaalsterkte"},
             "mobile_network_type": {"name": "Mobiel netwerktype"},
             "wifi_signal_level": {"name": "Wi-Fi-signaalsterkte"},

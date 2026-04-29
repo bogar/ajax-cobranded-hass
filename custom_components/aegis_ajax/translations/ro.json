@@ -165,6 +165,7 @@
             "mains_power": {"name": "Alimentare rețea"}
         },
         "sensor": {
+            "monitoring_company": {"name": "Companie de monitorizare"},
             "signal_strength": {"name": "Puterea semnalului"},
             "mobile_network_type": {"name": "Tip rețea mobilă"},
             "wifi_signal_level": {"name": "Nivel semnal Wi-Fi"},

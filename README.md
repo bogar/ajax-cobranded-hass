@@ -22,7 +22,7 @@ Ajax Systems provides co-branded versions of their mobile app to security compan
 
 - **Alarm Control Panel**: Arm away, disarm, night mode, group arming with PIN code support
 - **Force Arm Services**: `aegis_ajax.force_arm` and `aegis_ajax.force_arm_night` to arm ignoring open sensors
-- **Binary Sensors**: Door open/close, motion detection, smoke, leak, tamper, CO, heat, glass break, vibration, CRA monitoring, cellular connection, lid tamper, external contact alert (wired reed switches on DoorProtect/Hub Hybrid inputs), external contact fault, MultiTransmitter wired-input alert with alarm category, anti-masking, interference detection, ethernet link, Wi-Fi link, mains power
+- **Binary Sensors**: Door open/close, motion detection, smoke, leak, tamper, CO, heat, glass break, vibration, CRA monitoring status, cellular connection, lid tamper, external contact alert (wired reed switches on DoorProtect/Hub Hybrid inputs), external contact fault, MultiTransmitter wired-input alert with alarm category, anti-masking, interference detection, ethernet link, Wi-Fi link, mains power
 - **Hub Network**: Real-time hub network data — ethernet/wifi/gsm connection status, Wi-Fi SSID and signal strength, IP addressing, cellular signal strength and network type, power supply status
 - **Sensors**: Battery level, temperature, humidity, CO2, signal strength, GSM type (2G/3G/4G), Wi-Fi signal level, Wi-Fi SSID, Wi-Fi IP, IMEI, Ethernet IP/gateway/DNS, cellular signal/network, connection type
 - **Switches**: Relays, wall switches, sockets (multi-channel support)
@@ -139,7 +139,7 @@ You can type any custom label during setup if yours is not listed.
 
 | Type | Devices | Entities |
 |---|---|---|
-| Hub | Hub, Hub Plus, Hub 4G, Hub Lite, Hub 2, Hub 2 Plus, Hub 2 4G, Hub 3, Hub Hybrid (2 / 4G), Hub Mega, Hub Fibra, Hub Yavir / Yavir Plus, Hub Fire, Hub Superior | Alarm panel, battery, GSM type/connected, CRA monitoring, lid tamper, IMEI, hub network sensors (Ethernet/Wi-Fi/GSM, IP data, cellular signal/network, mains power) |
+| Hub | Hub, Hub Plus, Hub 4G, Hub Lite, Hub 2, Hub 2 Plus, Hub 2 4G, Hub 3, Hub Hybrid (2 / 4G), Hub Mega, Hub Fibra, Hub Yavir / Yavir Plus, Hub Fire, Hub Superior | Alarm panel, battery, GSM type/connected, CRA monitoring status, CRA company (diagnostic), lid tamper, IMEI, hub network sensors (Ethernet/Wi-Fi/GSM, IP data, cellular signal/network, mains power) |
 | Door Sensors | DoorProtect, DoorProtect Plus, DoorProtect Fibra, DoorProtect S, DoorProtect S Plus, DoorProtect Plus Fibra, DoorProtect Plus G3 Fibra, DoorProtect G3 | Door open/close, tamper, vibration (Plus), battery, temperature, signal, external contact alert (wired contact triggered), external contact fault (wiring broken) |
 | Motion Sensors | MotionProtect, MotionProtect Plus, MotionProtect Outdoor, MotionProtect Curtain (and outdoor / mini / plus base variants), MotionProtect S / S Plus, MotionProtect G3 family (incl. Fibra), MotionProtect Plus Fibra / G3 | Motion detected (real-time), tamper, battery, temperature, signal |
 | Cameras | MotionCam, MotionCam Outdoor, MotionCam Fibra (& base), MotionCam G3, MotionCam HD, MotionCam PhOD, MotionCam PhOD Fibra, MotionCam Outdoor PhOD, MotionCam Outdoor 2/4 PhOD, MotionCam S PhOD (& AM), MotionCam Superior PhOD | Photo on-demand capture + storage (PhOD models), motion detected, tamper, battery |
@@ -232,7 +232,8 @@ An [example automations file](docs/automations.yaml) is also available with 24 a
 ## Entity Details
 
 ### Hub sensors
-- **CRA connection** — binary sensor showing if the hub is connected to the monitoring station
+- **CRA connection** — binary sensor showing whether the space has at least one approved monitoring company (CRA)
+- **CRA company** — disabled-by-default diagnostic sensor showing the approved monitoring company name; returns `multiple` if more than one approved CRA is attached
 - **Cellular connected** — binary sensor for GSM/4G connection status
 - **GSM type** — sensor showing connection type (2G/3G/4G)
 - **Hub network sensors** — Ethernet/Wi-Fi connectivity, Wi-Fi SSID/signal, Ethernet/Wi-Fi IP addressing, cellular signal/network, and mains power status
@@ -316,6 +317,7 @@ This integration uses three communication channels. Each entity type depends on 
 | Protocol | Entities | Transport | Notes |
 |----------|----------|-----------|-------|
 | **gRPC stream** | Door open/close, motion, tamper, connectivity, problem, battery, temperature, signal, alarm panel state, switches, lights | `mobile-gw.prod.ajax.systems:443` | Persistent stream, < 1s latency |
+| **gRPC space snapshot** | CRA connection, CRA company, room metadata | Same server | One-shot `SpaceService/stream` snapshot read at startup / refresh time, then cached between polls |
 | **gRPC request** | Arm/disarm, force arm, photo capture trigger | Same server | On-demand commands |
 | **HTS** | Ethernet (IP, gateway, DNS), Wi-Fi (SSID, signal, IP), cellular (signal, network), mains power, connection type | `hts.prod.ajax.systems:443` | Proprietary binary protocol over TCP+TLS |
 | **FCM push** | Security events (alarm, arm/disarm, tamper, panic, fire, flood, motion, door_open, etc.), photo URL retrieval | Firebase Cloud Messaging | Requires FCM credentials (configured in Options) |

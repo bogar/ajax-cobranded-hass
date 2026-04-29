@@ -5,7 +5,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from custom_components.aegis_ajax.api.models import Room, Space
+from custom_components.aegis_ajax.api.models import (
+    MonitoringCompany,
+    MonitoringCompanyStatus,
+    Room,
+    Space,
+    SpaceSnapshot,
+)
 from custom_components.aegis_ajax.const import ConnectionStatus, SecurityState
 
 if TYPE_CHECKING:
@@ -36,6 +42,19 @@ class SpacesApi:
             malfunctions_count=proto_space.malfunctions_count,
         )
 
+    @staticmethod
+    def parse_monitoring_company(proto_company: Any) -> MonitoringCompany:  # noqa: ANN401
+        has_name = hasattr(proto_company, "company_info") and hasattr(
+            proto_company.company_info,
+            "name",
+        )
+        name = proto_company.company_info.name if has_name else ""
+        try:
+            status = MonitoringCompanyStatus(proto_company.status)
+        except ValueError:
+            status = MonitoringCompanyStatus.UNSPECIFIED
+        return MonitoringCompany(name=name, status=status)
+
     async def list_spaces(self) -> list[Space]:
         from v3.mobilegwsvc.service.find_user_spaces_with_pagination import (  # noqa: PLC0415
             endpoint_pb2_grpc,
@@ -55,11 +74,12 @@ class SpacesApi:
 
         return [self.parse_space(s) for s in response.success.spaces]
 
-    async def list_rooms(self, space_id: str) -> list[Room]:
-        """Return the rooms defined in the given space.
+    async def get_space_snapshot(self, space_id: str) -> SpaceSnapshot:
+        """Return a subset of the full space snapshot.
 
         Reads the snapshot message from `SpaceService/stream` and closes
-        the stream — rooms rarely change so we don't keep it open.
+        the stream — rooms and monitoring-company metadata rarely change so
+        we don't keep it open.
         """
         from systems.ajax.api.mobile.v2.common.space import (  # noqa: PLC0415
             space_locator_pb2,
@@ -79,6 +99,7 @@ class SpacesApi:
         stream = stub.stream(request, metadata=metadata, timeout=15)
 
         rooms: list[Room] = []
+        monitoring_companies: list[MonitoringCompany] = []
         try:
             async for msg in stream:
                 if msg.HasField("failure"):
@@ -90,13 +111,24 @@ class SpacesApi:
                     continue
                 for proto_room in msg.success.snapshot.rooms:
                     rooms.append(Room(id=proto_room.id, name=proto_room.name, space_id=space_id))
+                for proto_company in msg.success.snapshot.monitoring_companies:
+                    monitoring_companies.append(self.parse_monitoring_company(proto_company))
                 break
         finally:
             cancel = getattr(stream, "cancel", None)
             if callable(cancel):
                 cancel()
 
-        return rooms
+        return SpaceSnapshot(
+            rooms=tuple(rooms),
+            monitoring_companies=tuple(monitoring_companies),
+            monitoring_companies_loaded=True,
+        )
+
+    async def list_rooms(self, space_id: str) -> list[Room]:
+        """Return the rooms defined in the given space."""
+        snapshot = await self.get_space_snapshot(space_id)
+        return list(snapshot.rooms)
 
     async def press_panic_button(
         self,

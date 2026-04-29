@@ -2,21 +2,28 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from unittest.mock import MagicMock
 
 import pytest
 
 from custom_components.aegis_ajax.api.hts.hub_state import HubNetworkState
-from custom_components.aegis_ajax.api.models import Device
+from custom_components.aegis_ajax.api.models import (
+    Device,
+    MonitoringCompany,
+    MonitoringCompanyStatus,
+    Space,
+)
 from custom_components.aegis_ajax.binary_sensor import (
     _DEVICE_TYPE_SENSORS,
     BINARY_SENSOR_TYPES,
     AjaxBinarySensor,
     AjaxConnectivitySensor,
+    AjaxCraConnectionSensor,
     AjaxHubWifiSensor,
     AjaxProblemSensor,
 )
-from custom_components.aegis_ajax.const import DeviceState
+from custom_components.aegis_ajax.const import ConnectionStatus, DeviceState, SecurityState
 
 
 class TestBinarySensorTypes:
@@ -40,9 +47,6 @@ class TestBinarySensorTypes:
 
     def test_high_temperature_type_exists(self) -> None:
         assert "high_temperature" in BINARY_SENSOR_TYPES
-
-    def test_monitoring_active_type_exists(self) -> None:
-        assert "monitoring_active" in BINARY_SENSOR_TYPES
 
     def test_gsm_connected_type_exists(self) -> None:
         assert "gsm_connected" in BINARY_SENSOR_TYPES
@@ -189,31 +193,6 @@ class TestAjaxBinarySensor:
         sensor = AjaxBinarySensor(coordinator=coordinator, device_id="dev-1", status_key="tamper")
         assert sensor.is_on is True
 
-    def test_hub_device_has_no_via_device(self) -> None:
-        from custom_components.aegis_ajax.api.models import Device
-        from custom_components.aegis_ajax.const import DeviceState
-
-        hub_device = Device(
-            id="hub-1",
-            hub_id="hub-1",
-            name="Hub",
-            device_type="hub_two_4g",
-            room_id=None,
-            group_id=None,
-            state=DeviceState.ONLINE,
-            malfunctions=0,
-            bypassed=False,
-            statuses={"monitoring_active": True},
-            battery=None,
-        )
-        coordinator = MagicMock()
-        coordinator.devices = {"hub-1": hub_device}
-        sensor = AjaxBinarySensor(
-            coordinator=coordinator, device_id="hub-1", status_key="monitoring_active"
-        )
-        assert sensor._attr_device_info is not None
-        assert "via_device" not in sensor._attr_device_info
-
     def test_non_hub_device_has_via_device(self) -> None:
         device = self._make_device({})
         coordinator = MagicMock()
@@ -223,30 +202,6 @@ class TestAjaxBinarySensor:
         )
         assert sensor._attr_device_info is not None
         assert sensor._attr_device_info.get("via_device") == ("aegis_ajax", "hub-1")
-
-    def test_monitoring_sensor_has_translation_key(self) -> None:
-        from custom_components.aegis_ajax.api.models import Device
-        from custom_components.aegis_ajax.const import DeviceState
-
-        hub_device = Device(
-            id="hub-1",
-            hub_id="hub-1",
-            name="Hub",
-            device_type="hub_two_4g",
-            room_id=None,
-            group_id=None,
-            state=DeviceState.ONLINE,
-            malfunctions=0,
-            bypassed=False,
-            statuses={},
-            battery=None,
-        )
-        coordinator = MagicMock()
-        coordinator.devices = {"hub-1": hub_device}
-        sensor = AjaxBinarySensor(
-            coordinator=coordinator, device_id="hub-1", status_key="monitoring_active"
-        )
-        assert sensor._attr_translation_key == "monitoring"
 
     def test_motion_sensor_extra_attributes_with_timestamp(self) -> None:
         device = self._make_device({"motion_detected": True, "motion_detected_at": 1700000000})
@@ -274,6 +229,91 @@ class TestAjaxBinarySensor:
         coordinator.devices = {"dev-1": device}
         sensor = AjaxBinarySensor(coordinator=coordinator, device_id="dev-1", status_key="tamper")
         assert sensor.extra_state_attributes == {}
+
+
+class TestAjaxCraConnectionSensor:
+    def _make_hub_device(self) -> Device:
+        return Device(
+            id="hub-1",
+            hub_id="hub-1",
+            name="Hub",
+            device_type="hub_two_4g",
+            room_id=None,
+            group_id=None,
+            state=DeviceState.ONLINE,
+            malfunctions=0,
+            bypassed=False,
+            statuses={},
+            battery=None,
+        )
+
+    def _make_space(self, companies: tuple[MonitoringCompany, ...]) -> Space:
+        return Space(
+            id="space-1",
+            hub_id="hub-1",
+            name="Home",
+            security_state=SecurityState.DISARMED,
+            connection_status=ConnectionStatus.ONLINE,
+            malfunctions_count=0,
+            monitoring_companies=companies,
+            monitoring_companies_loaded=True,
+        )
+
+    def test_unique_id_matches_legacy_entity(self) -> None:
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": self._make_hub_device()}
+        coordinator.spaces = {"space-1": self._make_space(())}
+
+        sensor = AjaxCraConnectionSensor(coordinator, "space-1", "hub-1")
+
+        assert sensor.unique_id == "aegis_ajax_hub-1_monitoring_active"
+
+    def test_is_on_when_space_has_approved_monitoring_company(self) -> None:
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": self._make_hub_device()}
+        coordinator.spaces = {
+            "space-1": self._make_space(
+                (
+                    MonitoringCompany(
+                        name="Central One",
+                        status=MonitoringCompanyStatus.APPROVED,
+                    ),
+                )
+            )
+        }
+
+        sensor = AjaxCraConnectionSensor(coordinator, "space-1", "hub-1")
+
+        assert sensor.is_on is True
+
+    def test_is_off_when_space_has_only_pending_monitoring_company(self) -> None:
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": self._make_hub_device()}
+        coordinator.spaces = {
+            "space-1": self._make_space(
+                (
+                    MonitoringCompany(
+                        name="Central One",
+                        status=MonitoringCompanyStatus.PENDING_APPROVAL,
+                    ),
+                )
+            )
+        }
+
+        sensor = AjaxCraConnectionSensor(coordinator, "space-1", "hub-1")
+
+        assert sensor.is_on is False
+
+    def test_is_unavailable_until_monitoring_snapshot_loaded(self) -> None:
+        coordinator = MagicMock()
+        coordinator.devices = {"hub-1": self._make_hub_device()}
+        coordinator.spaces = {
+            "space-1": replace(self._make_space(()), monitoring_companies_loaded=False)
+        }
+
+        sensor = AjaxCraConnectionSensor(coordinator, "space-1", "hub-1")
+
+        assert sensor.available is False
 
 
 class TestDeviceTypeSensors:
@@ -419,8 +459,8 @@ class TestDeviceTypeSensors:
     # Hub family — `hub`, `hub_plus`, `hub_two_4g` were already mapped, but
     # the v3 catalog also names `hub_two`, `hub_two_plus`, `hub_hybrid_*`,
     # `hub_mega`, `hub_lite`, `hub_4g`, `hub_three`, etc. Anyone running a
-    # Hub 2 / Hub 2 Plus was missing the monitoring/gsm/lid entities
-    # because of the same legacy-vs-current naming mismatch.
+    # Hub 2 / Hub 2 Plus was missing the hub-level GSM/lid entities because
+    # of the same legacy-vs-current naming mismatch.
     @pytest.mark.parametrize(
         "device_type",
         [
@@ -444,9 +484,8 @@ class TestDeviceTypeSensors:
             "hub_superior",
         ],
     )
-    def test_hub_family_has_monitoring_sensors(self, device_type: str) -> None:
+    def test_hub_family_has_gsm_and_lid_sensors(self, device_type: str) -> None:
         sensors = _DEVICE_TYPE_SENSORS[device_type]
-        assert "monitoring_active" in sensors
         assert "gsm_connected" in sensors
         assert "lid_opened" in sensors
 
